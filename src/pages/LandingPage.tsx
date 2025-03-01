@@ -1,6 +1,6 @@
 import React from "react";
 import HeroSection from "../ui/LandingPage/Hero";
-import HowItWorks from "../ui/LandingPage/HowitWorks";
+import HowItWorks from "../ui/LandingPage/HowItWorks";
 import SocialProof from "../ui/LandingPage/SocialProof";
 import Comparision from "../ui/LandingPage/Comparision";
 import DonationVisualization from "../ui/LandingPage/DonationVisual";

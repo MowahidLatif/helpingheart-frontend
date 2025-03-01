@@ -1,13 +1,12 @@
-import { useState } from "react";
 import "./App.css";
-import LoginPage from "./pages/LoginPage";
+import SignUp from "./pages/SignUp";
 import HomePage from "./pages/HomePage";
 import LandingPage from "./pages/LandingPage";
 
 function App() {
   return (
     <>
-      <LoginPage />
+      <SignUp />
       <HomePage />
       <LandingPage />
     </>
