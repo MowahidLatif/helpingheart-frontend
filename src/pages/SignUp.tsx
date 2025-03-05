@@ -33,16 +33,31 @@ const initialState: FormState = {
 };
 
 function formReducer(state: FormState, action: FormAction): FormState {
-  return {
-    ...state,
-    [action.type.replace("SET_", "").toLowerCase()]: action.payload,
-  };
+  switch (action.type) {
+    case "SET_FIRST_NAME":
+      return { ...state, firstName: action.payload };
+    case "SET_LAST_NAME":
+      return { ...state, lastName: action.payload };
+    case "SET_EMAIL":
+      return { ...state, email: action.payload };
+    case "SET_PASSWORD":
+      return { ...state, password: action.payload };
+    case "SET_COMPANY_NAME":
+      return { ...state, companyName: action.payload };
+    case "SET_COMPANY_WEBSITE":
+      return { ...state, companyWebsite: action.payload };
+    case "SET_COMPANY_DESCRIPTION":
+      return { ...state, companyDescription: action.payload };
+    case "SET_PHONE":
+      return { ...state, phone: action.payload };
+    default:
+      return state;
+  }
 }
 
 export default function SignUp() {
   const [state, dispatch] = useReducer(formReducer, initialState);
 
-  // Handles form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
