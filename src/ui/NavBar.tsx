@@ -14,7 +14,7 @@ const NavBar: React.FC = () => {
       }}
     >
       <Link to="/">Home</Link>
-      <Link to="/home">How It Works</Link>
+      <Link to="/how-it-works">How It Works</Link>
       <Link to="/pricing">Pricing</Link>
       <Link to="/about">About Us</Link>
       <Link to="/faq">FAQ</Link>
