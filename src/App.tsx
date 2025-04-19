@@ -4,7 +4,7 @@ import SignUp from "./pages/SignUp/SignUp";
 import HomePage from "./pages/Home/HomePage";
 import LandingPage from "./pages/Landing/LandingPage";
 import NavBar from "./ui/NavBar";
-import HowItWorks from "./pages/HowItWorks";
+import HowItWorks from "./pages/HowItWorks/HowItWorks";
 import Pricing from "./pages/Pricing/Pricing";
 import About from "./pages/About/About";
 import FAQ from "./pages/FAQ/FAQ";
