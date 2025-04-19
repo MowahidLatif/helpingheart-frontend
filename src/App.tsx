@@ -1,29 +1,16 @@
+// src/App.tsx
 import "./App.css";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import SignUp from "./pages/SignUp/SignUp";
-import HomePage from "./pages/Home/HomePage";
-import LandingPage from "./pages/Landing/LandingPage";
-import NavBar from "./ui/NavBar";
-import HowItWorks from "./pages/HowItWorks/HowItWorks";
-import Pricing from "./pages/Pricing/Pricing";
-import About from "./pages/About/About";
-import FAQ from "./pages/FAQ/FAQ";
-import Contact from "./pages/Contract/Contact";
+import { useRoutes, BrowserRouter as Router } from "react-router-dom";
+import NavBar from "@/ui/NavBar";
+import { routes } from "@/routes/AppRoutes";
 
 function App() {
+  const routing = useRoutes(routes);
+
   return (
     <Router>
       <NavBar />
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/home" element={<HomePage />} />
-        <Route path="/signup" element={<SignUp />} />
-        <Route path="/how-it-works" element={<HowItWorks />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/faq" element={<FAQ />} />
-        <Route path="/contact" element={<Contact />} />
-      </Routes>
+      {routing}
     </Router>
   );
 }
