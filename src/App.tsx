@@ -1,16 +1,18 @@
-// src/App.tsx
 import "./App.css";
-import { useRoutes, BrowserRouter as Router } from "react-router-dom";
+import { BrowserRouter as Router, useRoutes } from "react-router-dom";
 import NavBar from "@/ui/NavBar";
 import { routes } from "@/routes/AppRoutes";
 
-function App() {
+function AppRoutesWrapper() {
   const routing = useRoutes(routes);
+  return routing;
+}
 
+function App() {
   return (
     <Router>
       <NavBar />
-      {routing}
+      <AppRoutesWrapper />
     </Router>
   );
 }
