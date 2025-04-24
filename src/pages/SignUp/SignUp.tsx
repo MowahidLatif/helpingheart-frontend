@@ -1,4 +1,5 @@
 import React, { useReducer } from "react";
+import { useNavigate } from "react-router-dom";
 
 type FormState = {
   firstName: string;
@@ -57,6 +58,7 @@ function formReducer(state: FormState, action: FormAction): FormState {
 
 export default function SignUp() {
   const [state, dispatch] = useReducer(formReducer, initialState);
+  const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,8 +160,22 @@ export default function SignUp() {
             dispatch({ type: "SET_PHONE", payload: e.target.value })
           }
         />
+        <button
+          type="button"
+          onClick={() => navigate("/signin")}
+          style={{
+            marginTop: "1rem",
+            background: "none",
+            border: "none",
+            color: "blue",
+            cursor: "pointer",
+            textDecoration: "underline",
+          }}
+        >
+          Already have an account? Sign in
+        </button>
 
-        <button type="submit">Sign Up</button>
+        <button type="submit">Sign In</button>
       </form>
     </div>
   );
