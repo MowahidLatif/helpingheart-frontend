@@ -7,6 +7,7 @@ import Pricing from "@/pages/Pricing/Pricing";
 import About from "@/pages/About/About";
 import FAQ from "@/pages/FAQ/FAQ";
 import Contact from "@/pages/Contract/Contact";
+import Dashboard from "@/pages/Dashboard/DashboardPage";
 
 export const routes: RouteObject[] = [
   {
@@ -40,5 +41,9 @@ export const routes: RouteObject[] = [
   {
     path: "/contact",
     element: <Contact />,
+  },
+  {
+    path: "/dashboard",
+    element: <Dashboard />,
   },
 ];
