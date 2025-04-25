@@ -70,8 +70,12 @@ export default function SignIn() {
           required
         />
 
-        <button type="submit"
-        onClick={() => navigate("/dashboard")}>Sign In</button>
+        <button type="submit" onClick={() => navigate("/dashboard")}>
+          Sign In
+        </button>
+        <button type="submit" onClick={() => navigate("/reset-credentials")}>
+          Reset Password
+        </button>
       </form>
     </div>
   );

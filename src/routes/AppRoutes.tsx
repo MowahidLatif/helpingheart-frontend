@@ -9,6 +9,7 @@ import About from "@/pages/About/About";
 import FAQ from "@/pages/FAQ/FAQ";
 import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
+import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 
 export const routes: RouteObject[] = [
   {
@@ -50,5 +51,9 @@ export const routes: RouteObject[] = [
   {
     path: "/dashboard",
     element: <Dashboard />,
+  },
+  {
+    path: "/reset-credentials",
+    element: <ResetCredentials />,
   },
 ];
