@@ -5,24 +5,28 @@ type SidebarProps = {
 const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
   const campaigns = [
     {
-      title: "bill",
+      name: "bill",
       goal_amount: 1000,
-      description: "blank data",
+      description: "dfgadfasd",
+      campaign_id: 1,
     },
     {
       name: "tom",
       goal_amount: 897,
-      description: "blank data",
+      description: "zfgnsafdszvsdvCCSD",
+      campaign_id: 2,
     },
     {
       name: "jack",
       goal_amount: 587,
-      description: "blank data",
+      description: "asdhgnbfdvzszgxchnxfb",
+      campaign_id: 3,
     },
     {
       name: "henry",
       goal_amount: 5647,
-      description: "blank data",
+      description: "34567654323478765433467876543234567876543456",
+      campaign_id: 4,
     },
   ];
 
@@ -33,7 +37,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
       </button>
       <ul>
         {campaigns.map((c) => (
-          <li key={c.name} onClick={() => onSelectCampaign(c)}>
+          <li key={c.campaign_id} onClick={() => onSelectCampaign(c)}>
             {c.goal_amount}
           </li>
         ))}

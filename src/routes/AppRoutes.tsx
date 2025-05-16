@@ -10,6 +10,7 @@ import FAQ from "@/pages/FAQ/FAQ";
 import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
+import PreviewPage from "@/pages/Preview/Preview";
 
 export const routes: RouteObject[] = [
   {
@@ -55,5 +56,9 @@ export const routes: RouteObject[] = [
   {
     path: "/reset-credentials",
     element: <ResetCredentials />,
+  },
+  {
+    path: "/preview",
+    element: <PreviewPage />,
   },
 ];
