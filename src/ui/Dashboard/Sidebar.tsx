@@ -35,13 +35,22 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
       <button onClick={() => console.log("open campaign modal")}>
         ➕ Add Campaign
       </button>
-      <ul>
-        {campaigns.map((c) => (
-          <li key={c.campaign_id} onClick={() => onSelectCampaign(c)}>
-            {c.goal_amount}
-          </li>
-        ))}
-      </ul>
+      <h2>Campaigns</h2>
+      {campaigns.length === 0 ? (
+        <p>No campaigns yet.</p>
+      ) : (
+        <ul style={{ listStyle: "none", padding: 0 }}>
+          {campaigns.map((c) => (
+            <li
+              key={c.campaign_id}
+              onClick={() => onSelectCampaign(c)}
+              style={{ cursor: "pointer", marginBottom: "0.5rem" }}
+            >
+              {c.goal_amount}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
