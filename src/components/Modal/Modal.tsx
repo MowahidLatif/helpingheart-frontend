@@ -1,18 +1,18 @@
 import React from "react";
-import styles from "./Button.module.scss";
+import styles from "./Modal.module.scss";
 
-type ButtonProps = {
+type ModalProps = {
   isOpen: boolean;
   onClose: () => void;
   children: React.ReactNode;
 };
 
-const Button: React.FC<ButtonProps> = ({ isOpen, onClose, children }) => {
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
 
   return (
     <div className={styles.overlay}>
-      <div className={styles.Button}>
+      <div className={styles.modal}>
         <button className={styles.closeButton} onClick={onClose}>
           &times;
         </button>
@@ -22,4 +22,4 @@ const Button: React.FC<ButtonProps> = ({ isOpen, onClose, children }) => {
   );
 };
 
-export default Button;
+export default Modal;
