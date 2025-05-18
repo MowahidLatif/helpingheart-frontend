@@ -1,5 +1,6 @@
 import { RouteObject } from "react-router-dom";
 import SignUp from "@/pages/SignUp/SignUp";
+import SettingsPage from "@/pages/Setting/SettingsPage";
 import SignIn from "@/pages/SignIn/SignIn";
 import HomePage from "@/pages/Home/HomePage";
 import LandingPage from "@/pages/Landing/LandingPage";
@@ -60,5 +61,9 @@ export const routes: RouteObject[] = [
   {
     path: "/preview",
     element: <PreviewPage />,
+  },
+  {
+    path: "/settings",
+    element: <SettingsPage />,
   },
 ];
