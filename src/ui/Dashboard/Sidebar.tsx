@@ -1,8 +1,12 @@
+import { useNavigate } from "react-router-dom";
+
 type SidebarProps = {
   onSelectCampaign: (campaign: any) => void;
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
+  const navigate = useNavigate();
+
   const campaigns = [
     {
       name: "bill",
@@ -32,9 +36,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
 
   return (
     <div>
-      <button onClick={() => console.log("open campaign modal")}>
-        ➕ Add Campaign
-      </button>
+      <button onClick={() => navigate("/campaign/new")}>➕ Add Campaign</button>
       <h2>Campaigns</h2>
       {campaigns.length === 0 ? (
         <p>No campaigns yet.</p>

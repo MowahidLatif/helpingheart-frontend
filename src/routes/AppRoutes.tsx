@@ -12,6 +12,8 @@ import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
+import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
+import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 
 export const routes: RouteObject[] = [
   {
@@ -65,5 +67,13 @@ export const routes: RouteObject[] = [
   {
     path: "/settings",
     element: <SettingsPage />,
+  },
+  {
+    path: "/campaign/new",
+    element: <CreateCampaignPage />,
+  },
+  {
+    path: "/campaign/layout-builder/:id",
+    element: <LayoutBuilderPage />,
   },
 ];
