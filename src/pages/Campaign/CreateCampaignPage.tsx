@@ -12,12 +12,11 @@ const CreateCampaignPage = () => {
     //   goal_amount,
     //   layout_type
     // };
-
     // Simulate POST to backend and get new campaign
     // const response = await axios.post("/api/campaigns", newCampaign);
     // const campaignId = response.data.id;
-
     // navigate(`/campaign/layout-builder/${campaignId}`);
+    // navigate(`/campaign/layout-builder/1`);
   };
 
   return (
@@ -63,7 +62,9 @@ const CreateCampaignPage = () => {
         <br />
         <br />
 
-        <button type="submit">Continue to Layout Editor</button>
+        <button type="submit" onClick={handleSubmit}>
+          Continue to Layout Editor
+        </button>
       </form>
     </div>
   );
