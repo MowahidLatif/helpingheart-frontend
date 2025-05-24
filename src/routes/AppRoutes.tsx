@@ -12,6 +12,7 @@ import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
+import EditPage from "@/pages/Edit/EditPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 
@@ -63,6 +64,10 @@ export const routes: RouteObject[] = [
   {
     path: "/preview",
     element: <PreviewPage />,
+  },
+  {
+    path: "/edit",
+    element: <EditPage />,
   },
   {
     path: "/settings",

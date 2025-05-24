@@ -12,6 +12,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const handlePublish = () => {
     navigate("/preview", { state: { campaignId: campaign.campaign_id } });
   };
+  const handleEdit = () => {
+    navigate("/edit", { state: { campaignId: campaign.campaign_id } });
+  };
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -40,6 +43,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
       </div>
 
       <button onClick={handlePublish}>Preview & Publish</button>
+      <button onClick={handleEdit}>Edit</button>
 
       <div style={{ marginTop: "2rem" }}>
         <h3>🧾 Recent Donations</h3>
