@@ -12,7 +12,6 @@ import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
-import EditPage from "@/pages/Edit/EditPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 
@@ -66,10 +65,6 @@ export const routes: RouteObject[] = [
     element: <PreviewPage />,
   },
   {
-    path: "/edit",
-    element: <EditPage />,
-  },
-  {
     path: "/settings",
     element: <SettingsPage />,
   },
@@ -78,7 +73,7 @@ export const routes: RouteObject[] = [
     element: <CreateCampaignPage />,
   },
   {
-    path: "/campaign/layout-builder/:id",
+    path: "/campaign/layout-builder/:campaignId",
     element: <LayoutBuilderPage />,
   },
 ];

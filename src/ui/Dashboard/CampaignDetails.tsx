@@ -12,8 +12,11 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const handlePublish = () => {
     navigate("/preview", { state: { campaignId: campaign.campaign_id } });
   };
+
   const handleEdit = () => {
-    navigate("/edit", { state: { campaignId: campaign.campaign_id } });
+    navigate(`/campaign/layout-builder/${campaign.campaign_id}`, {
+      state: { campaignId: campaign.campaign_id },
+    });
   };
 
   return (
