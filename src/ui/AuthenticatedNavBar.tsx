@@ -16,6 +16,7 @@ const AuthenticatedNavBar = () => {
         gap: ".5rem",
       }}
     >
+      <p>Company Name</p>
       <Button buttonName="Campaign" onClick={() => navigate("/dashboard")} />
       <Button buttonName="Settings" onClick={() => navigate("/settings")} />
       <LogoutButton />
