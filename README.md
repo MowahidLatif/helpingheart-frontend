@@ -1,51 +1,83 @@
-# React + TypeScript + Vite
+# Donation Platform Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite frontend for the donation platform.
 
-Currently, two official plugins are available:
+## Quick Start
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## Expanding the ESLint configuration
+2. **Configure environment:**
+   Create a `.env` file:
+   ```
+   VITE_API_BASE_URL=http://127.0.0.1:5050
+   ```
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+3. **Start development server:**
+   ```bash
+   npm run dev
+   ```
 
-- Configure the top-level `parserOptions` property like this:
+4. **Open browser:**
+   Navigate to `http://localhost:5173`
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+## Project Structure
+
+```
+src/
+├── lib/              # Shared utilities
+│   ├── api.ts        # Axios instance with auth
+│   ├── auth.ts       # Auth helpers
+│   └── constants.ts  # API endpoints
+├── pages/            # Page components
+│   ├── SignIn/       # Login page
+│   ├── SignUp/       # Registration page
+│   ├── Dashboard/    # Main dashboard
+│   ├── Campaign/     # Campaign pages
+│   │   ├── CreateCampaignPage.tsx
+│   │   ├── LayoutBuilderPage.tsx (media)
+│   │   └── PageLayoutBuilder.tsx (blocks)
+│   └── ...
+├── ui/               # Reusable UI components
+│   └── Dashboard/
+│       ├── Sidebar.tsx
+│       └── CampaignDetails.tsx
+└── routes/           # Route configuration
+    └── AppRoutes.tsx
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Key Features
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+- **Authentication**: JWT-based auth with auto-refresh
+- **Campaign Management**: Create, edit, and manage campaigns
+- **Page Builder**: Drag-and-drop style block builder for donation pages
+- **Media Upload**: Upload images, videos, and documents
+- **Real-time Progress**: View campaign progress and donations
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
-# helpingheart-frontend
+## Integration
+
+See [INTEGRATION.md](./INTEGRATION.md) for detailed API integration documentation.
+
+## Technologies
+
+- React 18
+- TypeScript
+- Vite
+- React Router
+- Axios
+- TailwindCSS (via @/ path alias)
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
+
+## Backend Connection
+
+Ensure the backend API is running at `http://127.0.0.1:5050` before starting the frontend.
+
+Backend repository: `/Users/mowahidlatif/Code/donation-backend`

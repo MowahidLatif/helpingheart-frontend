@@ -1,22 +1,40 @@
-import React from "react";
+import React, { useState, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import api, { getErrorMessage } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 const CreateCampaignPage = () => {
   const navigate = useNavigate();
+  const [title, setTitle] = useState("");
+  const [goal, setGoal] = useState("");
+  const [status, setStatus] = useState("draft");
+  const [giveawayPrize, setGiveawayPrize] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = async () => {
-    // e.preventDefault();
-    // const newCampaign = {
-    //   title,
-    //   description,
-    //   goal_amount,
-    //   layout_type
-    // };
-    // Simulate POST to backend and get new campaign
-    // const response = await axios.post("/api/campaigns", newCampaign);
-    // const campaignId = response.data.id;
-    // navigate(`/campaign/layout-builder/${campaignId}`);
-    // navigate(`/campaign/layout-builder/1`);
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const payload: any = {
+        title: title.trim(),
+        goal: parseFloat(goal) || 0,
+        status,
+      };
+      if (giveawayPrize) {
+        payload.giveaway_prize_cents = Math.round(parseFloat(giveawayPrize) * 100);
+      }
+
+      const response = await api.post(API_ENDPOINTS.campaigns.create, payload);
+      const campaignId = response.data.id;
+      navigate(`/campaign/layout-builder/${campaignId}`);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,44 +44,62 @@ const CreateCampaignPage = () => {
         Fill out the basic details to start building your donation campaign.
       </p>
 
-      <form>
+      {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
+
+      <form onSubmit={handleSubmit}>
         <label>
           Campaign Title:
-          <input type="text" placeholder="e.g. Save the Rainforest" />
-        </label>
-        <br />
-        <br />
-
-        <label>
-          Campaign Description:
-          <textarea
-            placeholder="Describe your cause and how donations will help..."
-            rows={5}
+          <input
+            type="text"
+            placeholder="e.g. Save the Rainforest"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
           />
         </label>
         <br />
         <br />
 
         <label>
-          Goal Amount:
-          <input type="number" placeholder="e.g. 5000" />
+          Goal Amount ($):
+          <input
+            type="number"
+            placeholder="e.g. 5000"
+            value={goal}
+            onChange={(e) => setGoal(e.target.value)}
+            min="0"
+            step="0.01"
+          />
         </label>
         <br />
         <br />
 
         <label>
-          Choose Layout Type:
-          <select>
-            <option value="basic">Basic</option>
-            <option value="media-heavy">Media-Focused</option>
-            <option value="testimonial">Testimonial Style</option>
+          Giveaway Prize (optional, $):
+          <input
+            type="number"
+            placeholder="e.g. 1000"
+            value={giveawayPrize}
+            onChange={(e) => setGiveawayPrize(e.target.value)}
+            min="0"
+            step="0.01"
+          />
+        </label>
+        <br />
+        <br />
+
+        <label>
+          Status:
+          <select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <option value="draft">Draft</option>
+            <option value="active">Active</option>
           </select>
         </label>
         <br />
         <br />
 
-        <button type="submit" onClick={handleSubmit}>
-          Continue to Layout Editor
+        <button type="submit" disabled={loading || !title.trim()}>
+          {loading ? "Creating..." : "Continue to Layout Editor"}
         </button>
       </form>
     </div>

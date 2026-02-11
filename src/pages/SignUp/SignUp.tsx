@@ -1,182 +1,132 @@
-import React, { useReducer } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-type FormState = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  companyName: string;
-  companyWebsite?: string;
-  companyDescription?: string;
-  phone?: string;
-};
-
-type FormAction =
-  | { type: "SET_FIRST_NAME"; payload: string }
-  | { type: "SET_LAST_NAME"; payload: string }
-  | { type: "SET_EMAIL"; payload: string }
-  | { type: "SET_PASSWORD"; payload: string }
-  | { type: "SET_COMPANY_NAME"; payload: string }
-  | { type: "SET_COMPANY_WEBSITE"; payload: string }
-  | { type: "SET_COMPANY_DESCRIPTION"; payload: string }
-  | { type: "SET_PHONE"; payload: string };
-
-const initialState: FormState = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  companyName: "",
-  companyWebsite: "",
-  companyDescription: "",
-  phone: "",
-};
-
-function formReducer(state: FormState, action: FormAction): FormState {
-  switch (action.type) {
-    case "SET_FIRST_NAME":
-      return { ...state, firstName: action.payload };
-    case "SET_LAST_NAME":
-      return { ...state, lastName: action.payload };
-    case "SET_EMAIL":
-      return { ...state, email: action.payload };
-    case "SET_PASSWORD":
-      return { ...state, password: action.payload };
-    case "SET_COMPANY_NAME":
-      return { ...state, companyName: action.payload };
-    case "SET_COMPANY_WEBSITE":
-      return { ...state, companyWebsite: action.payload };
-    case "SET_COMPANY_DESCRIPTION":
-      return { ...state, companyDescription: action.payload };
-    case "SET_PHONE":
-      return { ...state, phone: action.payload };
-    default:
-      return state;
-  }
-}
+import api, { getErrorMessage } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 export default function SignUp() {
-  const [state, dispatch] = useReducer(formReducer, initialState);
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [orgName, setOrgName] = useState("");
+  const [orgSubdomain, setOrgSubdomain] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !state.email ||
-      !state.firstName ||
-      !state.lastName ||
-      !state.password ||
-      !state.companyName
-    ) {
+    if (!email || !firstName || !lastName || !password || !orgName) {
       alert("Please fill in all required fields.");
       return;
     }
 
-    console.log("Submitting Signup Data:", state);
-    // TODO: Send this data to the backend API (e.g., using Axios)
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await api.post(API_ENDPOINTS.auth.register, {
+        email,
+        password,
+        first_name: firstName,
+        last_name: lastName,
+        org_name: orgName,
+        org_subdomain: orgSubdomain || undefined,
+      });
+
+      const { access_token, id, email: userEmail, name, org_id } = response.data;
+      localStorage.setItem("token", access_token);
+      localStorage.setItem("user", JSON.stringify({ id, email: userEmail, name, org_id }));
+      
+      navigate("/dashboard");
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div>
+    <div style={{ padding: "2rem", maxWidth: "500px", margin: "0 auto" }}>
       <h2>Sign Up</h2>
+      {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
       <form onSubmit={handleSubmit}>
         <label>First Name:</label>
         <input
           type="text"
-          value={state.firstName}
-          onChange={(e) =>
-            dispatch({ type: "SET_FIRST_NAME", payload: e.target.value })
-          }
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
           required
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
 
         <label>Last Name:</label>
         <input
           type="text"
-          value={state.lastName}
-          onChange={(e) =>
-            dispatch({ type: "SET_LAST_NAME", payload: e.target.value })
-          }
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
           required
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
 
         <label>Email:</label>
         <input
           type="email"
-          value={state.email}
-          onChange={(e) =>
-            dispatch({ type: "SET_EMAIL", payload: e.target.value })
-          }
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
 
         <label>Password:</label>
         <input
           type="password"
-          value={state.password}
-          onChange={(e) =>
-            dispatch({ type: "SET_PASSWORD", payload: e.target.value })
-          }
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
           required
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
 
-        <label>Company Name:</label>
+        <label>Organization Name:</label>
         <input
           type="text"
-          value={state.companyName}
-          onChange={(e) =>
-            dispatch({ type: "SET_COMPANY_NAME", payload: e.target.value })
-          }
+          value={orgName}
+          onChange={(e) => setOrgName(e.target.value)}
           required
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
 
-        <label>Company Website (optional):</label>
+        <label>Organization Subdomain (optional):</label>
         <input
           type="text"
-          value={state.companyWebsite}
-          onChange={(e) =>
-            dispatch({ type: "SET_COMPANY_WEBSITE", payload: e.target.value })
-          }
+          value={orgSubdomain}
+          onChange={(e) => setOrgSubdomain(e.target.value)}
+          placeholder="e.g., myorg"
+          style={{ width: "100%", marginBottom: "1rem" }}
         />
+        <small style={{ display: "block", marginBottom: "1rem", color: "#666" }}>
+          Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
+        </small>
 
-        <label>Company Description (optional):</label>
-        <textarea
-          value={state.companyDescription}
-          onChange={(e) =>
-            dispatch({
-              type: "SET_COMPANY_DESCRIPTION",
-              payload: e.target.value,
-            })
-          }
-        />
-
-        <label>Phone Number:</label>
-        <input
-          type="tel"
-          value={state.phone}
-          onChange={(e) =>
-            dispatch({ type: "SET_PHONE", payload: e.target.value })
-          }
-        />
-        <button
-          type="button"
-          onClick={() => navigate("/signin")}
-          style={{
-            marginTop: "1rem",
-            background: "none",
-            border: "none",
-            color: "blue",
-            cursor: "pointer",
-            textDecoration: "underline",
-          }}
-        >
-          Already have an account? Sign in
+        <button type="submit" disabled={loading}>
+          {loading ? "Creating account..." : "Sign Up"}
         </button>
-
-        <button type="submit">Sign In</button>
       </form>
+      <button
+        type="button"
+        onClick={() => navigate("/signin")}
+        style={{
+          marginTop: "1rem",
+          background: "none",
+          border: "none",
+          color: "blue",
+          cursor: "pointer",
+          textDecoration: "underline",
+        }}
+      >
+        Already have an account? Sign in
+      </button>
     </div>
   );
 }

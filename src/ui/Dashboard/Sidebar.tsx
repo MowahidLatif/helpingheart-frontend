@@ -1,54 +1,76 @@
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import api, { getErrorMessage } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
+
+type Campaign = {
+  id: string;
+  title: string;
+  slug: string;
+  goal: number;
+  status: string;
+  total_raised: number;
+};
 
 type SidebarProps = {
-  onSelectCampaign: (campaign: any) => void;
+  onSelectCampaign: (campaign: Campaign | null) => void;
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
   const navigate = useNavigate();
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const campaigns = [
-    {
-      name: "bill",
-      goal_amount: 1000,
-      description: "dfgadfasd",
-      campaign_id: 1,
-    },
-    {
-      name: "tom",
-      goal_amount: 897,
-      description: "zfgnsafdszvsdvCCSD",
-      campaign_id: 2,
-    },
-    {
-      name: "jack",
-      goal_amount: 587,
-      description: "asdhgnbfdvzszgxchnxfb",
-      campaign_id: 3,
-    },
-    {
-      name: "henry",
-      goal_amount: 5647,
-      description: "34567654323478765433467876543234567876543456",
-      campaign_id: 4,
-    },
-  ];
+  useEffect(() => {
+    loadCampaigns();
+  }, []);
+
+  const loadCampaigns = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await api.get(API_ENDPOINTS.campaigns.list);
+      setCampaigns(response.data);
+    } catch (err) {
+      const errMsg = getErrorMessage(err);
+      console.error('Failed to load campaigns:', errMsg);
+      setError(errMsg);
+      // Don't redirect on error - let ProtectedRoute handle auth
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div>
-      <button onClick={() => navigate("/campaign/new")}>➕ Add Campaign</button>
+    <div style={{ padding: "1rem" }}>
+      <button onClick={() => navigate("/campaign/new")} style={{ marginBottom: "1rem" }}>
+        ➕ Add Campaign
+      </button>
       <h2>Campaigns</h2>
-      {campaigns.length === 0 ? (
+      {loading && <p>Loading...</p>}
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {!loading && campaigns.length === 0 ? (
         <p>No campaigns yet.</p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {campaigns.map((c) => (
             <li
-              key={c.campaign_id}
+              key={c.id}
               onClick={() => onSelectCampaign(c)}
-              style={{ cursor: "pointer", marginBottom: "0.5rem" }}
+              style={{
+                cursor: "pointer",
+                marginBottom: "0.5rem",
+                padding: "0.5rem",
+                border: "1px solid #ddd",
+                borderRadius: "4px",
+              }}
             >
-              {c.goal_amount}
+              <strong>{c.title}</strong>
+              <br />
+              <small>
+                ${c.total_raised || 0} / ${c.goal} · {c.status}
+              </small>
             </li>
           ))}
         </ul>

@@ -14,6 +14,8 @@ import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
+import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const routes: RouteObject[] = [
   {
@@ -54,7 +56,11 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/dashboard",
-    element: <Dashboard />,
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/reset-credentials",
@@ -70,10 +76,26 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/campaign/new",
-    element: <CreateCampaignPage />,
+    element: (
+      <ProtectedRoute>
+        <CreateCampaignPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/campaign/layout-builder/:campaignId",
-    element: <LayoutBuilderPage />,
+    element: (
+      <ProtectedRoute>
+        <LayoutBuilderPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/campaign/page-layout/:campaignId",
+    element: (
+      <ProtectedRoute>
+        <PageLayoutBuilder />
+      </ProtectedRoute>
+    ),
   },
 ];
