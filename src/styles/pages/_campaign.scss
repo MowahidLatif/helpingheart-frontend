@@ -1,0 +1,146 @@
+// =============================================================================
+// Page-specific Styles - Campaign Pages
+// =============================================================================
+@use '../abstracts' as *;
+
+.campaign-builder-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.builder-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-background;
+  border-bottom: 1px solid $color-border;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-sm $spacing-md;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+  }
+}
+
+.builder-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr 300px;
+  flex: 1;
+  overflow: hidden;
+  
+  @include respond-below(tablet) {
+    grid-template-columns: 200px 1fr 250px;
+  }
+  
+  @include respond-below(mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.builder-sidebar {
+  background-color: $color-background-light;
+  border-right: 1px solid $color-border;
+  padding: $spacing-lg;
+  overflow-y: auto;
+  
+  @include respond-below(mobile) {
+    border-right: none;
+    border-bottom: 1px solid $color-border;
+    padding: $spacing-md;
+  }
+}
+
+.builder-canvas {
+  padding: $spacing-xl;
+  overflow-y: auto;
+  background-color: $color-background;
+  
+  @include respond-below(tablet) {
+    padding: $spacing-lg;
+  }
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.builder-properties {
+  background-color: $color-background-light;
+  border-left: 1px solid $color-border;
+  padding: $spacing-lg;
+  overflow-y: auto;
+  
+  @include respond-below(mobile) {
+    border-left: none;
+    border-top: 1px solid $color-border;
+    padding: $spacing-md;
+  }
+}
+
+.block-preview {
+  @include card-base;
+  margin-bottom: $spacing-md;
+  cursor: pointer;
+  transition: $transition-base;
+  
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+  
+  &.selected {
+    border-color: $color-primary;
+    border-width: 2px;
+  }
+}
+
+// Campaign list
+.campaign-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: $spacing-lg;
+  
+  @include respond-below(tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include respond-below(mobile) {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+}
+
+.campaign-card {
+  @include card-base;
+  @include hover-lift;
+  cursor: pointer;
+  
+  .campaign-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: $border-radius-md;
+    margin-bottom: $spacing-md;
+    
+    @include respond-below(mobile) {
+      height: 150px;
+    }
+  }
+  
+  .campaign-title {
+    font-size: $font-size-h4;
+    margin-bottom: $spacing-sm;
+    
+    @include respond-below(mobile) {
+      font-size: $font-size-h5;
+    }
+  }
+  
+  .campaign-stats {
+    display: flex;
+    justify-content: space-between;
+    color: $color-text-secondary;
+    font-size: $font-size-sm;
+  }
+}

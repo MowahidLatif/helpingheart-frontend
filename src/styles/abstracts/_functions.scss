@@ -1,0 +1,74 @@
+// =============================================================================
+// Functions - Reusable SCSS Functions
+// =============================================================================
+@use 'sass:math';
+@use 'sass:color';
+@use 'variables' as *;
+
+// -----------------------------------------------------------------------------
+// Spacing Functions
+// -----------------------------------------------------------------------------
+@function spacing($multiplier) {
+  @return $spacing-md * $multiplier;
+}
+
+// -----------------------------------------------------------------------------
+// Color Functions
+// -----------------------------------------------------------------------------
+@function shade($color, $percentage) {
+  @return color.mix(black, $color, $percentage);
+}
+
+@function tint($color, $percentage) {
+  @return color.mix(white, $color, $percentage);
+}
+
+// -----------------------------------------------------------------------------
+// Unit Conversion
+// -----------------------------------------------------------------------------
+@function strip-unit($number) {
+  @if type-of($number) == 'number' and not unitless($number) {
+    @return math.div($number, ($number * 0 + 1));
+  }
+  @return $number;
+}
+
+@function px-to-rem($px) {
+  @return math.div(strip-unit($px), 16) * 1rem;
+}
+
+@function rem-to-px($rem) {
+  @return strip-unit($rem) * 16 * 1px;
+}
+
+// -----------------------------------------------------------------------------
+// Z-index Management
+// -----------------------------------------------------------------------------
+$z-layers: (
+  'base': 0,
+  'dropdown': 1000,
+  'sticky': 1020,
+  'fixed': 1030,
+  'modal-backdrop': 1040,
+  'modal': 1050,
+  'popover': 1060,
+  'tooltip': 1070,
+);
+
+@function z-index($layer) {
+  @if map-has-key($z-layers, $layer) {
+    @return map-get($z-layers, $layer);
+  }
+  @warn "Unknown z-index layer: #{$layer}";
+  @return 0;
+}
+
+// -----------------------------------------------------------------------------
+// Responsive Font Size
+// -----------------------------------------------------------------------------
+@function fluid-size($min-size, $max-size, $min-vw: 320px, $max-vw: 1200px) {
+  $slope: math.div(($max-size - $min-size), ($max-vw - $min-vw));
+  $intercept: $min-size - ($slope * $min-vw);
+  
+  @return clamp(#{$min-size}, #{$intercept} + #{$slope * 100}vw, #{$max-size});
+}

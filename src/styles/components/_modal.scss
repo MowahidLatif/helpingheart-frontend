@@ -1,12 +1,91 @@
-.overlay {
-    // Full-screen dim background
+// =============================================================================
+// Modal Component
+// =============================================================================
+@use '../abstracts' as *;
+
+.modal-backdrop {
+  @include absolute-fill;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: z-index('modal-backdrop');
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-lg;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.modal {
+  background-color: $color-background;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: z-index('modal');
+  
+  @include respond-below(tablet) {
+    max-width: 90%;
   }
   
-  .modal {
-    // Centered box
+  @include respond-below(mobile) {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+.modal-header {
+  padding: $spacing-lg;
+  border-bottom: 1px solid $color-border;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  h2, h3, h4 {
+    margin: 0;
   }
   
-  .closeButton {
-    // top-right corner close button
+  @include respond-below(mobile) {
+    padding: $spacing-md;
   }
+}
+
+.modal-body {
+  padding: $spacing-lg;
   
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.modal-footer {
+  padding: $spacing-lg;
+  border-top: 1px solid $color-border;
+  display: flex;
+  gap: $spacing-md;
+  justify-content: flex-end;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+    flex-direction: column;
+    
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+.modal-close {
+  @include button-base;
+  padding: $spacing-xs;
+  color: $color-text-muted;
+  
+  &:hover {
+    color: $color-text-primary;
+  }
+}

@@ -1,30 +1,40 @@
-// Abstracts
-@import "abstracts/variables";
-@import "abstracts/mixins";
-@import "abstracts/functions";
+// =============================================================================
+// Main SCSS Entry Point
+// =============================================================================
+// This file imports all SCSS modules in the correct order
+// Desktop-first responsive strategy
 
-// Base
-@import "base/reset";
-@import "base/typography";
+// -----------------------------------------------------------------------------
+// 1. Abstracts (variables, mixins, functions)
+// -----------------------------------------------------------------------------
+@use 'abstracts';
 
-// Layout
-@import "layout/header";
-@import "layout/footer";
+// -----------------------------------------------------------------------------
+// 2. Base (reset, typography, global defaults)
+// -----------------------------------------------------------------------------
+@use 'base';
 
-// Components
-@import "components/button";
-@import "components/card";
+// -----------------------------------------------------------------------------
+// 3. Themes (color schemes, theme overrides)
+// -----------------------------------------------------------------------------
+@use 'themes';
 
-// Pages
-@import "pages/home";
+// -----------------------------------------------------------------------------
+// 4. Layouts (grid, containers, page structure)
+// -----------------------------------------------------------------------------
+@use 'layouts';
 
-// Root Styling
-html,
-body,
-#root {
-  background-color: #252424; 
-  color: white; 
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, sans-serif;
-}
+// -----------------------------------------------------------------------------
+// 5. Components (reusable UI patterns)
+// -----------------------------------------------------------------------------
+@use 'components';
+
+// -----------------------------------------------------------------------------
+// 6. Pages (page-specific styles)
+// -----------------------------------------------------------------------------
+@use 'pages';
+
+// -----------------------------------------------------------------------------
+// 7. Utils (utility classes)
+// -----------------------------------------------------------------------------
+@use 'utils';

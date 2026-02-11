@@ -1,0 +1,245 @@
+// =============================================================================
+// Utility Classes - Quick Helpers
+// =============================================================================
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Display
+// -----------------------------------------------------------------------------
+.d-block { display: block; }
+.d-inline-block { display: inline-block; }
+.d-inline { display: inline; }
+.d-flex { display: flex; }
+.d-inline-flex { display: inline-flex; }
+.d-grid { display: grid; }
+.d-none { display: none; }
+
+// Responsive display
+@include respond-below(tablet) {
+  .d-tablet-none { display: none !important; }
+  .d-tablet-block { display: block !important; }
+}
+
+@include respond-below(mobile) {
+  .d-mobile-none { display: none !important; }
+  .d-mobile-block { display: block !important; }
+}
+
+// -----------------------------------------------------------------------------
+// Spacing - Margin
+// -----------------------------------------------------------------------------
+.m-0 { margin: 0; }
+.m-auto { margin: auto; }
+.mt-0 { margin-top: 0; }
+.mt-xs { margin-top: $spacing-xs; }
+.mt-sm { margin-top: $spacing-sm; }
+.mt-md { margin-top: $spacing-md; }
+.mt-lg { margin-top: $spacing-lg; }
+.mt-xl { margin-top: $spacing-xl; }
+.mt-2xl { margin-top: $spacing-2xl; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-xs { margin-bottom: $spacing-xs; }
+.mb-sm { margin-bottom: $spacing-sm; }
+.mb-md { margin-bottom: $spacing-md; }
+.mb-lg { margin-bottom: $spacing-lg; }
+.mb-xl { margin-bottom: $spacing-xl; }
+.mb-2xl { margin-bottom: $spacing-2xl; }
+
+.ml-0 { margin-left: 0; }
+.ml-sm { margin-left: $spacing-sm; }
+.ml-md { margin-left: $spacing-md; }
+.ml-lg { margin-left: $spacing-lg; }
+.ml-auto { margin-left: auto; }
+
+.mr-0 { margin-right: 0; }
+.mr-sm { margin-right: $spacing-sm; }
+.mr-md { margin-right: $spacing-md; }
+.mr-lg { margin-right: $spacing-lg; }
+.mr-auto { margin-right: auto; }
+
+.mx-auto {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.my-md {
+  margin-top: $spacing-md;
+  margin-bottom: $spacing-md;
+}
+
+.my-lg {
+  margin-top: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+// -----------------------------------------------------------------------------
+// Spacing - Padding
+// -----------------------------------------------------------------------------
+.p-0 { padding: 0; }
+.pt-xs { padding-top: $spacing-xs; }
+.pt-sm { padding-top: $spacing-sm; }
+.pt-md { padding-top: $spacing-md; }
+.pt-lg { padding-top: $spacing-lg; }
+.pt-xl { padding-top: $spacing-xl; }
+
+.pb-xs { padding-bottom: $spacing-xs; }
+.pb-sm { padding-bottom: $spacing-sm; }
+.pb-md { padding-bottom: $spacing-md; }
+.pb-lg { padding-bottom: $spacing-lg; }
+.pb-xl { padding-bottom: $spacing-xl; }
+
+.pl-sm { padding-left: $spacing-sm; }
+.pl-md { padding-left: $spacing-md; }
+.pl-lg { padding-left: $spacing-lg; }
+
+.pr-sm { padding-right: $spacing-sm; }
+.pr-md { padding-right: $spacing-md; }
+.pr-lg { padding-right: $spacing-lg; }
+
+.px-md {
+  padding-left: $spacing-md;
+  padding-right: $spacing-md;
+}
+
+.px-lg {
+  padding-left: $spacing-lg;
+  padding-right: $spacing-lg;
+}
+
+.py-md {
+  padding-top: $spacing-md;
+  padding-bottom: $spacing-md;
+}
+
+.py-lg {
+  padding-top: $spacing-lg;
+  padding-bottom: $spacing-lg;
+}
+
+// -----------------------------------------------------------------------------
+// Text Alignment
+// -----------------------------------------------------------------------------
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+@include respond-below(mobile) {
+  .text-mobile-center { text-align: center !important; }
+  .text-mobile-left { text-align: left !important; }
+}
+
+// -----------------------------------------------------------------------------
+// Font Weight & Size
+// -----------------------------------------------------------------------------
+.font-light { font-weight: $font-weight-light; }
+.font-normal { font-weight: $font-weight-normal; }
+.font-medium { font-weight: $font-weight-medium; }
+.font-semibold { font-weight: $font-weight-semibold; }
+.font-bold { font-weight: $font-weight-bold; }
+
+.text-xs { font-size: $font-size-sm; }
+.text-sm { font-size: $font-size-sm; }
+.text-base { font-size: $font-size-base; }
+.text-lg { font-size: $font-size-lg; }
+.text-xl { font-size: $font-size-xl; }
+
+// -----------------------------------------------------------------------------
+// Colors
+// -----------------------------------------------------------------------------
+.text-primary { color: $color-primary; }
+.text-secondary { color: $color-text-secondary; }
+.text-muted { color: $color-text-muted; }
+.text-success { color: $color-success; }
+.text-danger { color: $color-danger; }
+.text-warning { color: $color-warning; }
+.text-info { color: $color-info; }
+
+.bg-primary { background-color: $color-primary; }
+.bg-light { background-color: $color-background-light; }
+.bg-dark { background-color: $color-background-dark; }
+.bg-white { background-color: $color-background; }
+
+// -----------------------------------------------------------------------------
+// Border
+// -----------------------------------------------------------------------------
+.border { border: 1px solid $color-border; }
+.border-top { border-top: 1px solid $color-border; }
+.border-bottom { border-bottom: 1px solid $color-border; }
+.border-left { border-left: 1px solid $color-border; }
+.border-right { border-right: 1px solid $color-border; }
+.border-none { border: none; }
+
+.rounded { border-radius: $border-radius-md; }
+.rounded-sm { border-radius: $border-radius-sm; }
+.rounded-lg { border-radius: $border-radius-lg; }
+.rounded-full { border-radius: $border-radius-full; }
+
+// -----------------------------------------------------------------------------
+// Width & Height
+// -----------------------------------------------------------------------------
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.w-50 { width: 50%; }
+.w-25 { width: 25%; }
+.w-75 { width: 75%; }
+
+.h-full { height: 100%; }
+.h-auto { height: auto; }
+.h-screen { height: 100vh; }
+
+.max-w-full { max-width: 100%; }
+.max-w-screen { max-width: 100vw; }
+
+// -----------------------------------------------------------------------------
+// Position
+// -----------------------------------------------------------------------------
+.position-relative { position: relative; }
+.position-absolute { position: absolute; }
+.position-fixed { position: fixed; }
+.position-sticky { position: sticky; }
+
+// -----------------------------------------------------------------------------
+// Overflow
+// -----------------------------------------------------------------------------
+.overflow-hidden { overflow: hidden; }
+.overflow-auto { overflow: auto; }
+.overflow-scroll { overflow: scroll; }
+.overflow-visible { overflow: visible; }
+
+// -----------------------------------------------------------------------------
+// Shadow
+// -----------------------------------------------------------------------------
+.shadow-none { box-shadow: none; }
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }
+.shadow-xl { box-shadow: $shadow-xl; }
+
+// -----------------------------------------------------------------------------
+// Cursor
+// -----------------------------------------------------------------------------
+.cursor-pointer { cursor: pointer; }
+.cursor-default { cursor: default; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+// -----------------------------------------------------------------------------
+// Opacity
+// -----------------------------------------------------------------------------
+.opacity-0 { opacity: 0; }
+.opacity-50 { opacity: 0.5; }
+.opacity-75 { opacity: 0.75; }
+.opacity-100 { opacity: 1; }
+
+// -----------------------------------------------------------------------------
+// Visibility
+// -----------------------------------------------------------------------------
+.visible { visibility: visible; }
+.invisible { visibility: hidden; }
+
+// -----------------------------------------------------------------------------
+// Pointer Events
+// -----------------------------------------------------------------------------
+.pointer-events-none { pointer-events: none; }
+.pointer-events-auto { pointer-events: auto; }

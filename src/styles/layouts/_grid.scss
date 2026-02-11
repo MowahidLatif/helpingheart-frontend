@@ -1,0 +1,164 @@
+// =============================================================================
+// Grid System - Flexible Grid Layout
+// =============================================================================
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+.container {
+  @include container;
+}
+
+.container-fluid {
+  width: 100%;
+  padding: 0 $spacing-lg;
+  
+  @include respond-below(mobile) {
+    padding: 0 $spacing-md;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Grid
+// -----------------------------------------------------------------------------
+.grid {
+  display: grid;
+  gap: $grid-gap;
+  
+  @include respond-below(tablet) {
+    gap: $grid-gap-sm;
+  }
+  
+  @include respond-below(mobile) {
+    gap: $spacing-md;
+  }
+}
+
+// Grid columns
+.grid-cols-1 { grid-template-columns: repeat(1, 1fr); }
+.grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+.grid-cols-12 { grid-template-columns: repeat(12, 1fr); }
+
+// Responsive grid adjustments
+@include respond-below(tablet) {
+  .grid-cols-4,
+  .grid-cols-6,
+  .grid-cols-12 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@include respond-below(mobile) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4,
+  .grid-cols-6,
+  .grid-cols-12 {
+    grid-template-columns: 1fr;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Flexbox
+// -----------------------------------------------------------------------------
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  @include flex-column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex-between;
+}
+
+.flex-start {
+  display: flex;
+  align-items: flex-start;
+}
+
+.flex-end {
+  display: flex;
+  align-items: flex-end;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-around {
+  justify-content: space-around;
+}
+
+.align-start {
+  align-items: flex-start;
+}
+
+.align-end {
+  align-items: flex-end;
+}
+
+.align-center {
+  align-items: center;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.gap-sm { gap: $spacing-sm; }
+.gap-md { gap: $spacing-md; }
+.gap-lg { gap: $spacing-lg; }
+.gap-xl { gap: $spacing-xl; }
+
+// -----------------------------------------------------------------------------
+// Section Spacing
+// -----------------------------------------------------------------------------
+.section {
+  padding: $spacing-4xl 0;
+  
+  @include respond-below(tablet) {
+    padding: $spacing-3xl 0;
+  }
+  
+  @include respond-below(mobile) {
+    padding: $spacing-2xl 0;
+  }
+}
+
+.section-sm {
+  padding: $spacing-2xl 0;
+  
+  @include respond-below(tablet) {
+    padding: $spacing-xl 0;
+  }
+  
+  @include respond-below(mobile) {
+    padding: $spacing-lg 0;
+  }
+}

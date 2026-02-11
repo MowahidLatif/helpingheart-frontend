@@ -1,0 +1,54 @@
+// =============================================================================
+// Default Theme
+// =============================================================================
+@use '../abstracts/variables' as *;
+
+:root {
+  // Colors
+  --color-primary: #{$color-primary};
+  --color-primary-dark: #{$color-primary-dark};
+  --color-primary-light: #{$color-primary-light};
+  
+  --color-secondary: #{$color-secondary};
+  --color-success: #{$color-success};
+  --color-danger: #{$color-danger};
+  --color-warning: #{$color-warning};
+  --color-info: #{$color-info};
+  
+  --color-text-primary: #{$color-text-primary};
+  --color-text-secondary: #{$color-text-secondary};
+  --color-text-muted: #{$color-text-muted};
+  
+  --color-background: #{$color-background};
+  --color-background-light: #{$color-background-light};
+  --color-background-dark: #{$color-background-dark};
+  
+  --color-border: #{$color-border};
+  
+  // Spacing
+  --spacing-xs: #{$spacing-xs};
+  --spacing-sm: #{$spacing-sm};
+  --spacing-md: #{$spacing-md};
+  --spacing-lg: #{$spacing-lg};
+  --spacing-xl: #{$spacing-xl};
+  
+  // Typography
+  --font-family-primary: #{$font-family-primary};
+  --font-size-base: #{$font-size-base};
+  
+  // Border radius
+  --border-radius-md: #{$border-radius-md};
+  
+  // Shadows
+  --shadow-md: #{$shadow-md};
+}
+
+// Dark theme (optional - can be extended later)
+[data-theme="dark"] {
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #adb5bd;
+  --color-background: #1a1a1a;
+  --color-background-light: #2d2d2d;
+  --color-background-dark: #000000;
+  --color-border: #404040;
+}

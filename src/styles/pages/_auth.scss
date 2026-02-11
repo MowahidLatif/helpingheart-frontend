@@ -1,0 +1,73 @@
+// =============================================================================
+// Page-specific Styles - Auth Pages (Login/Signup)
+// =============================================================================
+@use '../abstracts' as *;
+
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+  background-color: $color-background-light;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.auth-card {
+  @include card-base;
+  width: 100%;
+  max-width: 500px;
+  padding: $spacing-2xl;
+  
+  @include respond-below(tablet) {
+    max-width: 400px;
+  }
+  
+  @include respond-below(mobile) {
+    max-width: 100%;
+    padding: $spacing-lg;
+  }
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: $spacing-xl;
+  
+  h1 {
+    margin-bottom: $spacing-sm;
+  }
+  
+  p {
+    color: $color-text-secondary;
+  }
+  
+  @include respond-below(mobile) {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.auth-form {
+  .form-group {
+    margin-bottom: $spacing-lg;
+  }
+  
+  .form-actions {
+    margin-top: $spacing-xl;
+  }
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: $spacing-xl;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $color-border;
+  color: $color-text-secondary;
+  
+  a {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}

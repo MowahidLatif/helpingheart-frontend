@@ -1,143 +1,138 @@
-// idk what these are
-$primary-color: #4CAF50;
-$secondary-color: #f9f9f9;
-$text-color: #333;
-$border-radius: 0.5rem;
+// =============================================================================
+// Design Tokens - Variables
+// =============================================================================
+// Central source of truth for all design values
+// Desktop-first approach: base values are for desktop, adjust down for tablet/mobile
 
-// saved from elsewhere
-$color-dark-white: #EDEDED;
-$color-white: white;
-$color-growDocGreen: #26584F;
-$color-peeledAsparagus: #81A969;
-$color-gradientGreen: linear-gradient(135deg, #448028 0%, #3b6f24 100%);
-$color-sparklingSun: #FCE066;
-$color-black: #343533;
-$color-lightgreen: #16E490;
-$color-lightgray: rgb(194, 194, 194);
-$color-red: #CF5C5C;
+// -----------------------------------------------------------------------------
+// Colors
+// -----------------------------------------------------------------------------
+$color-primary: #0066cc;
+$color-primary-dark: #004c99;
+$color-primary-light: #3385d6;
 
-$color-white-380: #d3d3d3;
-$color-white-340: #e6e6e6;
+$color-secondary: #6c757d;
+$color-secondary-dark: #545b62;
+$color-secondary-light: #868e96;
 
-$color-gray: gray;
-$color-darkgray: darkgray;
-$color-gray-300: #a1a5a5;
-$color-gray-400: #aaa9a0;
-$color-gray-600: #6f6f68;
-$color-gray-700: #484949;
-$color-gray-800: rgb(64, 68, 68);
-$color-gray-900: #2d2d2b;
+$color-success: #28a745;
+$color-danger: #dc3545;
+$color-warning: #ffc107;
+$color-info: #17a2b8;
 
-$color-blueviolet: blueviolet;
-$color-purple-400: rgb(208, 57, 205);
-$color-purple-600: rgb(199, 42, 180);
-$color-purple-700: rgb(189, 27, 192);
-$color-purple-800: rgb(154, 16, 213);
-$color-purple-900: #ae12d9;
+$color-text-primary: #212529;
+$color-text-secondary: #6c757d;
+$color-text-muted: #adb5bd;
 
-$color-red-100: #f8d7da;
-$color-red-300: rgb(160, 136, 136);
-$color-red-400: #d16673;
-$color-red-425: rgb(220, 86, 109);
-$color-red-450: #f44336;
-$color-red-475: #e53935;
-$color-red-500: #e41212;
-$color-red-550: rgb(210, 42, 70);
-$color-red-600: #9f4a54;
-$color-red-700: #8a2632;
-$color-red-900: #721c24;
+$color-background: #ffffff;
+$color-background-light: #f8f9fa;
+$color-background-dark: #343a40;
 
-$color-orangered: orangered;
-$color-orange: orange;
-$color-orange-400: #dd7f22;
-$color-orange-600: #d47a26;
-$color-orange-700: #c1741b;
+$color-border: #dee2e6;
+$color-border-light: #e9ecef;
+$color-border-dark: #adb5bd;
 
-$color-yellow: yellow;
-$color-yellow-400: #dbd053;
-$color-yellow-600: #c7b132;
-$color-yellow-700: #c89933;
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+$font-family-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+$font-family-heading: 'Georgia', 'Times New Roman', serif;
+$font-family-mono: 'Courier New', monospace;
 
-$color-green:green;
-$color-green-100: #d4edda;
-$color-green-300: rgb(101, 223, 57); 
-$color-green-400: #27b62e;
-$color-green-450: #28a745; 
-$color-green-500: #2cb425;
-$color-green-550: #218838;  
-$color-green-600: #4caf50;
-$color-green-700: #45a049;
-$color-green-800: #0b7513;
-$color-green-900: #155724;
+// Desktop-first font sizes
+$font-size-base: 16px;
+$font-size-sm: 14px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
 
-$color-skyblue: skyblue;
-$color-blue: blue;
-$color-blue-100: #def; 
-$color-blue-150: #abc;
-$color-blue-200: #b3d4fc;
-$color-blue-300: #72c5db;
-$color-blue-400: #627c90;
-$color-blue-440: #2196f3;
-$color-blue-450: #0d6efd;
-$color-blue-460: #007bff;
-$color-blue-470: #007bba;
-$color-blue-480: #1f6896;
-$color-blue-500: #058ed9; 
-$color-blue-550: #0a58ca;
-$color-blue-600: #5570ba;
-$color-blue-700: #3d528a;
-$color-blue-800: #222e50;
-$color-blue-900: #13182c;
+$font-size-h1: 48px;
+$font-size-h2: 40px;
+$font-size-h3: 32px;
+$font-size-h4: 24px;
+$font-size-h5: 20px;
+$font-size-h6: 18px;
 
-$color-teal: teal;
-$color-teal-200: #72eee2;
-$color-teal-250: #66cdaa;
-$color-teal-300: #6bd8cd;
-$color-teal-400: rgb(67, 197, 220); 
-$color-teal-600: rgb(135, 149, 148);
-$color-teal-650: #00796b;
-$color-teal-700: #1e85a1d4;       
-$color-teal-800: rgb(15, 125, 145); 
-$color-teal-900: #05485bd4;
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
 
-$color-pink: pink;
-$color-pink-600: rgb(244, 106, 129);
+$line-height-base: 1.5;
+$line-height-heading: 1.2;
+$line-height-tight: 1.25;
+$line-height-relaxed: 1.75;
 
-$color-brown-100: #e6dcc6;
-$color-brown-600: #757467;
-$color-brown-700: #57574d;
-$color-brown-800: #534e48;
-$color-brown-900: rgb(95, 61, 30);
-$color-brown-950: #835118;
+// -----------------------------------------------------------------------------
+// Spacing Scale (Desktop-first)
+// -----------------------------------------------------------------------------
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+$spacing-2xl: 48px;
+$spacing-3xl: 64px;
+$spacing-4xl: 96px;
 
-// Font sizes
-$font-size-p: 1rem;
-$line-height-p: 1.25;
-$font-weight-p: 500;
+// Grid gaps
+$grid-gap: 24px;
+$grid-gap-sm: 16px;
+$grid-gap-lg: 32px;
 
-$font-size-h1: 2.5rem;
-$line-height-h1: 2rem;
-$font-weight-h1: 700;
+// -----------------------------------------------------------------------------
+// Breakpoints (Desktop-first)
+// -----------------------------------------------------------------------------
+$breakpoint-desktop: 1200px;
+$breakpoint-tablet: 992px;
+$breakpoint-mobile: 600px;
+$breakpoint-mobile-sm: 480px;
 
-$font-size-h2: 1.7rem;
-$line-height-h2: 1.2rem;
-$font-weight-h2: 600;
+// -----------------------------------------------------------------------------
+// Container Widths (Desktop-first)
+// -----------------------------------------------------------------------------
+$container-max-width: 1200px;
+$container-tablet-width: 90%;
+$container-mobile-width: 100%;
 
-$font-size-h3: 1.5rem;
-$line-height-h3: 1.25;
-$font-weight-h3: 600;
+// -----------------------------------------------------------------------------
+// Border Radius
+// -----------------------------------------------------------------------------
+$border-radius-sm: 4px;
+$border-radius-md: 8px;
+$border-radius-lg: 12px;
+$border-radius-xl: 16px;
+$border-radius-full: 9999px;
 
-$font-size-base: 0.875rem;
-$line-height-base: 1;
-$font-weight-base: 400;
+// -----------------------------------------------------------------------------
+// Shadows
+// -----------------------------------------------------------------------------
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
-$font-size-h4: 1.25rem;
-$font-size-h5: 1.20rem;
-$font-size-h6: 1.10rem;
+// -----------------------------------------------------------------------------
+// Z-index Scale
+// -----------------------------------------------------------------------------
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
 
-$font-size-xl: 2rem;
-$font-size-md: 0.9rem;
-$font-size-sm: 0.8rem;
-$font-size-xs: 0.75rem;
-$font-size-2xs: 0.625rem;
-$font-size-3xs: 0.5rem;
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+$transition-base: all 0.2s ease-in-out;
+$transition-fast: all 0.15s ease-in-out;
+$transition-slow: all 0.3s ease-in-out;
+
+// -----------------------------------------------------------------------------
+// Layout
+// -----------------------------------------------------------------------------
+$sidebar-width: 280px;
+$navbar-height: 64px;
+$footer-height: 80px;

@@ -1,0 +1,53 @@
+// =============================================================================
+// Dashboard Layout
+// =============================================================================
+@use '../abstracts' as *;
+
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+  
+  @include respond-below(tablet) {
+    flex-direction: column;
+  }
+}
+
+.dashboard-sidebar {
+  width: $sidebar-width;
+  background-color: $color-background-light;
+  border-right: 1px solid $color-border;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  
+  @include respond-below(tablet) {
+    width: 100%;
+    height: auto;
+    position: static;
+    border-right: none;
+    border-bottom: 1px solid $color-border;
+  }
+}
+
+.dashboard-main {
+  flex: 1;
+  padding: $spacing-xl;
+  overflow-y: auto;
+  
+  @include respond-below(tablet) {
+    padding: $spacing-lg;
+  }
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.dashboard-header {
+  margin-bottom: $spacing-xl;
+  
+  @include respond-below(mobile) {
+    margin-bottom: $spacing-lg;
+  }
+}

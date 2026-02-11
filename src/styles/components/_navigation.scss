@@ -1,0 +1,117 @@
+// =============================================================================
+// Navigation Component
+// =============================================================================
+@use '../abstracts' as *;
+
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-md $spacing-lg;
+  background-color: $color-background;
+  border-bottom: 1px solid $color-border;
+  height: $navbar-height;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-sm $spacing-md;
+    height: auto;
+  }
+}
+
+.navbar-brand {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+  
+  @include respond-below(mobile) {
+    font-size: $font-size-lg;
+  }
+}
+
+.navbar-menu {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  
+  @include respond-below(tablet) {
+    gap: $spacing-md;
+  }
+  
+  @include respond-below(mobile) {
+    display: none;
+    
+    &.mobile-open {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: $navbar-height;
+      left: 0;
+      right: 0;
+      background-color: $color-background;
+      border-bottom: 1px solid $color-border;
+      padding: $spacing-md;
+      z-index: z-index('dropdown');
+    }
+  }
+}
+
+.navbar-link {
+  color: $color-text-primary;
+  font-weight: $font-weight-medium;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  transition: $transition-fast;
+  
+  &:hover {
+    background-color: $color-background-light;
+    text-decoration: none;
+  }
+  
+  &.active {
+    background-color: $color-primary;
+    color: white;
+  }
+  
+  @include respond-below(mobile) {
+    width: 100%;
+    display: block;
+  }
+}
+
+.navbar-toggle {
+  display: none;
+  @include button-base;
+  padding: $spacing-sm;
+  
+  @include respond-below(mobile) {
+    display: block;
+  }
+}
+
+// Sidebar navigation
+.sidebar-nav {
+  padding: $spacing-lg;
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+  }
+}
+
+.sidebar-nav-item {
+  display: block;
+  padding: $spacing-md;
+  margin-bottom: $spacing-sm;
+  border-radius: $border-radius-md;
+  color: $color-text-primary;
+  transition: $transition-fast;
+  
+  &:hover {
+    background-color: $color-background-light;
+    text-decoration: none;
+  }
+  
+  &.active {
+    background-color: $color-primary;
+    color: white;
+  }
+}

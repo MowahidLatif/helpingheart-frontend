@@ -1,0 +1,66 @@
+// =============================================================================
+// Page-specific Styles - Dashboard
+// =============================================================================
+@use '../abstracts' as *;
+
+.dashboard-page {
+  min-height: 100vh;
+  background-color: $color-background-light;
+}
+
+.dashboard-welcome {
+  margin-bottom: $spacing-xl;
+  
+  h1 {
+    margin-bottom: $spacing-sm;
+  }
+  
+  p {
+    color: $color-text-secondary;
+  }
+  
+  @include respond-below(mobile) {
+    margin-bottom: $spacing-lg;
+  }
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: $spacing-lg;
+  margin-bottom: $spacing-xl;
+  
+  @include respond-below(tablet) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include respond-below(mobile) {
+    grid-template-columns: 1fr;
+    gap: $spacing-md;
+  }
+}
+
+.stat-card {
+  @include card-base;
+  padding: $spacing-lg;
+  
+  .stat-label {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+  
+  .stat-value {
+    font-size: $font-size-h2;
+    font-weight: $font-weight-bold;
+    color: $color-text-primary;
+  }
+  
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+    
+    .stat-value {
+      font-size: $font-size-h3;
+    }
+  }
+}

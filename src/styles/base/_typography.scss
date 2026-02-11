@@ -1,0 +1,214 @@
+// =============================================================================
+// Typography - Base Text Styles
+// =============================================================================
+@use '../abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// Body Text
+// -----------------------------------------------------------------------------
+body {
+  font-family: $font-family-primary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-base;
+  color: $color-text-primary;
+  background-color: $color-background;
+  
+  @include respond-below(tablet) {
+    font-size: 15px;
+  }
+  
+  @include respond-below(mobile) {
+    font-size: 14px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Headings
+// -----------------------------------------------------------------------------
+h1, h2, h3, h4, h5, h6 {
+  @include heading-base;
+  margin-bottom: $spacing-md;
+}
+
+h1 {
+  font-size: $font-size-h1;
+  
+  @include respond-below(tablet) {
+    font-size: 40px;
+  }
+  
+  @include respond-below(mobile) {
+    font-size: 32px;
+  }
+}
+
+h2 {
+  font-size: $font-size-h2;
+  
+  @include respond-below(tablet) {
+    font-size: 32px;
+  }
+  
+  @include respond-below(mobile) {
+    font-size: 28px;
+  }
+}
+
+h3 {
+  font-size: $font-size-h3;
+  
+  @include respond-below(tablet) {
+    font-size: 28px;
+  }
+  
+  @include respond-below(mobile) {
+    font-size: 24px;
+  }
+}
+
+h4 {
+  font-size: $font-size-h4;
+  
+  @include respond-below(tablet) {
+    font-size: 22px;
+  }
+  
+  @include respond-below(mobile) {
+    font-size: 20px;
+  }
+}
+
+h5 {
+  font-size: $font-size-h5;
+  
+  @include respond-below(mobile) {
+    font-size: 18px;
+  }
+}
+
+h6 {
+  font-size: $font-size-h6;
+  
+  @include respond-below(mobile) {
+    font-size: 16px;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Paragraphs
+// -----------------------------------------------------------------------------
+p {
+  margin-bottom: $spacing-md;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Links
+// -----------------------------------------------------------------------------
+a {
+  color: $color-primary;
+  text-decoration: none;
+  transition: $transition-fast;
+  
+  &:hover {
+    color: $color-primary-dark;
+    text-decoration: underline;
+  }
+  
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Text Utilities
+// -----------------------------------------------------------------------------
+.text-small {
+  font-size: $font-size-sm;
+}
+
+.text-large {
+  font-size: $font-size-lg;
+}
+
+.text-muted {
+  color: $color-text-muted;
+}
+
+.text-bold {
+  font-weight: $font-weight-bold;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+// -----------------------------------------------------------------------------
+// Code & Pre
+// -----------------------------------------------------------------------------
+code {
+  font-family: $font-family-mono;
+  font-size: 0.9em;
+  padding: 2px 6px;
+  background-color: $color-background-light;
+  border-radius: $border-radius-sm;
+  color: $color-danger;
+}
+
+pre {
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  padding: $spacing-md;
+  background-color: $color-background-light;
+  border-radius: $border-radius-md;
+  overflow-x: auto;
+  
+  code {
+    padding: 0;
+    background: none;
+    color: inherit;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Blockquote
+// -----------------------------------------------------------------------------
+blockquote {
+  margin: $spacing-lg 0;
+  padding-left: $spacing-lg;
+  border-left: 4px solid $color-primary;
+  color: $color-text-secondary;
+  font-style: italic;
+}
+
+// -----------------------------------------------------------------------------
+// Lists
+// -----------------------------------------------------------------------------
+ul, ol {
+  margin-bottom: $spacing-md;
+  padding-left: $spacing-xl;
+  
+  li {
+    margin-bottom: $spacing-sm;
+  }
+}
+
+ul {
+  list-style: disc;
+}
+
+ol {
+  list-style: decimal;
+}

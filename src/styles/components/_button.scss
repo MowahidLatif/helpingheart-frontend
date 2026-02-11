@@ -1,14 +1,78 @@
-.button {
-    padding: 0.75rem 1.25rem;
-    border: none;
-    background-color: $primary-color;
-    color: white;
-    border-radius: $border-radius;
-    cursor: pointer;
-    font-weight: bold;
+// =============================================================================
+// Button Component
+// =============================================================================
+@use '../abstracts' as *;
+
+.btn {
+  @include button-base;
   
-    &:hover {
-      background-color: darken($primary-color, 10%);
+  // Responsive sizing
+  @include respond-below(mobile) {
+    padding: $spacing-sm $spacing-md;
+    font-size: $font-size-sm;
+  }
+}
+
+// Button variants
+.btn-primary {
+  @include button-variant($color-primary);
+}
+
+.btn-secondary {
+  @include button-variant($color-secondary);
+}
+
+.btn-success {
+  @include button-variant($color-success);
+}
+
+.btn-danger {
+  @include button-variant($color-danger);
+}
+
+.btn-warning {
+  @include button-variant($color-warning, $color-text-primary);
+}
+
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid $color-primary;
+  color: $color-primary;
+  
+  &:hover:not(:disabled) {
+    background-color: $color-primary;
+    color: white;
+  }
+}
+
+// Button sizes
+.btn-sm {
+  padding: $spacing-xs $spacing-md;
+  font-size: $font-size-sm;
+}
+
+.btn-lg {
+  padding: $spacing-md $spacing-xl;
+  font-size: $font-size-lg;
+}
+
+// Button block
+.btn-block {
+  display: block;
+  width: 100%;
+}
+
+// Button group
+.btn-group {
+  display: inline-flex;
+  gap: $spacing-sm;
+  
+  @include respond-below(mobile) {
+    flex-direction: column;
+    width: 100%;
+    
+    .btn {
+      width: 100%;
     }
   }
-  
+}
