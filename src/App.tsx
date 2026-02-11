@@ -9,8 +9,7 @@ function AppRoutesWrapper() {
 }
 
 function App() {
-  // const isAuthenticated = localStorage.getItem("token") !== null;
-  const isAuthenticated = true;
+  const isAuthenticated = localStorage.getItem("token") !== null;
 
   return (
     <Router>

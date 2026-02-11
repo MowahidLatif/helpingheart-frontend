@@ -3,24 +3,37 @@ import { Link } from "react-router-dom";
 
 const NavBar: React.FC = () => {
   return (
-    <div
-      // style={{
-      //   width: "100%",
-      //   background: "#ccc",
-      //   borderRadius: "5px",
-      //   padding: "1rem",
-      //   display: "flex",
-      //   gap: "1rem",
-      // }}
-    >
-      <Link to="/">Home</Link>
-      <Link to="/how-it-works">How It Works</Link>
-      <Link to="/pricing">Pricing</Link>
-      <Link to="/about">About Us</Link>
-      <Link to="/faq">FAQ</Link>
-      <Link to="/contact">Contact</Link>
-      <Link to="/signup">Sign Up</Link>
-    </div>
+    <nav className="navbar">
+      <Link to="/" className="navbar-brand">
+        Helping Hands
+      </Link>
+      <div className="navbar-menu">
+        <Link to="/" className="navbar-link">
+          Home
+        </Link>
+        <Link to="/how-it-works" className="navbar-link">
+          How It Works
+        </Link>
+        <Link to="/pricing" className="navbar-link">
+          Pricing
+        </Link>
+        <Link to="/about" className="navbar-link">
+          About
+        </Link>
+        <Link to="/faq" className="navbar-link">
+          FAQ
+        </Link>
+        <Link to="/contact" className="navbar-link">
+          Contact
+        </Link>
+        <Link to="/signin" className="navbar-link">
+          Sign In
+        </Link>
+        <Link to="/signup" className="btn btn-primary btn-sm">
+          Sign Up
+        </Link>
+      </div>
+    </nav>
   );
 };
 
