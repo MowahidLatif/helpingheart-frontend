@@ -2,6 +2,20 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import { DonationModal } from "@/components/DonationModal/DonationModal";
+import { validateLayout } from "@/lib/pageLayoutValidation";
+
+const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
+
+function getPresetAmountsFromBlocks(blocks: Block[]): number[] {
+  const donateBlock = blocks.find((b) => b.type === "donate_button");
+  const presets = donateBlock?.props?.preset_amounts;
+  if (Array.isArray(presets) && presets.length > 0) {
+    return presets.filter((n) => typeof n === "number" && n > 0);
+  }
+  return DEFAULT_PRESETS;
+}
 
 interface Block {
   id: string;
@@ -17,6 +31,14 @@ const PageLayoutBuilder = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [campaignPreviewData, setCampaignPreviewData] = useState<{
+    title?: string;
+    goal?: number;
+    total_raised?: number;
+  } | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
   const availableBlockTypes = [
     "hero",
@@ -34,13 +56,34 @@ const PageLayoutBuilder = () => {
     }
   }, [campaignId]);
 
+  useEffect(() => {
+    if (isPreviewMode && campaignId) {
+      setPreviewLoading(true);
+      api
+        .get(API_ENDPOINTS.campaigns.public(campaignId))
+        .then((res) => {
+          setCampaignPreviewData({
+            title: res.data.title,
+            goal: res.data.goal,
+            total_raised: res.data.total_raised,
+          });
+        })
+        .catch(() => setCampaignPreviewData(null))
+        .finally(() => setPreviewLoading(false));
+    } else {
+      setCampaignPreviewData(null);
+    }
+  }, [isPreviewMode, campaignId]);
+
   const loadLayout = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await api.get(API_ENDPOINTS.pageLayout.get(campaignId!));
-      if (response.data.page_layout) {
-        setBlocks(response.data.page_layout);
+      const raw = response.data.page_layout;
+      if (raw != null) {
+        const blocksArray = Array.isArray(raw) ? raw : (raw?.blocks && Array.isArray(raw.blocks) ? raw.blocks : []);
+        setBlocks(blocksArray);
       }
     } catch (err) {
       const errMsg = getErrorMessage(err);
@@ -81,7 +124,7 @@ const PageLayoutBuilder = () => {
     setError("");
     try {
       await api.put(API_ENDPOINTS.pageLayout.put(campaignId!), {
-        page_layout: blocks,
+        page_layout: { blocks },
       });
       alert("Layout saved successfully!");
     } catch (err) {
@@ -91,8 +134,73 @@ const PageLayoutBuilder = () => {
     }
   };
 
+  const handlePreviewToggle = () => {
+    if (!isPreviewMode) {
+      const result = validateLayout(blocks);
+      if (!result.valid) {
+        setError(result.error);
+        return;
+      }
+      setError("");
+    }
+    setIsPreviewMode((prev) => !prev);
+  };
+
+  const campaignForPreview: Campaign = {
+    id: campaignId!,
+    title: campaignPreviewData?.title,
+    goal: campaignPreviewData?.goal,
+    total_raised: campaignPreviewData?.total_raised,
+    page_layout: { blocks },
+  };
+  const presetAmounts = getPresetAmountsFromBlocks(blocks);
+
   if (loading) {
     return <div style={{ padding: "2rem" }}>Loading layout...</div>;
+  }
+
+  if (isPreviewMode) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", height: "100vh" }}>
+        <div
+          style={{
+            padding: "0.75rem 1rem",
+            borderBottom: "1px solid #ddd",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+          }}
+        >
+          <button type="button" onClick={handlePreviewToggle}>
+            Back to Edit
+          </button>
+          <span style={{ color: "#666", fontSize: "0.9rem" }}>
+            Preview: how donors will see this campaign
+          </span>
+        </div>
+        <div style={{ flex: 1, overflow: "auto" }}>
+          {previewLoading ? (
+            <div className="donate-page" style={{ padding: "2rem" }}>
+              <p>Loading preview…</p>
+            </div>
+          ) : (
+            <div className="donate-page donate-page-blocks">
+              <BlockRenderer
+                campaign={campaignForPreview}
+                onDonateClick={() => setPreviewModalOpen(true)}
+              />
+            </div>
+          )}
+        </div>
+        <DonationModal
+          open={previewModalOpen}
+          onClose={() => setPreviewModalOpen(false)}
+          campaignId={campaignId!}
+          campaignTitle={campaignPreviewData?.title || "Campaign"}
+          presetAmounts={presetAmounts}
+        />
+      </div>
+    );
   }
 
   return (
@@ -124,6 +232,9 @@ const PageLayoutBuilder = () => {
           {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
           <button onClick={saveLayout} disabled={saving} style={{ marginRight: "0.5rem" }}>
             {saving ? "Saving..." : "Save Layout"}
+          </button>
+          <button type="button" onClick={handlePreviewToggle} style={{ marginRight: "0.5rem" }}>
+            Preview
           </button>
           <button onClick={() => navigate("/dashboard")}>Back to Dashboard</button>
         </div>
