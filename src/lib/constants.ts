@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   media: {
     signedUrl: '/api/media/signed-url',
     persist: '/api/media',
+    upload: '/api/media/upload',
   },
   donations: {
     checkout: '/api/donations/checkout',
