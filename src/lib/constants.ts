@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
     create: '/api/campaigns',
     get: (id: string) => `/api/campaigns/${id}`,
     public: (id: string) => `/api/campaigns/${id}/public`,
+    publicByOrgSlug: (org: string, slug: string) => `/api/public/${org}/${slug}`,
     update: (id: string) => `/api/campaigns/${id}`,
     delete: (id: string) => `/api/campaigns/${id}`,
     progress: (id: string) => `/api/campaigns/${id}/progress`,

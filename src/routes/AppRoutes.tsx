@@ -73,12 +73,16 @@ export const routes: RouteObject[] = [
     element: <PreviewPage />,
   },
   {
-    path: "/donate/:campaignId",
+    path: "/donate/:campaignId/thank-you",
+    element: <ThankYouPage />,
+  },
+  {
+    path: "/donate/:org/:slug",
     element: <DonatePage />,
   },
   {
-    path: "/donate/:campaignId/thank-you",
-    element: <ThankYouPage />,
+    path: "/donate/:campaignId",
+    element: <DonatePage />,
   },
   {
     path: "/settings",
