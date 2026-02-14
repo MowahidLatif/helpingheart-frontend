@@ -1,0 +1,252 @@
+// =============================================================================
+// Donate & Thank-You Pages
+// =============================================================================
+@use '../abstracts' as *;
+
+.donate-page,
+.thank-you-page,
+.preview-page {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: $spacing-xl;
+}
+
+.donate-page h1,
+.thank-you-page h1 {
+  font-size: $font-size-h2;
+  margin-bottom: $spacing-md;
+}
+
+.donation-error {
+  color: $color-danger;
+  margin: $spacing-sm 0;
+}
+
+.campaign-progress {
+  background-color: $color-background-light;
+  padding: $spacing-md;
+  border-radius: $border-radius-md;
+  margin-bottom: $spacing-lg;
+
+  p {
+    margin: 0 0 $spacing-sm;
+    color: $color-text-secondary;
+  }
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: $color-border;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: $color-success;
+  transition: width 0.3s ease;
+}
+
+.donation-form {
+  h2 {
+    font-size: $font-size-h4;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.amount-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
+}
+
+.preset-btn {
+  padding: $spacing-sm $spacing-md;
+  border: 2px solid $color-border;
+  background: $color-background;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-base;
+
+  &:hover {
+    border-color: $color-primary-light;
+    background: $color-background-light;
+  }
+
+  &.selected {
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.1);
+  }
+}
+
+.custom-amount {
+  margin-bottom: $spacing-md;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+
+  input {
+    width: 100%;
+    max-width: 200px;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-md;
+  }
+}
+
+.form-field {
+  margin-bottom: $spacing-md;
+
+  label {
+    display: block;
+    margin-bottom: $spacing-xs;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+
+  input,
+  textarea {
+    width: 100%;
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-md;
+  }
+
+  textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+}
+
+.donation-submit-btn {
+  padding: $spacing-md $spacing-xl;
+  background-color: $color-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: $font-size-lg;
+  cursor: pointer;
+  margin-top: $spacing-md;
+
+  &:hover:not(:disabled) {
+    background-color: $color-primary-dark;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.donation-payment-form {
+  margin-top: $spacing-lg;
+
+  .donation-summary {
+    margin-bottom: $spacing-md;
+    padding: $spacing-sm;
+    background: $color-background-light;
+    border-radius: $border-radius-md;
+  }
+}
+
+.donation-back-btn {
+  margin-top: $spacing-lg;
+  padding: $spacing-sm $spacing-md;
+  background: transparent;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  font-size: $font-size-sm;
+
+  &:hover {
+    background: $color-background-light;
+  }
+}
+
+// Thank-you page
+.thank-you-amount {
+  font-size: $font-size-lg;
+  margin-bottom: $spacing-md;
+}
+
+.thank-you-message {
+  font-style: italic;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+.share-section {
+  margin: $spacing-xl 0;
+
+  h2 {
+    font-size: $font-size-h4;
+    margin-bottom: $spacing-md;
+  }
+}
+
+.share-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.share-btn {
+  padding: $spacing-sm $spacing-md;
+  background: $color-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  text-decoration: none;
+  font-size: $font-size-sm;
+  cursor: pointer;
+
+  &:hover {
+    background: $color-primary-dark;
+  }
+}
+
+.thank-you-link {
+  display: inline-block;
+  margin-top: $spacing-lg;
+  color: $color-primary;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+// Preview page
+.preview-hint {
+  color: $color-text-secondary;
+  margin-bottom: $spacing-lg;
+}
+
+.preview-error {
+  color: $color-danger;
+  margin-bottom: $spacing-md;
+}
+
+.preview-content {
+  margin-top: $spacing-lg;
+}
+
+.donate-cta-btn {
+  padding: $spacing-md $spacing-xl;
+  background-color: $color-primary;
+  color: white;
+  border: none;
+  border-radius: $border-radius-md;
+  font-size: $font-size-lg;
+  cursor: pointer;
+  margin-top: $spacing-lg;
+
+  &:hover {
+    background-color: $color-primary-dark;
+  }
+}

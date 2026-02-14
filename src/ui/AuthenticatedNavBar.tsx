@@ -1,4 +1,3 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import LogoutButton from "@/components/Button/LogoutButton";
 import Button from "@/components/Button/Button";

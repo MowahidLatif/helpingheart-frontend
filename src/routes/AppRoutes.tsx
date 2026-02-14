@@ -12,6 +12,8 @@ import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
+import DonatePage from "@/pages/Donate/DonatePage";
+import ThankYouPage from "@/pages/Donate/ThankYouPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
@@ -69,6 +71,14 @@ export const routes: RouteObject[] = [
   {
     path: "/preview",
     element: <PreviewPage />,
+  },
+  {
+    path: "/donate/:campaignId",
+    element: <DonatePage />,
+  },
+  {
+    path: "/donate/:campaignId/thank-you",
+    element: <ThankYouPage />,
   },
   {
     path: "/settings",

@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     list: '/api/campaigns',
     create: '/api/campaigns',
     get: (id: string) => `/api/campaigns/${id}`,
+    public: (id: string) => `/api/campaigns/${id}/public`,
     update: (id: string) => `/api/campaigns/${id}`,
     delete: (id: string) => `/api/campaigns/${id}`,
     progress: (id: string) => `/api/campaigns/${id}/progress`,

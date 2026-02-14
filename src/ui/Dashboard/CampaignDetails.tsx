@@ -10,7 +10,7 @@ type Campaign = {
   goal: number;
   status: string;
   total_raised: number;
-  created_at: string;
+  created_at?: string;
   giveaway_prize_cents?: number;
   platform_fee_cents?: number;
   platform_fee_percent?: number;
@@ -23,7 +23,6 @@ type CampaignDetailsProps = {
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const navigate = useNavigate();
   const [progress, setProgress] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (campaign?.id) {
@@ -33,14 +32,11 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
 
   const loadProgress = async () => {
     if (!campaign?.id) return;
-    setLoading(true);
     try {
       const response = await api.get(API_ENDPOINTS.campaigns.progress(campaign.id));
       setProgress(response.data);
     } catch (err) {
       console.error("Failed to load progress:", getErrorMessage(err));
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -75,7 +71,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
         <br />
         <strong>🧍 Donations:</strong> {donationsCount}
         <br />
-        <strong>📆 Created:</strong> {new Date(campaign.created_at).toLocaleDateString()}
+        <strong>📆 Created:</strong> {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : "—"}
         <br />
         <strong>✅ Status:</strong> {campaign.status}
         <br />
