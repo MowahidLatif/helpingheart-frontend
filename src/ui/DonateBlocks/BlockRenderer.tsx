@@ -6,12 +6,20 @@ import { MediaGalleryBlock } from "./MediaGalleryBlock";
 import { EmbedBlock } from "./EmbedBlock";
 import { FooterBlock } from "./FooterBlock";
 
+export type LatestWinner = {
+  donor: string;
+  amount_cents: number;
+  created_at: string;
+};
+
 export type Campaign = {
   id: string;
   title?: string;
   slug?: string;
   goal?: number;
   total_raised?: number;
+  giveaway_prize_cents?: number;
+  latest_winner?: LatestWinner;
   page_layout?: { blocks?: Array<{ id: string; type: string; props?: Record<string, unknown> }> };
 };
 
@@ -34,7 +42,7 @@ function defaultBlocks(campaign: Campaign): Block[] {
     {
       id: "info-1",
       type: "campaign_info",
-      props: { show_goal: true, show_progress_bar: true, show_donations_count: true },
+      props: { show_goal: true, show_progress_bar: true, show_donations_count: true, show_winner: true },
     },
     {
       id: "donate-1",

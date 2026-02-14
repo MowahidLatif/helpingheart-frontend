@@ -36,6 +36,7 @@ const PageLayoutBuilder = () => {
     title?: string;
     goal?: number;
     total_raised?: number;
+    latest_winner?: { donor: string; amount_cents: number; created_at: string };
   } | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -66,6 +67,7 @@ const PageLayoutBuilder = () => {
             title: res.data.title,
             goal: res.data.goal,
             total_raised: res.data.total_raised,
+            latest_winner: res.data.latest_winner,
           });
         })
         .catch(() => setCampaignPreviewData(null))
@@ -151,6 +153,7 @@ const PageLayoutBuilder = () => {
     title: campaignPreviewData?.title,
     goal: campaignPreviewData?.goal,
     total_raised: campaignPreviewData?.total_raised,
+    latest_winner: campaignPreviewData?.latest_winner,
     page_layout: { blocks },
   };
   const presetAmounts = getPresetAmountsFromBlocks(blocks);
@@ -433,6 +436,14 @@ const PageLayoutBuilder = () => {
                     onChange={(e) => updateBlockProp(selectedBlock.id, "show_donations_count", e.target.checked)}
                   />
                   Show Donations Count
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedBlock.props.show_winner === true}
+                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_winner", e.target.checked)}
+                  />
+                  Show Giveaway Winner
                 </label>
               </>
             )}

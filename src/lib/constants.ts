@@ -16,6 +16,8 @@ export const API_ENDPOINTS = {
     delete: (id: string) => `/api/campaigns/${id}`,
     progress: (id: string) => `/api/campaigns/${id}/progress`,
     media: (id: string) => `/api/campaigns/${id}/media`,
+    drawWinner: (id: string) => `/api/campaigns/${id}/draw-winner`,
+    giveawayLogs: (id: string) => `/api/campaigns/${id}/giveaway-logs`,
   },
   pageLayout: {
     get: (id: string) => `/api/campaigns/${id}/page-layout`,

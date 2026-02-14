@@ -10,6 +10,7 @@ type Campaign = {
   goal: number;
   status: string;
   total_raised: number;
+  giveaway_prize_cents?: number;
 };
 
 type SidebarProps = {

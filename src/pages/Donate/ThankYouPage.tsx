@@ -20,6 +20,7 @@ export default function ThankYouPage() {
 
   const [donation, setDonation] = useState<Donation | null>(null);
   const [campaignTitle, setCampaignTitle] = useState<string>("");
+  const [campaignLatestWinner, setCampaignLatestWinner] = useState<{ donor: string; created_at?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -41,6 +42,9 @@ export default function ThankYouPage() {
             try {
               const campRes = await api.get(API_ENDPOINTS.campaigns.public(campaignId));
               setCampaignTitle(campRes.data.title ?? "");
+              if (campRes.data.latest_winner) {
+                setCampaignLatestWinner(campRes.data.latest_winner);
+              }
             } catch {
               // ignore
             }
@@ -120,6 +124,11 @@ export default function ThankYouPage() {
       </p>
       {donation?.message && (
         <p className="thank-you-message">"{donation.message}"</p>
+      )}
+      {campaignLatestWinner && (
+        <p className="thank-you-winner" style={{ marginTop: "0.5rem" }}>
+          Giveaway winner: Congratulations to <strong>{campaignLatestWinner.donor}</strong>!
+        </p>
       )}
 
       <div className="share-section">
