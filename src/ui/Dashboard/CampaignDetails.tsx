@@ -82,6 +82,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [exportCsvLoading, setExportCsvLoading] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
 
   useEffect(() => {
     if (campaign?.id) {
@@ -145,6 +146,19 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
       setDonationsOrder("desc");
     }
     setDonationsPage(1);
+  };
+
+  const embedSnippet =
+    typeof window !== "undefined"
+      ? `<iframe src="${window.location.origin}/embed/progress/${campaign?.id ?? ""}" width="320" height="120" frameborder="0"></iframe>`
+      : "";
+
+  const copyEmbedCode = () => {
+    if (!embedSnippet) return;
+    navigator.clipboard.writeText(embedSnippet).then(() => {
+      setEmbedCopied(true);
+      setTimeout(() => setEmbedCopied(false), 2000);
+    });
   };
 
   const handleExportCsv = async () => {
@@ -303,8 +317,26 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
         )}
       </div>
 
+      <div className="campaign-progress" style={{ marginBottom: "1.5rem", maxWidth: "400px" }}>
+        <p>
+          ${(progress?.total_raised ?? campaign.total_raised ?? 0).toLocaleString()} of $
+          {(progress?.goal ?? campaign.goal ?? 0).toLocaleString()} raised
+        </p>
+        <div className="progress-bar">
+          <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+        </div>
+      </div>
+
       <div style={{ marginBottom: "1rem" }}>
         <button onClick={handlePublish} style={{ marginRight: "0.5rem" }}>Preview & Publish</button>
+        <a
+          href={`${typeof window !== "undefined" ? window.location.origin : ""}/donate/${campaign.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ marginRight: "0.5rem", display: "inline-block", padding: "0.4rem 0.75rem", border: "1px solid #333", borderRadius: "4px", color: "inherit", textDecoration: "none", fontSize: "inherit" }}
+        >
+          View Live Page
+        </a>
         <button onClick={handleEditMedia} style={{ marginRight: "0.5rem" }}>Edit Media</button>
         <button onClick={handleEditLayout} style={{ marginRight: "0.5rem" }}>Edit Page Layout</button>
         {isGiveaway && (
@@ -558,6 +590,45 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {showDonations && campaign.id && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+          <h3>Add to your website</h3>
+          <p style={{ color: "#666", marginBottom: "0.75rem", maxWidth: "560px" }}>
+            Show your campaign progress on your own site. Paste this code where you want the tracker to appear.
+          </p>
+          <div style={{ marginBottom: "0.5rem" }}>
+            <pre
+              style={{
+                margin: 0,
+                padding: "0.75rem",
+                background: "#f5f5f5",
+                borderRadius: "6px",
+                fontSize: "12px",
+                overflow: "auto",
+                maxWidth: "100%",
+              }}
+            >
+              {embedSnippet}
+            </pre>
+            <button
+              type="button"
+              onClick={copyEmbedCode}
+              style={{ marginTop: "0.5rem" }}
+            >
+              {embedCopied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "1rem", marginBottom: "0.5rem" }}>Preview:</p>
+          <iframe
+            src={`${typeof window !== "undefined" ? window.location.origin : ""}/embed/progress/${campaign.id}`}
+            title="Progress widget preview"
+            width={320}
+            height={120}
+            style={{ border: "1px solid #ddd", borderRadius: "4px" }}
+          />
         </div>
       )}
 

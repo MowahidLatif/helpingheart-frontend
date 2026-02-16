@@ -19,6 +19,7 @@ import ThankYouPage from "@/pages/Donate/ThankYouPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
+import ProgressEmbedPage from "@/pages/Embed/ProgressEmbedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 export const routes: RouteObject[] = [
@@ -77,6 +78,10 @@ export const routes: RouteObject[] = [
   {
     path: "/preview",
     element: <PreviewPage />,
+  },
+  {
+    path: "/embed/progress/:campaignId",
+    element: <ProgressEmbedPage />,
   },
   {
     path: "/donate/:campaignId/thank-you",

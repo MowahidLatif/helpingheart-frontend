@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, useRoutes } from "react-router-dom";
+import { BrowserRouter as Router, useRoutes, useLocation } from "react-router-dom";
 import NavBar from "@/ui/NavBar";
 import AuthenticatedNavBar from "@/ui/AuthenticatedNavBar";
 import { routes } from "@/routes/AppRoutes";
@@ -8,13 +8,23 @@ function AppRoutesWrapper() {
   return routing;
 }
 
-function App() {
+function AppContent() {
   const isAuthenticated = localStorage.getItem("token") !== null;
+  const location = useLocation();
+  const isEmbed = location.pathname.startsWith("/embed");
 
   return (
-    <Router>
-      {isAuthenticated ? <AuthenticatedNavBar /> : <NavBar />}
+    <>
+      {!isEmbed && (isAuthenticated ? <AuthenticatedNavBar /> : <NavBar />)}
       <AppRoutesWrapper />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
