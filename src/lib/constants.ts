@@ -5,6 +5,10 @@ export const API_ENDPOINTS = {
     login: '/api/auth/login',
     register: '/api/auth/register',
     refresh: '/api/auth/refresh',
+    changePassword: '/api/auth/change-password',
+  },
+  me: {
+    profile: '/api/me/profile',
   },
   campaigns: {
     list: '/api/campaigns',
@@ -37,5 +41,7 @@ export const API_ENDPOINTS = {
     list: '/api/orgs',
     create: '/api/orgs',
     get: (id: string) => `/api/orgs/${id}`,
+    update: (id: string) => `/api/orgs/${id}`,
+    subdomain: (id: string) => `/api/orgs/${id}/subdomain`,
   },
 };

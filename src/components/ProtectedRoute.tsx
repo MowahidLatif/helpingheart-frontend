@@ -7,7 +7,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (!isAuthenticated()) {
-    return <Navigate to="/signin" replace />;
+    return <Navigate to="/SignIn" replace />;
   }
 
   return <>{children}</>;

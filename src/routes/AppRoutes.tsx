@@ -86,7 +86,11 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/settings",
-    element: <SettingsPage />,
+    element: (
+      <ProtectedRoute>
+        <SettingsPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/campaign/new",
