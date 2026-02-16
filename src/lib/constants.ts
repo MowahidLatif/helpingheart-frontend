@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
   },
   me: {
     profile: '/api/me/profile',
+    info: '/api/me',
   },
   campaigns: {
     list: '/api/campaigns',
@@ -22,6 +23,7 @@ export const API_ENDPOINTS = {
     media: (id: string) => `/api/campaigns/${id}/media`,
     drawWinner: (id: string) => `/api/campaigns/${id}/draw-winner`,
     giveawayLogs: (id: string) => `/api/campaigns/${id}/giveaway-logs`,
+    tasks: (id: string) => `/api/campaigns/${id}/tasks`,
   },
   pageLayout: {
     get: (id: string) => `/api/campaigns/${id}/page-layout`,
@@ -43,5 +45,20 @@ export const API_ENDPOINTS = {
     get: (id: string) => `/api/orgs/${id}`,
     update: (id: string) => `/api/orgs/${id}`,
     subdomain: (id: string) => `/api/orgs/${id}/subdomain`,
+    members: (id: string) => `/api/orgs/${id}/members`,
+    createMember: (id: string) => `/api/orgs/${id}/members/create`,
+    memberPermissions: (orgId: string, userId: string) =>
+      `/api/orgs/${orgId}/members/${userId}/permissions`,
+    taskStatuses: (id: string) => `/api/orgs/${id}/task-statuses`,
   },
 };
+
+/** Permission codes for org members (must match backend ALL_PERMISSIONS). */
+export const ORG_PERMISSIONS = [
+  'campaign:create',
+  'campaign:edit',
+  'campaign:delete',
+  'tasks:create',
+  'tasks:assign',
+  'tasks:edit_any',
+] as const;

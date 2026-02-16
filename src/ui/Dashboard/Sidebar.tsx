@@ -15,13 +15,16 @@ type Campaign = {
 
 type SidebarProps = {
   onSelectCampaign: (campaign: Campaign | null) => void;
+  orgId?: string | null;
+  role?: string | null;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, orgId, role }) => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const showUsers = role === "owner" || role === "admin";
 
   useEffect(() => {
     loadCampaigns();
@@ -35,9 +38,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
       setCampaigns(response.data);
     } catch (err) {
       const errMsg = getErrorMessage(err);
-      console.error('Failed to load campaigns:', errMsg);
+      console.error("Failed to load campaigns:", errMsg);
       setError(errMsg);
-      // Don't redirect on error - let ProtectedRoute handle auth
     } finally {
       setLoading(false);
     }
@@ -45,6 +47,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign }) => {
 
   return (
     <div style={{ padding: "1rem" }}>
+      {showUsers && (
+        <button
+          onClick={() => navigate("/dashboard/users")}
+          style={{ marginBottom: "1rem", display: "block" }}
+        >
+          Users
+        </button>
+      )}
       <button onClick={() => navigate("/campaign/new")} style={{ marginBottom: "1rem" }}>
         ➕ Add Campaign
       </button>

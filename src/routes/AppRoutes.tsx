@@ -10,6 +10,8 @@ import About from "@/pages/About/About";
 import FAQ from "@/pages/FAQ/FAQ";
 import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
+import DashboardLayout from "@/ui/Dashboard/DashboardLayout";
+import OrgUsersPage from "@/pages/OrgUsers/OrgUsersPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
 import PreviewPage from "@/pages/Preview/Preview";
 import DonatePage from "@/pages/Donate/DonatePage";
@@ -60,9 +62,13 @@ export const routes: RouteObject[] = [
     path: "/dashboard",
     element: (
       <ProtectedRoute>
-        <Dashboard />
+        <DashboardLayout />
       </ProtectedRoute>
     ),
+    children: [
+      { index: true, element: <Dashboard /> },
+      { path: "users", element: <OrgUsersPage /> },
+    ],
   },
   {
     path: "/reset-credentials",

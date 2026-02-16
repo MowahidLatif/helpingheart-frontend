@@ -11,6 +11,7 @@ type Campaign = {
   status: string;
   total_raised: number;
   created_at?: string;
+  org_id?: string;
   giveaway_prize_cents?: number;
   platform_fee_cents?: number;
   platform_fee_percent?: number;
@@ -54,6 +55,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
       }
     }
   }, [campaign?.id, campaign?.giveaway_prize_cents]);
+
+  const orgId = campaign?.org_id;
 
   const loadProgress = async () => {
     if (!campaign?.id) return;
@@ -271,8 +274,214 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
           </div>
         </div>
       )}
+
+      {campaign.id && orgId && (
+        <CampaignTasksSection campaignId={campaign.id} orgId={orgId} />
+      )}
     </div>
   );
 };
+
+type TaskRow = {
+  id: string;
+  title: string;
+  description: string | null;
+  assignee_user_id: string | null;
+  assignee_name: string | null;
+  assignee_email: string | null;
+  status_id: string | null;
+  status_name: string | null;
+};
+
+type TaskStatusRow = { id: string; name: string };
+type MemberRow = { id: string; email: string; name: string | null };
+
+function CampaignTasksSection({
+  campaignId,
+  orgId,
+}: {
+  campaignId: string;
+  orgId: string;
+}) {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [statuses, setStatuses] = useState<TaskStatusRow[]>([]);
+  const [members, setMembers] = useState<MemberRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showCreate, setShowCreate] = useState(false);
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newAssignee, setNewAssignee] = useState("");
+  const [newStatusId, setNewStatusId] = useState("");
+  const [createLoading, setCreateLoading] = useState(false);
+  const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+
+  useEffect(() => {
+    api.get<{ user_id: string; role?: string }>(API_ENDPOINTS.me.info).then((res) => {
+      setCurrentUserId(res.data.user_id ?? null);
+      setCurrentUserRole(res.data.role ?? null);
+    }).catch(() => {});
+  }, []);
+
+  const load = async () => {
+    setError("");
+    try {
+      const [tasksRes, statusesRes, membersRes] = await Promise.all([
+        api.get<TaskRow[]>(API_ENDPOINTS.campaigns.tasks(campaignId)),
+        api.get<TaskStatusRow[]>(API_ENDPOINTS.orgs.taskStatuses(orgId)),
+        api.get<MemberRow[]>(API_ENDPOINTS.orgs.members(orgId)),
+      ]);
+      setTasks(tasksRes.data || []);
+      setStatuses(statusesRes.data || []);
+      setMembers(membersRes.data || []);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    load();
+  }, [campaignId, orgId]);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+    setCreateLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.campaigns.tasks(campaignId), {
+        title: newTitle.trim(),
+        description: newDesc.trim() || undefined,
+        assignee_user_id: newAssignee || undefined,
+        status_id: newStatusId || undefined,
+      });
+      setNewTitle("");
+      setNewDesc("");
+      setNewAssignee("");
+      setNewStatusId("");
+      setShowCreate(false);
+      load();
+    } catch {
+      // ignore
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (taskId: string, statusId: string) => {
+    setStatusUpdating(taskId);
+    try {
+      await api.patch(`${API_ENDPOINTS.campaigns.tasks(campaignId)}/${taskId}`, {
+        status_id: statusId || null,
+      });
+      load();
+    } catch {
+      // ignore
+    } finally {
+      setStatusUpdating(null);
+    }
+  };
+
+  const canChangeStatus = (task: TaskRow) => {
+    if (!currentUserId) return false;
+    if (task.assignee_user_id === currentUserId) return true;
+    return currentUserRole === "owner" || currentUserRole === "admin";
+  };
+
+  return (
+    <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+      <h3>Tasks</h3>
+      {error && <p style={{ color: "red" }}>{error}</p>}
+      {loading ? (
+        <p>Loading tasks...</p>
+      ) : (
+        <>
+          <button type="button" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: "0.5rem" }}>
+            {showCreate ? "Cancel" : "Add task"}
+          </button>
+          {showCreate && (
+            <form onSubmit={handleCreate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                placeholder="Task title"
+                required
+                style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px" }}
+              />
+              <textarea
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                placeholder="Description (optional)"
+                style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px", minHeight: "60px" }}
+              />
+              <select
+                value={newAssignee}
+                onChange={(e) => setNewAssignee(e.target.value)}
+                style={{ display: "block", marginBottom: "0.25rem" }}
+              >
+                <option value="">No assignee</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>{m.name || m.email}</option>
+                ))}
+              </select>
+              <select
+                value={newStatusId}
+                onChange={(e) => setNewStatusId(e.target.value)}
+                style={{ display: "block", marginBottom: "0.25rem" }}
+              >
+                <option value="">No status</option>
+                {statuses.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+              <button type="submit" disabled={createLoading}>Create task</button>
+            </form>
+          )}
+          <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "600px" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid #ddd" }}>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>Task</th>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>Assignee</th>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map((t) => (
+                <tr key={t.id} style={{ borderBottom: "1px solid #eee" }}>
+                  <td style={{ padding: "0.5rem" }}>
+                    <strong>{t.title}</strong>
+                    {t.description && <div style={{ fontSize: "0.9rem", color: "#666" }}>{t.description}</div>}
+                  </td>
+                  <td style={{ padding: "0.5rem" }}>{t.assignee_name || t.assignee_email || "—"}</td>
+                  <td style={{ padding: "0.5rem" }}>
+                    {canChangeStatus(t) ? (
+                      <select
+                        value={t.status_id || ""}
+                        onChange={(e) => handleStatusChange(t.id, e.target.value)}
+                        disabled={statusUpdating === t.id}
+                      >
+                        <option value="">—</option>
+                        {statuses.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    ) : (
+                      t.status_name || "—"
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {tasks.length === 0 && !showCreate && <p>No tasks yet.</p>}
+        </>
+      )}
+    </div>
+  );
+}
 
 export default CampaignDetails;
