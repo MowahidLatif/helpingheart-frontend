@@ -17,9 +17,10 @@ type SidebarProps = {
   onSelectCampaign: (campaign: Campaign | null) => void;
   orgId?: string | null;
   role?: string | null;
+  refreshCampaignsTrigger?: number;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, orgId, role }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, orgId, role, refreshCampaignsTrigger = 0 }) => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,7 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, orgId, role }) => {
 
   useEffect(() => {
     loadCampaigns();
-  }, []);
+  }, [refreshCampaignsTrigger]);
 
   const loadCampaigns = async () => {
     setLoading(true);

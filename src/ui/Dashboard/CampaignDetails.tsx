@@ -1,7 +1,8 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import Modal from "@/components/Modal";
 
 type Campaign = {
   id: string;
@@ -35,8 +36,17 @@ type CampaignDetailsProps = {
   campaign: Campaign | null;
 };
 
+type OutletContext = {
+  orgId?: string | null;
+  role?: string | null;
+  onRefreshCampaigns?: () => void;
+  onCampaignDeleted?: () => void;
+};
+
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const navigate = useNavigate();
+  const outletContext = useOutletContext<OutletContext>();
+  const { onRefreshCampaigns, onCampaignDeleted } = outletContext || {};
   const [progress, setProgress] = useState<any>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [drawLoading, setDrawLoading] = useState(false);
@@ -44,6 +54,10 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const [drawResult, setDrawResult] = useState<DrawResult | null>(null);
   const [giveawayLogs, setGiveawayLogs] = useState<GiveawayLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (campaign?.id) {
@@ -106,6 +120,29 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
 
   const handleCloseDrawResult = () => setDrawResult(null);
 
+  useEffect(() => {
+    if (!successMessage) return;
+    const t = setTimeout(() => setSuccessMessage(""), 3000);
+    return () => clearTimeout(t);
+  }, [successMessage]);
+
+  const handleConfirmDelete = async () => {
+    if (!campaign?.id) return;
+    setDeleteError("");
+    setDeleteLoading(true);
+    try {
+      await api.delete(API_ENDPOINTS.campaigns.delete(campaign.id));
+      setShowDeleteConfirmModal(false);
+      setSuccessMessage("Campaign deleted.");
+      onRefreshCampaigns?.();
+      onCampaignDeleted?.();
+    } catch (err) {
+      setDeleteError(getErrorMessage(err));
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (!campaign) return <p>Select a campaign to view details.</p>;
 
   const handlePublish = () => {
@@ -126,6 +163,19 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
 
   return (
     <div style={{ padding: "2rem" }}>
+      {successMessage && (
+        <div
+          style={{
+            marginBottom: "1rem",
+            padding: "0.75rem 1rem",
+            backgroundColor: "#dcfce7",
+            color: "#166534",
+            borderRadius: "6px",
+          }}
+        >
+          {successMessage}
+        </div>
+      )}
       <h2>{campaign.title}</h2>
       <p>Slug: {campaign.slug}</p>
 
@@ -168,7 +218,44 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
             🎲 Draw Winner
           </button>
         )}
+        <button
+          onClick={() => {
+            setShowDeleteConfirmModal(true);
+            setDeleteError("");
+          }}
+          style={{ marginRight: "0.5rem", color: "#b91c1c", borderColor: "#b91c1c" }}
+        >
+          Delete campaign
+        </button>
       </div>
+
+      <Modal
+        isOpen={showDeleteConfirmModal}
+        onClose={() => !deleteLoading && setShowDeleteConfirmModal(false)}
+      >
+        <h3 style={{ marginTop: 0 }}>Delete campaign?</h3>
+        <p style={{ color: "#666" }}>
+          This action is permanent and cannot be undone. The campaign and its data will be removed.
+        </p>
+        {deleteError && (
+          <p style={{ color: "#b91c1c", marginBottom: "0.5rem" }}>{deleteError}</p>
+        )}
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
+          <button
+            onClick={handleConfirmDelete}
+            disabled={deleteLoading}
+            style={{ backgroundColor: "#b91c1c", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "4px", cursor: deleteLoading ? "not-allowed" : "pointer" }}
+          >
+            {deleteLoading ? "Deleting…" : "Delete"}
+          </button>
+          <button
+            onClick={() => setShowDeleteConfirmModal(false)}
+            disabled={deleteLoading}
+          >
+            Cancel
+          </button>
+        </div>
+      </Modal>
 
       {drawResult && (
         <div

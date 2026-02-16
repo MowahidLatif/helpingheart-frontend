@@ -24,6 +24,10 @@ export default function DashboardLayout() {
   const [orgId, setOrgId] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [meError, setMeError] = useState("");
+  const [refreshCampaignsTrigger, setRefreshCampaignsTrigger] = useState(0);
+
+  const onRefreshCampaigns = () => setRefreshCampaignsTrigger((t) => t + 1);
+  const onCampaignDeleted = () => navigate("/dashboard", { replace: true });
 
   useEffect(() => {
     api
@@ -48,13 +52,14 @@ export default function DashboardLayout() {
           onSelectCampaign={handleSelectCampaign}
           orgId={orgId}
           role={role}
+          refreshCampaignsTrigger={refreshCampaignsTrigger}
         />
       </div>
       <div style={{ flexGrow: 1, overflow: "auto" }}>
         {meError && (
           <div style={{ padding: "1rem", color: "red" }}>{meError}</div>
         )}
-        <Outlet context={{ orgId, role }} />
+        <Outlet context={{ orgId, role, onRefreshCampaigns, onCampaignDeleted }} />
       </div>
     </div>
   );
