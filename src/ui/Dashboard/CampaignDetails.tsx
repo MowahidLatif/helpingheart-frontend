@@ -43,10 +43,22 @@ type OutletContext = {
   onCampaignDeleted?: () => void;
 };
 
+type DonationRow = {
+  id: string;
+  campaign_id: string;
+  amount_cents: number;
+  currency: string;
+  donor_email: string | null;
+  message: string | null;
+  status: string;
+  created_at: string;
+  updated_at?: string;
+};
+
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const navigate = useNavigate();
   const outletContext = useOutletContext<OutletContext>();
-  const { onRefreshCampaigns, onCampaignDeleted } = outletContext || {};
+  const { onRefreshCampaigns, onCampaignDeleted, role } = outletContext || {};
   const [progress, setProgress] = useState<any>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [drawLoading, setDrawLoading] = useState(false);
@@ -58,6 +70,18 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [donations, setDonations] = useState<DonationRow[]>([]);
+  const [donationsTotal, setDonationsTotal] = useState(0);
+  const [donationsPage, setDonationsPage] = useState(1);
+  const [donationsPerPage] = useState(20);
+  const [donationsLoading, setDonationsLoading] = useState(false);
+  const [donationsError, setDonationsError] = useState("");
+  const [donationsSort, setDonationsSort] = useState<"created_at" | "amount_cents" | "donor_email" | "status">("created_at");
+  const [donationsOrder, setDonationsOrder] = useState<"asc" | "desc">("desc");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [exportCsvLoading, setExportCsvLoading] = useState(false);
 
   useEffect(() => {
     if (campaign?.id) {
@@ -71,6 +95,79 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   }, [campaign?.id, campaign?.giveaway_prize_cents]);
 
   const orgId = campaign?.org_id;
+  const showDonations = role === "admin" || role === "owner";
+
+  const loadDonations = async () => {
+    if (!campaign?.id || !showDonations) return;
+    setDonationsLoading(true);
+    setDonationsError("");
+    try {
+      const params: Record<string, string | number> = {
+        page: donationsPage,
+        per_page: donationsPerPage,
+        sort: donationsSort,
+        order: donationsOrder,
+      };
+      if (searchQuery) params.search = searchQuery;
+      const res = await api.get<{ items: DonationRow[]; total: number; page: number; per_page: number }>(
+        API_ENDPOINTS.campaigns.donations(campaign.id),
+        { params }
+      );
+      setDonations(res.data.items || []);
+      setDonationsTotal(res.data.total ?? 0);
+    } catch (err) {
+      setDonationsError(getErrorMessage(err));
+      setDonations([]);
+    } finally {
+      setDonationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchQuery(searchInput.trim());
+      setDonationsPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [searchInput]);
+
+  useEffect(() => {
+    if (campaign?.id && showDonations) {
+      loadDonations();
+    }
+  }, [campaign?.id, showDonations, donationsPage, donationsPerPage, donationsSort, donationsOrder, searchQuery]);
+
+  const handleDonationsSort = (col: "created_at" | "amount_cents" | "donor_email" | "status") => {
+    if (donationsSort === col) {
+      setDonationsOrder((o) => (o === "asc" ? "desc" : "asc"));
+    } else {
+      setDonationsSort(col);
+      setDonationsOrder("desc");
+    }
+    setDonationsPage(1);
+  };
+
+  const handleExportCsv = async () => {
+    if (!campaign?.id) return;
+    setExportCsvLoading(true);
+    try {
+      const res = await api.get(API_ENDPOINTS.campaigns.donationsExportCsv(campaign.id), {
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `campaign_${campaign.id}_donations.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setDonationsError(getErrorMessage(err));
+    } finally {
+      setExportCsvLoading(false);
+    }
+  };
 
   const loadProgress = async () => {
     if (!campaign?.id) return;
@@ -359,6 +456,108 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {showDonations && campaign.id && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+          <h3>Donations</h3>
+          <div style={{ marginBottom: "0.75rem", display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
+            <label>
+              Search by donor or message:{" "}
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Filter..."
+                style={{ padding: "0.25rem 0.5rem", width: "200px" }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={handleExportCsv}
+              disabled={exportCsvLoading || donationsLoading}
+            >
+              {exportCsvLoading ? "Exporting…" : "Export CSV"}
+            </button>
+          </div>
+          {donationsError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{donationsError}</p>}
+          {donationsLoading ? (
+            <p>Loading donations…</p>
+          ) : (
+            <>
+              <table style={{ borderCollapse: "collapse", marginTop: "0.5rem", width: "100%", maxWidth: "900px" }}>
+                <thead>
+                  <tr>
+                    <th
+                      style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "left", cursor: "pointer" }}
+                      onClick={() => handleDonationsSort("created_at")}
+                    >
+                      Date {donationsSort === "created_at" ? (donationsOrder === "asc" ? "↑" : "↓") : ""}
+                    </th>
+                    <th
+                      style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "left", cursor: "pointer" }}
+                      onClick={() => handleDonationsSort("donor_email")}
+                    >
+                      Donor {donationsSort === "donor_email" ? (donationsOrder === "asc" ? "↑" : "↓") : ""}
+                    </th>
+                    <th
+                      style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "right", cursor: "pointer" }}
+                      onClick={() => handleDonationsSort("amount_cents")}
+                    >
+                      Amount {donationsSort === "amount_cents" ? (donationsOrder === "asc" ? "↑" : "↓") : ""}
+                    </th>
+                    <th
+                      style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "left", cursor: "pointer" }}
+                      onClick={() => handleDonationsSort("status")}
+                    >
+                      Status {donationsSort === "status" ? (donationsOrder === "asc" ? "↑" : "↓") : ""}
+                    </th>
+                    <th style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "left" }}>Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {donations.map((d) => (
+                    <tr key={d.id}>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem" }}>
+                        {d.created_at ? new Date(d.created_at).toLocaleString() : "—"}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem" }}>{d.donor_email ?? "—"}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "right" }}>
+                        ${((d.amount_cents || 0) / 100).toFixed(2)} {d.currency?.toUpperCase() || "USD"}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem" }}>{d.status}</td>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        {d.message ? (d.message.length > 60 ? d.message.slice(0, 60) + "…" : d.message) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {donations.length === 0 && !donationsLoading && (
+                <p style={{ marginTop: "0.5rem" }}>No donations match your filters.</p>
+              )}
+              <div style={{ marginTop: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span>
+                  Page {donationsPage} of {Math.max(1, Math.ceil(donationsTotal / donationsPerPage))} ({donationsTotal} total)
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDonationsPage((p) => Math.max(1, p - 1))}
+                  disabled={donationsPage <= 1}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDonationsPage((p) => p + 1)}
+                  disabled={donationsPage * donationsPerPage >= donationsTotal}
+                >
+                  Next
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

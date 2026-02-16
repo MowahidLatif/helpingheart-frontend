@@ -24,6 +24,8 @@ export const API_ENDPOINTS = {
     drawWinner: (id: string) => `/api/campaigns/${id}/draw-winner`,
     giveawayLogs: (id: string) => `/api/campaigns/${id}/giveaway-logs`,
     tasks: (id: string) => `/api/campaigns/${id}/tasks`,
+    donations: (id: string) => `/api/campaigns/${id}/donations`,
+    donationsExportCsv: (id: string) => `/api/campaigns/${id}/donations/export.csv`,
   },
   pageLayout: {
     get: (id: string) => `/api/campaigns/${id}/page-layout`,
