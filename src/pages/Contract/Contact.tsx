@@ -1,4 +1,6 @@
 import { useState } from "react";
+import api, { getErrorMessage } from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -7,8 +9,9 @@ const Contact = () => {
     email: "",
     message: "",
   });
-
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -17,18 +20,39 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Submitted contact form data:", formData);
-    setSubmitted(true);
-    // Reset form
-    setFormData({ firstName: "", lastName: "", email: "", message: "" });
+    setError("");
+    setLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.contact, {
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        message: formData.message.trim(),
+      });
+      setSubmitted(true);
+      setFormData({ firstName: "", lastName: "", email: "", message: "" });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
       <h1>Contact Us</h1>
       <p>We'd love to hear from you. Please fill out the form below:</p>
+
+      {error && (
+        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
+      )}
+      {submitted && (
+        <div style={{ color: "green", marginBottom: "1rem" }}>
+          Message sent. We'll get back to you soon.
+        </div>
+      )}
 
       <form
         onSubmit={handleSubmit}
@@ -42,7 +66,6 @@ const Contact = () => {
           onChange={handleChange}
           required
         />
-
         <input
           type="text"
           name="lastName"
@@ -51,7 +74,6 @@ const Contact = () => {
           onChange={handleChange}
           required
         />
-
         <input
           type="email"
           name="email"
@@ -60,7 +82,6 @@ const Contact = () => {
           onChange={handleChange}
           required
         />
-
         <textarea
           name="message"
           placeholder="Your Message"
@@ -69,13 +90,10 @@ const Contact = () => {
           onChange={handleChange}
           required
         />
-
-        <button type="submit">Send Message</button>
+        <button type="submit" disabled={loading}>
+          {loading ? "Sending..." : "Send Message"}
+        </button>
       </form>
-
-      {submitted && (
-        <p style={{ color: "green" }}>✅ Message sent (simulated)!</p>
-      )}
     </div>
   );
 };

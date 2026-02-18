@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { getUser } from "@/lib/auth";
+import Modal from "@/components/Modal";
 import {
   validateEmail,
   validateName,
@@ -10,10 +11,19 @@ import {
 
 type Profile = { id: string; email: string; name: string } | null;
 type Org = { id: string; name: string; subdomain?: string; role?: string } | null;
+type EmailSettings = {
+  from_name?: string;
+  from_email?: string;
+  reply_to?: string;
+  receipt_subject?: string;
+  receipt_text?: string;
+  receipt_html?: string;
+} | null;
 
 const SettingsPage = () => {
-  const [profile, setProfile] = useState<Profile>(null);
+  const [, setProfile] = useState<Profile>(null);
   const [org, setOrg] = useState<Org>(null);
+  const [, setEmailSettings] = useState<EmailSettings>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
   // Account Settings form
@@ -23,6 +33,20 @@ const SettingsPage = () => {
   const [accountError, setAccountError] = useState("");
   const [accountLoading, setAccountLoading] = useState(false);
 
+  // Org edit
+  const [orgName, setOrgName] = useState("");
+  const [orgSubdomain, setOrgSubdomain] = useState("");
+  const [orgSuccess, setOrgSuccess] = useState("");
+  const [orgError, setOrgError] = useState("");
+  const [orgLoading, setOrgLoading] = useState(false);
+
+  // Email settings
+  const [fromName, setFromName] = useState("");
+  const [fromEmail, setFromEmail] = useState("");
+  const [emailSettingsSuccess, setEmailSettingsSuccess] = useState("");
+  const [emailSettingsError, setEmailSettingsError] = useState("");
+  const [emailSettingsLoading, setEmailSettingsLoading] = useState(false);
+
   // Change Password form
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -30,6 +54,25 @@ const SettingsPage = () => {
   const [passwordSuccess, setPasswordSuccess] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // 2FA
+  const [twoFaSetup, setTwoFaSetup] = useState<{ secret: string; qr_data_url: string } | null>(null);
+  const [twoFaCode, setTwoFaCode] = useState("");
+  const [twoFaSuccess, setTwoFaSuccess] = useState("");
+  const [twoFaError, setTwoFaError] = useState("");
+  const [twoFaLoading, setTwoFaLoading] = useState(false);
+  const [twoFaDisablePassword, setTwoFaDisablePassword] = useState("");
+  const [twoFaDisableCode, setTwoFaDisableCode] = useState("");
+  const [twoFaDisableLoading, setTwoFaDisableLoading] = useState(false);
+
+  // Delete account
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState("");
+  const [deleteCode, setDeleteCode] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const canEditOrg = org && (org.role === "owner" || org.role === "admin");
 
   useEffect(() => {
     let cancelled = false;
@@ -49,11 +92,12 @@ const SettingsPage = () => {
         setEmail(profileRes.data.email ?? "");
         const firstOrg = orgsRes.data?.[0];
         if (firstOrg) {
-          const orgDetail = await api.get<{
-            id: string;
-            name: string;
-            subdomain?: string;
-          }>(API_ENDPOINTS.orgs.get(firstOrg.id));
+          const [orgDetail, emailRes] = await Promise.all([
+            api.get<{ id: string; name: string; subdomain?: string }>(
+              API_ENDPOINTS.orgs.get(firstOrg.id)
+            ),
+            api.get<EmailSettings>(API_ENDPOINTS.orgs.emailSettings(firstOrg.id)).catch(() => ({ data: null })),
+          ]);
           if (!cancelled) {
             setOrg({
               id: orgDetail.data.id,
@@ -61,6 +105,14 @@ const SettingsPage = () => {
               subdomain: orgDetail.data.subdomain,
               role: firstOrg.role,
             });
+            setOrgName(orgDetail.data.name ?? "");
+            setOrgSubdomain(orgDetail.data.subdomain ?? "");
+            const es = emailRes?.data;
+            setEmailSettings(es ?? null);
+            if (es) {
+              setFromName(es.from_name ?? "");
+              setFromEmail(es.from_email ?? "");
+            }
           }
         } else {
           setOrg(null);
@@ -151,6 +203,134 @@ const SettingsPage = () => {
     }
   };
 
+  const handleOrgSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!org?.id || !canEditOrg) return;
+    if (!orgName.trim()) {
+      setOrgError("Organization name is required.");
+      return;
+    }
+    setOrgError("");
+    setOrgSuccess("");
+    setOrgLoading(true);
+    try {
+      await api.patch(API_ENDPOINTS.orgs.update(org.id), { name: orgName.trim() });
+      if (orgSubdomain.trim()) {
+        await api.patch(API_ENDPOINTS.orgs.subdomain(org.id), {
+          subdomain: orgSubdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""),
+        });
+      }
+      setOrg((o) => (o ? { ...o, name: orgName.trim(), subdomain: orgSubdomain.trim() || o.subdomain } : o));
+      setOrgSuccess("Organization updated.");
+    } catch (err) {
+      setOrgError(getErrorMessage(err));
+    } finally {
+      setOrgLoading(false);
+    }
+  };
+
+  const handleEmailSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!org?.id || !canEditOrg) return;
+    setEmailSettingsError("");
+    setEmailSettingsSuccess("");
+    setEmailSettingsLoading(true);
+    try {
+      await api.patch(API_ENDPOINTS.orgs.emailSettings(org.id), {
+        from_name: fromName.trim() || undefined,
+        from_email: fromEmail.trim() || undefined,
+      });
+      setEmailSettingsSuccess("Email settings saved.");
+    } catch (err) {
+      setEmailSettingsError(getErrorMessage(err));
+    } finally {
+      setEmailSettingsLoading(false);
+    }
+  };
+
+  const handle2FaSetup = async () => {
+    setTwoFaError("");
+    setTwoFaSuccess("");
+    setTwoFaLoading(true);
+    try {
+      const res = await api.post<{ secret: string; qr_data_url: string }>(
+        API_ENDPOINTS.auth.twoFaSetup
+      );
+      setTwoFaSetup({ secret: res.data.secret, qr_data_url: res.data.qr_data_url });
+    } catch (err) {
+      setTwoFaError(getErrorMessage(err));
+    } finally {
+      setTwoFaLoading(false);
+    }
+  };
+
+  const handle2FaVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFaCode.trim() || twoFaCode.length !== 6) {
+      setTwoFaError("Enter the 6-digit code.");
+      return;
+    }
+    setTwoFaError("");
+    setTwoFaLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.auth.twoFaVerify, { code: twoFaCode.trim() });
+      setTwoFaSuccess("2FA enabled.");
+      setTwoFaSetup(null);
+      setTwoFaCode("");
+    } catch (err) {
+      setTwoFaError(getErrorMessage(err));
+    } finally {
+      setTwoFaLoading(false);
+    }
+  };
+
+  const handle2FaDisable = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!twoFaDisablePassword || !twoFaDisableCode.trim()) {
+      setTwoFaError("Password and 6-digit code required.");
+      return;
+    }
+    setTwoFaError("");
+    setTwoFaDisableLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.auth.twoFaDisable, {
+        password: twoFaDisablePassword,
+        code: twoFaDisableCode.trim(),
+      });
+      setTwoFaSuccess("2FA disabled.");
+      setTwoFaDisablePassword("");
+      setTwoFaDisableCode("");
+    } catch (err) {
+      setTwoFaError(getErrorMessage(err));
+    } finally {
+      setTwoFaDisableLoading(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!deletePassword.trim()) {
+      setDeleteError("Password is required.");
+      return;
+    }
+    setDeleteError("");
+    setDeleteLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.auth.deleteAccount, {
+        password: deletePassword,
+        ...(deleteCode.trim() ? { code: deleteCode.trim() } : {}),
+      });
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("user");
+      window.location.href = "/";
+    } catch (err) {
+      setDeleteError(getErrorMessage(err));
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const messageBlock = (
     success: string,
     error: string,
@@ -206,11 +386,7 @@ const SettingsPage = () => {
             </label>
             {org && (
               <div style={{ marginBottom: "1rem", color: "#666" }}>
-                <strong>Organization:</strong> {org.name}
-                {org.subdomain != null && (
-                  <> &middot; Subdomain: <code>{org.subdomain}</code></>
-                )}
-                {org.role != null && <> ({org.role})</>}
+                {org.role != null && <>Role: {org.role}</>}
               </div>
             )}
             <button type="submit" disabled={accountLoading}>
@@ -219,6 +395,70 @@ const SettingsPage = () => {
           </form>
         )}
       </section>
+
+      {org && canEditOrg && (
+        <section style={{ marginBottom: "2rem" }}>
+          <h2>Organization</h2>
+          <form onSubmit={handleOrgSubmit}>
+            {messageBlock(orgSuccess, orgError, { color: "green" }, { color: "red" })}
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Organization name:
+              <input
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Subdomain (letters, numbers, hyphens):
+              <input
+                type="text"
+                value={orgSubdomain}
+                onChange={(e) => setOrgSubdomain(e.target.value)}
+                placeholder="yourorg"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <button type="submit" disabled={orgLoading}>
+              {orgLoading ? "Saving..." : "Update organization"}
+            </button>
+          </form>
+        </section>
+      )}
+
+      {org && canEditOrg && (
+        <section style={{ marginBottom: "2rem" }}>
+          <h2>Email settings</h2>
+          <p style={{ color: "#666", marginBottom: "0.5rem" }}>
+            Sender name and email for receipts and notifications.
+          </p>
+          <form onSubmit={handleEmailSettingsSubmit}>
+            {messageBlock(emailSettingsSuccess, emailSettingsError, { color: "green" }, { color: "red" })}
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              From name:
+              <input
+                type="text"
+                value={fromName}
+                onChange={(e) => setFromName(e.target.value)}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              From email:
+              <input
+                type="email"
+                value={fromEmail}
+                onChange={(e) => setFromEmail(e.target.value)}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <button type="submit" disabled={emailSettingsLoading}>
+              {emailSettingsLoading ? "Saving..." : "Save email settings"}
+            </button>
+          </form>
+        </section>
+      )}
 
       {/* Change Password */}
       <section style={{ marginBottom: "2rem" }}>
@@ -268,37 +508,101 @@ const SettingsPage = () => {
         </form>
       </section>
 
-      {/* Profile Picture Upload - placeholder */}
-      <section style={{ marginBottom: "2rem" }}>
-        <h2>Profile picture</h2>
-        <input type="file" accept="image/*" />
-        <p>Upload a profile picture to personalize your account.</p>
-      </section>
-
-      {/* Enable 2FA - placeholder */}
+      {/* 2FA */}
       <section style={{ marginBottom: "2rem" }}>
         <h2>Two-Factor Authentication</h2>
-        <p>Protect your account with an extra layer of security.</p>
-        <button type="button">Enable 2FA</button>
+        {messageBlock(twoFaSuccess, twoFaError, { color: "green" }, { color: "red" })}
+        {twoFaSetup ? (
+          <div>
+            <p>Scan the QR code with your authenticator app, then enter the 6-digit code below.</p>
+            <img src={twoFaSetup.qr_data_url} alt="QR code" style={{ display: "block", margin: "1rem 0", maxWidth: "200px" }} />
+            <form onSubmit={handle2FaVerify}>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={twoFaCode}
+                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+                maxLength={6}
+                style={{ padding: "0.5rem", marginRight: "0.5rem" }}
+              />
+              <button type="submit" disabled={twoFaLoading}>Verify and enable</button>
+              <button type="button" onClick={() => { setTwoFaSetup(null); setTwoFaCode(""); setTwoFaError(""); }}>Cancel</button>
+            </form>
+          </div>
+        ) : (
+          <>
+            <p>Protect your account with an authenticator app (e.g. Google Authenticator).</p>
+            <button type="button" onClick={handle2FaSetup} disabled={twoFaLoading} style={{ marginRight: "0.5rem" }}>
+              Enable 2FA
+            </button>
+            <form onSubmit={handle2FaDisable} style={{ display: "inline-block", marginTop: "1rem" }}>
+              <p>To disable 2FA, enter your password and current 6-digit code:</p>
+              <input
+                type="password"
+                value={twoFaDisablePassword}
+                onChange={(e) => setTwoFaDisablePassword(e.target.value)}
+                placeholder="Password"
+                style={{ display: "block", marginBottom: "0.5rem", padding: "0.5rem" }}
+              />
+              <input
+                type="text"
+                inputMode="numeric"
+                value={twoFaDisableCode}
+                onChange={(e) => setTwoFaDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="6-digit code"
+                maxLength={6}
+                style={{ display: "block", marginBottom: "0.5rem", padding: "0.5rem" }}
+              />
+              <button type="submit" disabled={twoFaDisableLoading}>Disable 2FA</button>
+            </form>
+          </>
+        )}
       </section>
 
-      {/* Delete Account - placeholder */}
-      <section
-        style={{
-          marginTop: "3rem",
-          borderTop: "1px solid #ccc",
-          paddingTop: "2rem",
-        }}
-      >
+      {/* Delete Account */}
+      <section style={{ marginTop: "3rem", borderTop: "1px solid #ccc", paddingTop: "2rem" }}>
         <h2 style={{ color: "red" }}>Delete account</h2>
-        <p>
-          This action is irreversible. All your campaigns and data will be
-          permanently deleted.
-        </p>
-        <button type="button" style={{ backgroundColor: "red", color: "white" }}>
+        <p>Your account will be anonymized. This cannot be undone.</p>
+        <button type="button" onClick={() => { setShowDeleteModal(true); setDeleteError(""); setDeletePassword(""); setDeleteCode(""); }} style={{ backgroundColor: "red", color: "white", border: "none", padding: "0.5rem 1rem", cursor: "pointer" }}>
           Delete my account
         </button>
       </section>
+
+      <Modal isOpen={showDeleteModal} onClose={() => !deleteLoading && setShowDeleteModal(false)}>
+        <h3 style={{ marginTop: 0 }}>Delete account?</h3>
+        <p>Enter your password to confirm. If you have 2FA enabled, also enter your 6-digit code.</p>
+        {deleteError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{deleteError}</p>}
+        <form onSubmit={handleDeleteAccount}>
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            Password:
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={(e) => setDeletePassword(e.target.value)}
+              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
+          </label>
+          <label style={{ display: "block", marginBottom: "1rem" }}>
+            2FA code (if enabled):
+            <input
+              type="text"
+              inputMode="numeric"
+              value={deleteCode}
+              onChange={(e) => setDeleteCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="000000"
+              maxLength={6}
+              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
+          </label>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button type="submit" disabled={deleteLoading} style={{ backgroundColor: "red", color: "white", border: "none", padding: "0.5rem 1rem", cursor: "pointer" }}>
+              {deleteLoading ? "Deleting..." : "Delete account"}
+            </button>
+            <button type="button" onClick={() => setShowDeleteModal(false)} disabled={deleteLoading}>Cancel</button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

@@ -24,7 +24,7 @@ export default function DashboardPage() {
 
   return (
     <div style={{ padding: "2rem" }}>
-      <CampaignDetails campaign={selectedCampaign} />
+      <CampaignDetails campaign={selectedCampaign} onCampaignUpdated={setSelectedCampaign} />
     </div>
   );
 }

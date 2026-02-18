@@ -35,10 +35,11 @@ export default function SignUp() {
         org_subdomain: orgSubdomain || undefined,
       });
 
-      const { access_token, id, email: userEmail, name, org_id } = response.data;
+      const { access_token, refresh_token, id, email: userEmail, name, org_id } = response.data;
       localStorage.setItem("token", access_token);
+      if (refresh_token) localStorage.setItem("refreshToken", refresh_token);
       localStorage.setItem("user", JSON.stringify({ id, email: userEmail, name, org_id }));
-      
+
       navigate("/dashboard");
     } catch (err) {
       setError(getErrorMessage(err));

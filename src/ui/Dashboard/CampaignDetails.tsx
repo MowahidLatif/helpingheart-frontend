@@ -34,6 +34,7 @@ type DrawResult = {
 
 type CampaignDetailsProps = {
   campaign: Campaign | null;
+  onCampaignUpdated?: (campaign: Campaign) => void;
 };
 
 type OutletContext = {
@@ -55,7 +56,11 @@ type DonationRow = {
   updated_at?: string;
 };
 
-const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
+type CommentRow = { id: string; body: string; user_id: string; created_at: string };
+type UpdateRow = { id: string; title: string; body: string; created_at: string };
+type ReceiptRow = { id: string; donation_id: string; to_email: string; subject: string; sent_at: string | null; created_at: string };
+
+const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignUpdated }) => {
   const navigate = useNavigate();
   const outletContext = useOutletContext<OutletContext>();
   const { onRefreshCampaigns, onCampaignDeleted, role } = outletContext || {};
@@ -70,6 +75,27 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editGoal, setEditGoal] = useState("");
+  const [editStatus, setEditStatus] = useState("");
+  const [editSlug, setEditSlug] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
+
+  const [comments, setComments] = useState<CommentRow[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [newCommentBody, setNewCommentBody] = useState("");
+  const [commentSubmitLoading, setCommentSubmitLoading] = useState(false);
+  const [updates, setUpdates] = useState<UpdateRow[]>([]);
+  const [updatesLoading, setUpdatesLoading] = useState(false);
+  const [newUpdateTitle, setNewUpdateTitle] = useState("");
+  const [newUpdateBody, setNewUpdateBody] = useState("");
+  const [updateSubmitLoading, setUpdateSubmitLoading] = useState(false);
+  const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
+  const [receiptsLoading, setReceiptsLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState<string | null>(null);
 
   const [donations, setDonations] = useState<DonationRow[]>([]);
   const [donationsTotal, setDonationsTotal] = useState(0);
@@ -137,6 +163,145 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
       loadDonations();
     }
   }, [campaign?.id, showDonations, donationsPage, donationsPerPage, donationsSort, donationsOrder, searchQuery]);
+
+  useEffect(() => {
+    if (!campaign?.id) return;
+    setCommentsLoading(true);
+    api.get<CommentRow[]>(API_ENDPOINTS.campaigns.comments(campaign.id), { params: { limit: 50 } })
+      .then((r) => setComments(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setComments([]))
+      .finally(() => setCommentsLoading(false));
+  }, [campaign?.id]);
+
+  useEffect(() => {
+    if (!campaign?.id) return;
+    setUpdatesLoading(true);
+    api.get<UpdateRow[]>(API_ENDPOINTS.campaigns.updates(campaign.id), { params: { limit: 50 } })
+      .then((r) => setUpdates(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setUpdates([]))
+      .finally(() => setUpdatesLoading(false));
+  }, [campaign?.id]);
+
+  useEffect(() => {
+    if (!campaign?.id || !showDonations) return;
+    setReceiptsLoading(true);
+    api.get<ReceiptRow[]>(API_ENDPOINTS.campaigns.receipts(campaign.id), { params: { limit: 50 } })
+      .then((r) => setReceipts(Array.isArray(r.data) ? r.data : []))
+      .catch(() => setReceipts([]))
+      .finally(() => setReceiptsLoading(false));
+  }, [campaign?.id, showDonations]);
+
+  const handleOpenEdit = () => {
+    setEditTitle(campaign?.title ?? "");
+    setEditGoal(String(campaign?.goal ?? ""));
+    setEditStatus(campaign?.status ?? "draft");
+    setEditSlug(campaign?.slug ?? "");
+    setEditError("");
+    setShowEditModal(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaign?.id) return;
+    setEditError("");
+    setEditLoading(true);
+    try {
+      const body: { title?: string; goal?: number; status?: string; slug?: string } = {};
+      if (editTitle.trim()) body.title = editTitle.trim();
+      if (editGoal.trim()) body.goal = parseFloat(editGoal);
+      if (editStatus.trim()) body.status = editStatus.trim();
+      if (editSlug.trim()) body.slug = editSlug.trim();
+      const res = await api.patch<Campaign>(API_ENDPOINTS.campaigns.patch(campaign.id), body);
+      onCampaignUpdated?.(res.data);
+      onRefreshCampaigns?.();
+      setShowEditModal(false);
+      setSuccessMessage("Campaign updated.");
+    } catch (err) {
+      setEditError(getErrorMessage(err));
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleAddComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaign?.id || !newCommentBody.trim()) return;
+    setCommentSubmitLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.campaigns.comments(campaign.id), { body: newCommentBody.trim() });
+      setNewCommentBody("");
+      const r = await api.get<CommentRow[]>(API_ENDPOINTS.campaigns.comments(campaign.id), { params: { limit: 50 } });
+      setComments(Array.isArray(r.data) ? r.data : []);
+    } catch {
+      // ignore
+    } finally {
+      setCommentSubmitLoading(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!campaign?.id) return;
+    try {
+      await api.delete(API_ENDPOINTS.campaigns.comment(campaign.id, commentId));
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleAddUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!campaign?.id || !newUpdateTitle.trim() || !newUpdateBody.trim()) return;
+    setUpdateSubmitLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.campaigns.updates(campaign.id), { title: newUpdateTitle.trim(), body: newUpdateBody.trim() });
+      setNewUpdateTitle("");
+      setNewUpdateBody("");
+      const r = await api.get<UpdateRow[]>(API_ENDPOINTS.campaigns.updates(campaign.id), { params: { limit: 50 } });
+      setUpdates(Array.isArray(r.data) ? r.data : []);
+    } catch {
+      // ignore
+    } finally {
+      setUpdateSubmitLoading(false);
+    }
+  };
+
+  const handleDeleteUpdate = async (updateId: string) => {
+    if (!campaign?.id) return;
+    try {
+      await api.delete(API_ENDPOINTS.campaigns.update(campaign.id, updateId));
+      setUpdates((prev) => prev.filter((u) => u.id !== updateId));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleResendReceipt = async (receiptId: string) => {
+    if (!campaign?.id) return;
+    setResendLoading(receiptId);
+    try {
+      await api.post(API_ENDPOINTS.campaigns.receiptResend(campaign.id, receiptId));
+      setSuccessMessage("Receipt resent.");
+    } catch {
+      // ignore
+    } finally {
+      setResendLoading(null);
+    }
+  };
+
+  const handlePreviewReceipt = async (receiptId: string) => {
+    if (!campaign?.id) return;
+    try {
+      const res = await api.get<string>(API_ENDPOINTS.campaigns.receiptPreview(campaign.id, receiptId), { responseType: "text" });
+      const w = window.open("", "_blank");
+      if (w) {
+        w.document.write(res.data);
+        w.document.close();
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const handleDonationsSort = (col: "created_at" | "amount_cents" | "donor_email" | "status") => {
     if (donationsSort === col) {
@@ -337,6 +502,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
         >
           View Live Page
         </a>
+        <button onClick={handleOpenEdit} style={{ marginRight: "0.5rem" }}>Edit campaign</button>
         <button onClick={handleEditMedia} style={{ marginRight: "0.5rem" }}>Edit Media</button>
         <button onClick={handleEditLayout} style={{ marginRight: "0.5rem" }}>Edit Page Layout</button>
         {isGiveaway && (
@@ -384,6 +550,37 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
             Cancel
           </button>
         </div>
+      </Modal>
+
+      <Modal isOpen={showEditModal} onClose={() => !editLoading && setShowEditModal(false)}>
+        <h3 style={{ marginTop: 0 }}>Edit campaign</h3>
+        {editError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</p>}
+        <form onSubmit={handleSaveEdit}>
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            Title:
+            <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+          </label>
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            Goal ($):
+            <input type="number" min="0" step="1" value={editGoal} onChange={(e) => setEditGoal(e.target.value)} required style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+          </label>
+          <label style={{ display: "block", marginBottom: "0.5rem" }}>
+            Status:
+            <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}>
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="ended">Ended</option>
+            </select>
+          </label>
+          <label style={{ display: "block", marginBottom: "1rem" }}>
+            Slug:
+            <input type="text" value={editSlug} onChange={(e) => setEditSlug(e.target.value)} style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+          </label>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button type="submit" disabled={editLoading}>{editLoading ? "Saving…" : "Save"}</button>
+            <button type="button" onClick={() => setShowEditModal(false)} disabled={editLoading}>Cancel</button>
+          </div>
+        </form>
       </Modal>
 
       {drawResult && (
@@ -589,6 +786,97 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign }) => {
                 </button>
               </div>
             </>
+          )}
+        </div>
+      )}
+
+      {campaign?.id && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+          <h3>Comments</h3>
+          {commentsLoading ? (
+            <p>Loading…</p>
+          ) : (
+            <>
+              <form onSubmit={handleAddComment} style={{ marginBottom: "1rem" }}>
+                <textarea value={newCommentBody} onChange={(e) => setNewCommentBody(e.target.value)} placeholder="Add a comment…" rows={2} style={{ width: "100%", maxWidth: "400px", display: "block", marginBottom: "0.5rem", padding: "0.5rem" }} />
+                <button type="submit" disabled={commentSubmitLoading || !newCommentBody.trim()}>{commentSubmitLoading ? "Sending…" : "Post comment"}</button>
+              </form>
+              {comments.length === 0 ? <p style={{ color: "#666" }}>No comments yet.</p> : (
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {comments.map((c) => (
+                    <li key={c.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
+                      <span style={{ fontSize: "0.9rem", color: "#666" }}>{c.created_at ? new Date(c.created_at).toLocaleString() : ""}</span>
+                      <p style={{ margin: "0.25rem 0" }}>{c.body}</p>
+                      <button type="button" onClick={() => handleDeleteComment(c.id)} style={{ fontSize: "0.85rem", color: "#666" }}>Delete</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {campaign?.id && (role === "admin" || role === "owner") && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+          <h3>Updates</h3>
+          {updatesLoading ? (
+            <p>Loading…</p>
+          ) : (
+            <>
+              <form onSubmit={handleAddUpdate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
+                <input type="text" value={newUpdateTitle} onChange={(e) => setNewUpdateTitle(e.target.value)} placeholder="Update title" required style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
+                <textarea value={newUpdateBody} onChange={(e) => setNewUpdateBody(e.target.value)} placeholder="Update body" required rows={3} style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
+                <button type="submit" disabled={updateSubmitLoading}>Post update</button>
+              </form>
+              {updates.length === 0 ? <p style={{ color: "#666" }}>No updates yet.</p> : (
+                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                  {updates.map((u) => (
+                    <li key={u.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
+                      <strong>{u.title}</strong>
+                      <span style={{ fontSize: "0.9rem", color: "#666", marginLeft: "0.5rem" }}>{u.created_at ? new Date(u.created_at).toLocaleString() : ""}</span>
+                      <p style={{ margin: "0.25rem 0", whiteSpace: "pre-wrap" }}>{u.body}</p>
+                      <button type="button" onClick={() => handleDeleteUpdate(u.id)} style={{ fontSize: "0.85rem", color: "#666" }}>Delete</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </>
+          )}
+        </div>
+      )}
+
+      {showDonations && campaign?.id && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
+          <h3>Receipts</h3>
+          {receiptsLoading ? (
+            <p>Loading…</p>
+          ) : receipts.length === 0 ? (
+            <p style={{ color: "#666" }}>No receipts yet.</p>
+          ) : (
+            <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "600px" }}>
+              <thead>
+                <tr style={{ borderBottom: "2px solid #ddd" }}>
+                  <th style={{ textAlign: "left", padding: "0.5rem" }}>To</th>
+                  <th style={{ textAlign: "left", padding: "0.5rem" }}>Subject</th>
+                  <th style={{ textAlign: "left", padding: "0.5rem" }}>Sent</th>
+                  <th style={{ textAlign: "left", padding: "0.5rem" }}></th>
+                </tr>
+              </thead>
+              <tbody>
+                {receipts.map((r) => (
+                  <tr key={r.id} style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "0.5rem" }}>{r.to_email}</td>
+                    <td style={{ padding: "0.5rem" }}>{r.subject}</td>
+                    <td style={{ padding: "0.5rem" }}>{r.sent_at ? new Date(r.sent_at).toLocaleString() : "—"}</td>
+                    <td style={{ padding: "0.5rem" }}>
+                      <button type="button" onClick={() => handlePreviewReceipt(r.id)} style={{ marginRight: "0.5rem" }}>Preview</button>
+                      <button type="button" onClick={() => handleResendReceipt(r.id)} disabled={resendLoading === r.id}>{resendLoading === r.id ? "Sending…" : "Resend"}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           )}
         </div>
       )}
