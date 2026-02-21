@@ -5,6 +5,7 @@ import { TextBlock } from "./TextBlock";
 import { MediaGalleryBlock } from "./MediaGalleryBlock";
 import { EmbedBlock } from "./EmbedBlock";
 import { FooterBlock } from "./FooterBlock";
+import { ProgressTubeBlock } from "./ProgressTubeBlock";
 
 export type LatestWinner = {
   donor: string;
@@ -92,6 +93,8 @@ export function BlockRenderer({ campaign, onDonateClick }: BlockRendererProps) {
             return <EmbedBlock key={key} block={block} />;
           case "footer":
             return <FooterBlock key={key} block={block} />;
+          case "progress_tube":
+            return <ProgressTubeBlock key={key} block={block} campaign={campaign} />;
           default:
             return (
               <div key={key} className="donate-block donate-block-unknown">

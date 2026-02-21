@@ -49,6 +49,7 @@ const PageLayoutBuilder = () => {
     "text",
     "embed",
     "footer",
+    "progress_tube",
   ];
 
   useEffect(() => {
@@ -474,6 +475,28 @@ const PageLayoutBuilder = () => {
                     <option value="portrait">Portrait</option>
                     <option value="auto">Auto</option>
                   </select>
+                </label>
+              </>
+            )}
+            {selectedBlock.type === "progress_tube" && (
+              <>
+                <label>
+                  Label (optional heading):
+                  <input
+                    type="text"
+                    value={selectedBlock.props.label || ""}
+                    onChange={(e) => updateBlockProp(selectedBlock.id, "label", e.target.value)}
+                    placeholder="e.g. Our Progress"
+                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                  />
+                </label>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={selectedBlock.props.show_percent === true}
+                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_percent", e.target.checked)}
+                  />
+                  {" "}Show Percentage
                 </label>
               </>
             )}

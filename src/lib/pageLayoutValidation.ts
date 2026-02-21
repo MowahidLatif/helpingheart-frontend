@@ -11,6 +11,7 @@ const BLOCK_TYPES = new Set([
   "text",
   "embed",
   "footer",
+  "progress_tube",
 ]);
 
 const MAX_BLOCKS = 50;
