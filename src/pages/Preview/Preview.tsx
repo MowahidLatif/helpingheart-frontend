@@ -1,57 +1,47 @@
-import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import { DonationModal } from "@/components/DonationModal/DonationModal";
 
-type Campaign = {
-  id: string;
-  title: string;
-  slug: string;
-  goal: number;
-  total_raised: number;
-};
+const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
-type Progress = {
-  goal: number;
-  total_raised: number;
-  percent: number;
-  donations_count: number;
-};
+function getPresetAmounts(campaign: Campaign | null): number[] {
+  if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
+  const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
+  const presets = donateBlock?.props?.preset_amounts;
+  if (Array.isArray(presets) && presets.length > 0) {
+    return (presets as unknown[]).filter((n): n is number => typeof n === "number" && n > 0);
+  }
+  return DEFAULT_PRESETS;
+}
 
-const PreviewPage = () => {
+export default function PreviewPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const campaignId = location.state?.campaignId;
+  const campaignId: string | undefined = location.state?.campaignId;
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
-  const [progress, setProgress] = useState<Progress | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     if (!campaignId) {
-      setLoading(false);
       setError("No campaign selected. Go to Dashboard and click a campaign to preview.");
+      setLoading(false);
       return;
     }
-
-    Promise.all([
-      api.get(API_ENDPOINTS.campaigns.public(campaignId)),
-      api.get(API_ENDPOINTS.campaigns.progress(campaignId)),
-    ])
-      .then(([campRes, progRes]) => {
-        setCampaign(campRes.data);
-        setProgress(progRes.data);
+    api
+      .get(API_ENDPOINTS.campaigns.public(campaignId))
+      .then((res) => {
+        setCampaign(res.data);
+        setError("");
       })
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
   }, [campaignId]);
-
-  const handleDonate = () => {
-    if (campaignId) {
-      navigate(`/donate/${campaignId}`);
-    }
-  };
 
   if (loading) {
     return (
@@ -61,7 +51,7 @@ const PreviewPage = () => {
     );
   }
 
-  if (error || !campaignId) {
+  if (error || !campaignId || !campaign) {
     return (
       <div className="preview-page">
         <h1>Preview Campaign</h1>
@@ -71,30 +61,38 @@ const PreviewPage = () => {
     );
   }
 
-  const percent = progress?.percent ?? 0;
+  const presets = getPresetAmounts(campaign);
 
   return (
     <div className="preview-page">
-      <h1>Preview: {campaign?.title ?? "Campaign"}</h1>
-      <p className="preview-hint">This is how donors will see your campaign.</p>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0.75rem 1.5rem",
+          borderBottom: "1px solid #e5e7eb",
+          background: "#f9fafb",
+        }}
+      >
+        <button onClick={() => navigate("/dashboard")}>← Back to Dashboard</button>
+        <span style={{ fontWeight: 600 }}>Previewing: {campaign.title}</span>
+        <span style={{ fontSize: "0.85rem", color: "#6b7280" }}>This is a preview</span>
+      </div>
 
-      <div className="preview-content">
-        <div className="campaign-progress">
-          <p>
-            ${(progress?.total_raised ?? 0).toLocaleString()} of $
-            {(progress?.goal ?? 0).toLocaleString()} raised
-          </p>
-          <div className="progress-bar">
-            <div className="progress-fill" style={{ width: `${percent}%` }} />
-          </div>
-        </div>
-
-        <button className="donate-cta-btn" onClick={handleDonate}>
-          Donate Now
-        </button>
+      <div className="donate-page donate-page-blocks">
+        <BlockRenderer
+          campaign={campaign}
+          onDonateClick={() => setModalOpen(true)}
+        />
+        <DonationModal
+          open={modalOpen}
+          onClose={() => setModalOpen(false)}
+          campaignId={campaign.id}
+          campaignTitle={campaign.title || "Campaign"}
+          presetAmounts={presets}
+        />
       </div>
     </div>
   );
-};
-
-export default PreviewPage;
+}
