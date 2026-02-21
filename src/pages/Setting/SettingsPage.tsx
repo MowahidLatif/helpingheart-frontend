@@ -15,9 +15,16 @@ type EmailSettings = {
   from_name?: string;
   from_email?: string;
   reply_to?: string;
+  bcc_to?: string;
   receipt_subject?: string;
   receipt_text?: string;
   receipt_html?: string;
+  thank_you_subject?: string;
+  thank_you_text?: string;
+  thank_you_html?: string;
+  winner_subject?: string;
+  winner_text?: string;
+  winner_html?: string;
 } | null;
 
 const SettingsPage = () => {
@@ -43,6 +50,17 @@ const SettingsPage = () => {
   // Email settings
   const [fromName, setFromName] = useState("");
   const [fromEmail, setFromEmail] = useState("");
+  const [replyTo, setReplyTo] = useState("");
+  const [bccTo, setBccTo] = useState("");
+  const [receiptSubject, setReceiptSubject] = useState("");
+  const [receiptText, setReceiptText] = useState("");
+  const [receiptHtml, setReceiptHtml] = useState("");
+  const [thankYouSubject, setThankYouSubject] = useState("");
+  const [thankYouText, setThankYouText] = useState("");
+  const [thankYouHtml, setThankYouHtml] = useState("");
+  const [winnerSubject, setWinnerSubject] = useState("");
+  const [winnerText, setWinnerText] = useState("");
+  const [winnerHtml, setWinnerHtml] = useState("");
   const [emailSettingsSuccess, setEmailSettingsSuccess] = useState("");
   const [emailSettingsError, setEmailSettingsError] = useState("");
   const [emailSettingsLoading, setEmailSettingsLoading] = useState(false);
@@ -112,6 +130,17 @@ const SettingsPage = () => {
             if (es) {
               setFromName(es.from_name ?? "");
               setFromEmail(es.from_email ?? "");
+              setReplyTo(es.reply_to ?? "");
+              setBccTo(es.bcc_to ?? "");
+              setReceiptSubject(es.receipt_subject ?? "");
+              setReceiptText(es.receipt_text ?? "");
+              setReceiptHtml(es.receipt_html ?? "");
+              setThankYouSubject(es.thank_you_subject ?? "");
+              setThankYouText(es.thank_you_text ?? "");
+              setThankYouHtml(es.thank_you_html ?? "");
+              setWinnerSubject(es.winner_subject ?? "");
+              setWinnerText(es.winner_text ?? "");
+              setWinnerHtml(es.winner_html ?? "");
             }
           }
         } else {
@@ -239,6 +268,17 @@ const SettingsPage = () => {
       await api.patch(API_ENDPOINTS.orgs.emailSettings(org.id), {
         from_name: fromName.trim() || undefined,
         from_email: fromEmail.trim() || undefined,
+        reply_to: replyTo.trim() || undefined,
+        bcc_to: bccTo.trim() || undefined,
+        receipt_subject: receiptSubject.trim() || undefined,
+        receipt_text: receiptText.trim() || undefined,
+        receipt_html: receiptHtml.trim() || undefined,
+        thank_you_subject: thankYouSubject.trim() || undefined,
+        thank_you_text: thankYouText.trim() || undefined,
+        thank_you_html: thankYouHtml.trim() || undefined,
+        winner_subject: winnerSubject.trim() || undefined,
+        winner_text: winnerText.trim() || undefined,
+        winner_html: winnerHtml.trim() || undefined,
       });
       setEmailSettingsSuccess("Email settings saved.");
     } catch (err) {
@@ -431,10 +471,12 @@ const SettingsPage = () => {
         <section style={{ marginBottom: "2rem" }}>
           <h2>Email settings</h2>
           <p style={{ color: "#666", marginBottom: "0.5rem" }}>
-            Sender name and email for receipts and notifications.
+            Sender name and email for receipts and notifications. Leave template fields blank to use system defaults.
           </p>
           <form onSubmit={handleEmailSettingsSubmit}>
             {messageBlock(emailSettingsSuccess, emailSettingsError, { color: "green" }, { color: "red" })}
+
+            <h3 style={{ marginBottom: "0.5rem" }}>Sender</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               From name:
               <input
@@ -444,7 +486,7 @@ const SettingsPage = () => {
                 style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
-            <label style={{ display: "block", marginBottom: "1rem" }}>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
               From email:
               <input
                 type="email"
@@ -453,6 +495,117 @@ const SettingsPage = () => {
                 style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Reply-To:
+              <input
+                type="email"
+                value={replyTo}
+                onChange={(e) => setReplyTo(e.target.value)}
+                placeholder="Leave blank to use From email"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              BCC:
+              <input
+                type="email"
+                value={bccTo}
+                onChange={(e) => setBccTo(e.target.value)}
+                placeholder="Leave blank to disable BCC"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+
+            <h3 style={{ marginBottom: "0.5rem" }}>Receipt email template</h3>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Subject:
+              <input
+                type="text"
+                value={receiptSubject}
+                onChange={(e) => setReceiptSubject(e.target.value)}
+                placeholder="Thanks for your donation to {{ campaign.title }}!"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Body (plain text):
+              <textarea
+                value={receiptText}
+                onChange={(e) => setReceiptText(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Body (HTML):
+              <textarea
+                value={receiptHtml}
+                onChange={(e) => setReceiptHtml(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+
+            <h3 style={{ marginBottom: "0.5rem" }}>Thank-you email template</h3>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Subject:
+              <input
+                type="text"
+                value={thankYouSubject}
+                onChange={(e) => setThankYouSubject(e.target.value)}
+                placeholder="Thank you for supporting {{ campaign.title }}!"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Body (plain text):
+              <textarea
+                value={thankYouText}
+                onChange={(e) => setThankYouText(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Body (HTML):
+              <textarea
+                value={thankYouHtml}
+                onChange={(e) => setThankYouHtml(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+
+            <h3 style={{ marginBottom: "0.5rem" }}>Winner notification email template</h3>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Subject:
+              <input
+                type="text"
+                value={winnerSubject}
+                onChange={(e) => setWinnerSubject(e.target.value)}
+                placeholder="Congratulations! You won the {{ campaign.title }} giveaway!"
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "0.5rem" }}>
+              Body (plain text):
+              <textarea
+                value={winnerText}
+                onChange={(e) => setWinnerText(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Body (HTML):
+              <textarea
+                value={winnerHtml}
+                onChange={(e) => setWinnerHtml(e.target.value)}
+                rows={5}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem", fontFamily: "monospace" }}
+              />
+            </label>
+
             <button type="submit" disabled={emailSettingsLoading}>
               {emailSettingsLoading ? "Saving..." : "Save email settings"}
             </button>

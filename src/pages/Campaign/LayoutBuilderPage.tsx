@@ -1,4 +1,4 @@
-import { useState, useCallback, ChangeEvent } from "react";
+import { useState, useCallback, useEffect, ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import React from "react";
 import { getErrorMessage } from "@/lib/api";
@@ -98,6 +98,48 @@ export default function LayoutBuilderPage() {
   const [videos, setVideos] = useState<MediaItem[]>([]);
   const [docs, setDocs] = useState<MediaItem[]>([]);
   const [globalError, setGlobalError] = useState<string | null>(null);
+  const [mediaLoading, setMediaLoading] = useState(true);
+
+  useEffect(() => {
+    if (!campaignId) {
+      setMediaLoading(false);
+      return;
+    }
+    let cancelled = false;
+    const loadExistingMedia = async () => {
+      try {
+        const res = await api.get<Array<{ id: string; type: string; url: string; description?: string; content_type?: string; name?: string }>>(
+          API_ENDPOINTS.campaigns.media(campaignId)
+        );
+        if (cancelled) return;
+        const existingImages: MediaItem[] = [];
+        const existingVideos: MediaItem[] = [];
+        const existingDocs: MediaItem[] = [];
+        for (const item of res.data ?? []) {
+          const mediaItem: MediaItem = {
+            id: item.id,
+            name: item.name ?? item.id,
+            url: item.url,
+            type: item.content_type ?? item.type,
+            description: item.description ?? "",
+            status: "success",
+          };
+          if (item.type === "image") existingImages.push(mediaItem);
+          else if (item.type === "video") existingVideos.push(mediaItem);
+          else existingDocs.push(mediaItem);
+        }
+        setImages(existingImages);
+        setVideos(existingVideos);
+        setDocs(existingDocs);
+      } catch {
+        // Non-fatal: start empty if fetch fails
+      } finally {
+        if (!cancelled) setMediaLoading(false);
+      }
+    };
+    loadExistingMedia();
+    return () => { cancelled = true; };
+  }, [campaignId]);
 
   const uploadFiles = useCallback(
     async (
@@ -410,32 +452,38 @@ export default function LayoutBuilderPage() {
       )}
       {globalError && <p style={{ color: "red" }}>{globalError}</p>}
 
-      <SectionUploader
-        title="Images"
-        accept="image/*"
-        items={images}
-        onFiles={addImages}
-        isUploading={isUploading}
-        render={renderImage}
-      />
+      {mediaLoading ? (
+        <p style={{ color: "#666" }}>Loading existing media...</p>
+      ) : (
+        <>
+          <SectionUploader
+            title="Images"
+            accept="image/*"
+            items={images}
+            onFiles={addImages}
+            isUploading={isUploading}
+            render={renderImage}
+          />
 
-      <SectionUploader
-        title="Videos"
-        accept="video/*"
-        items={videos}
-        onFiles={addVideos}
-        isUploading={isUploading}
-        render={renderVideo}
-      />
+          <SectionUploader
+            title="Videos"
+            accept="video/*"
+            items={videos}
+            onFiles={addVideos}
+            isUploading={isUploading}
+            render={renderVideo}
+          />
 
-      <SectionUploader
-        title="Documents"
-        accept=".pdf"
-        items={docs}
-        onFiles={addDocs}
-        isUploading={isUploading}
-        render={renderDoc}
-      />
+          <SectionUploader
+            title="Documents"
+            accept=".pdf"
+            items={docs}
+            onFiles={addDocs}
+            isUploading={isUploading}
+            render={renderDoc}
+          />
+        </>
+      )}
       <button onClick={() => navigate(`/campaign/page-layout/${campaignId}`)}>
         Done — Back to Page Builder
       </button>
