@@ -71,6 +71,7 @@ export const API_ENDPOINTS = {
     createMember: (id: string) => `/api/orgs/${id}/members/create`,
     memberPermissions: (orgId: string, userId: string) =>
       `/api/orgs/${orgId}/members/${userId}/permissions`,
+    deleteMember: (orgId: string, userId: string) => `/api/orgs/${orgId}/members/${userId}`,
     taskStatuses: (id: string) => `/api/orgs/${id}/task-statuses`,
     emailSettings: (id: string) => `/api/orgs/${id}/email-settings`,
   },

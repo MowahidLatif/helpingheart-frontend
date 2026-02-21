@@ -32,6 +32,7 @@ export default function OrgUsersPage() {
   const [editPermissions, setEditPermissions] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
+  const [removeLoadingId, setRemoveLoadingId] = useState<string | null>(null);
 
   const loadMembers = async () => {
     if (!orgId) return;
@@ -109,6 +110,22 @@ export default function OrgUsersPage() {
       setEditError(getErrorMessage(err));
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const removeMember = async (member: Member) => {
+    if (!orgId) return;
+    if (!window.confirm(`Remove ${member.email} from the organization? Their task assignments will be cleared.`)) return;
+    setRemoveLoadingId(member.id);
+    setError("");
+    try {
+      await api.delete(API_ENDPOINTS.orgs.deleteMember(orgId, member.id));
+      setSuccess(`${member.email} has been removed.`);
+      setMembers((prev) => prev.filter((m) => m.id !== member.id));
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setRemoveLoadingId(null);
     }
   };
 
@@ -227,13 +244,22 @@ export default function OrgUsersPage() {
               </td>
               <td style={{ padding: "0.5rem" }}>
                 {m.role !== "owner" && (
-                  <button
-                    type="button"
-                    onClick={() => openEditPermissions(m)}
-                    style={{ marginRight: "0.5rem" }}
-                  >
-                    Edit permissions
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => openEditPermissions(m)}
+                      style={{ marginRight: "0.5rem" }}
+                    >
+                      Edit permissions
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeMember(m)}
+                      disabled={removeLoadingId === m.id}
+                    >
+                      {removeLoadingId === m.id ? "Removing..." : "Remove"}
+                    </button>
+                  </>
                 )}
               </td>
             </tr>
