@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import React from "react";
 import { getErrorMessage } from "@/lib/api";
 import { uploadMediaToS3, inferMediaType } from "@/lib/mediaUpload";
+import api from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 /* ------------------------------------------------------ */
 /*  Types                                                 */
@@ -212,6 +214,24 @@ export default function LayoutBuilderPage() {
     []
   );
 
+  const deleteMedia = useCallback(
+    async (item: MediaItem, setter: React.Dispatch<React.SetStateAction<MediaItem[]>>) => {
+      if (!item.id) return;
+      try {
+        await api.delete(API_ENDPOINTS.media.delete(item.id));
+        setter((prev) => prev.filter((i) => i !== item));
+      } catch (err) {
+        const msg = getErrorMessage(err);
+        setter((prev) =>
+          prev.map((i) =>
+            i === item ? { ...i, status: "error" as const, error: `Delete failed: ${msg}` } : i
+          )
+        );
+      }
+    },
+    []
+  );
+
   const renderImage = (item: MediaItem, idx: number) => (
     <figure key={item.id ?? idx} style={{ textAlign: "center" }}>
       {item.status === "uploading" && (
@@ -237,10 +257,22 @@ export default function LayoutBuilderPage() {
       )}
       <figcaption style={{ maxWidth: 150 }}>
         {item.description}
-        {item.status === "success" && " ✓ Uploaded"}
+        {item.status === "success" && item.id && (
+          <>
+            {" ✓ Uploaded "}
+            <button
+              type="button"
+              onClick={() => deleteMedia(item, setImages)}
+              style={{ marginLeft: 4 }}
+            >
+              Delete
+            </button>
+          </>
+        )}
+        {item.status === "success" && !item.id && " ✓ Uploaded"}
         {item.status === "error" && (
           <span style={{ color: "red", display: "block" }}>
-            Upload failed: {item.error}
+            {item.error ?? `Upload failed: ${item.error}`}
             <button
               type="button"
               onClick={() => retryUpload(item, setImages)}
@@ -282,10 +314,22 @@ export default function LayoutBuilderPage() {
       )}
       <figcaption style={{ maxWidth: 200 }}>
         {item.description}
-        {item.status === "success" && " ✓ Uploaded"}
+        {item.status === "success" && item.id && (
+          <>
+            {" ✓ Uploaded "}
+            <button
+              type="button"
+              onClick={() => deleteMedia(item, setVideos)}
+              style={{ marginLeft: 4 }}
+            >
+              Delete
+            </button>
+          </>
+        )}
+        {item.status === "success" && !item.id && " ✓ Uploaded"}
         {item.status === "error" && (
           <span style={{ color: "red", display: "block" }}>
-            Upload failed: {item.error}
+            {item.error ?? `Upload failed: ${item.error}`}
             <button
               type="button"
               onClick={() => retryUpload(item, setVideos)}
@@ -315,10 +359,22 @@ export default function LayoutBuilderPage() {
         </a>
       )}
       <small>{item.description}</small>
-      {item.status === "success" && <small>✓ Uploaded</small>}
+      {item.status === "success" && item.id && (
+        <small>
+          ✓ Uploaded{" "}
+          <button
+            type="button"
+            onClick={() => deleteMedia(item, setDocs)}
+            style={{ marginLeft: 4 }}
+          >
+            Delete
+          </button>
+        </small>
+      )}
+      {item.status === "success" && !item.id && <small>✓ Uploaded</small>}
       {item.status === "error" && (
         <span style={{ color: "red" }}>
-          Upload failed: {item.error}
+          {item.error ?? `Upload failed: ${item.error}`}
           <button
             type="button"
             onClick={() => retryUpload(item, setDocs)}

@@ -165,13 +165,25 @@ export default function SignIn() {
           required
           style={{ width: "100%", marginBottom: "1rem" }}
         />
-        <button type="submit" disabled={loading} style={{ marginRight: "0.5rem" }}>
+        <button type="submit" disabled={loading}>
           {loading ? "Signing in..." : "Sign In"}
         </button>
-        <button type="button" onClick={() => navigate("/reset-credentials")}>
-          Reset Password
-        </button>
       </form>
+      <button
+        type="button"
+        onClick={() => navigate("/reset-credentials")}
+        style={{
+          marginTop: "0.75rem",
+          background: "none",
+          border: "none",
+          color: "blue",
+          cursor: "pointer",
+          textDecoration: "underline",
+          padding: 0,
+        }}
+      >
+        Forgot password?
+      </button>
       <button
         type="button"
         onClick={() => navigate("/signup")}
@@ -182,6 +194,7 @@ export default function SignIn() {
           color: "blue",
           cursor: "pointer",
           textDecoration: "underline",
+          display: "block",
         }}
       >
         Don't have an account? Sign up

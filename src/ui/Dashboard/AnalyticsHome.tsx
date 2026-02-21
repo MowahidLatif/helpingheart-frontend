@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { API_ENDPOINTS } from "@/lib/constants";
+import { API_ENDPOINTS, API_BASE_URL } from "@/lib/constants";
 
 type Campaign = {
   id: string;
@@ -29,6 +29,25 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign }: Props) {
   const [memberCount, setMemberCount] = useState<number | null>(null);
+  const [metricsLoading, setMetricsLoading] = useState(false);
+
+  const openMetrics = async () => {
+    setMetricsLoading(true);
+    try {
+      const res = await api.get<string>(`${API_BASE_URL}/admin/metrics`, {
+        responseType: "text",
+      });
+      const win = window.open("", "_blank");
+      if (win) {
+        win.document.write(`<pre style="font-family:monospace;white-space:pre-wrap">${res.data}</pre>`);
+        win.document.title = "Server Metrics";
+      }
+    } catch {
+      // silently ignore — user will see nothing opened
+    } finally {
+      setMetricsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (orgId && (role === "admin" || role === "owner")) {
@@ -163,6 +182,19 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
               );
             })}
           </div>
+        </div>
+      )}
+
+      {(role === "admin" || role === "owner") && (
+        <div style={{ marginTop: "2rem", borderTop: "1px solid #e5e7eb", paddingTop: "1.5rem" }}>
+          <h2 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>Admin</h2>
+          <button
+            type="button"
+            onClick={openMetrics}
+            disabled={metricsLoading}
+          >
+            {metricsLoading ? "Loading…" : "View Server Metrics"}
+          </button>
         </div>
       )}
     </div>
