@@ -14,7 +14,7 @@ type Member = {
 type OutletContext = { orgId: string | null; role: string | null };
 
 export default function OrgUsersPage() {
-  const { orgId } = useOutletContext<OutletContext>();
+  const { orgId, role: viewerRole } = useOutletContext<OutletContext>();
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,6 +33,7 @@ export default function OrgUsersPage() {
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
   const [removeLoadingId, setRemoveLoadingId] = useState<string | null>(null);
+  const [roleLoadingId, setRoleLoadingId] = useState<string | null>(null);
 
   const loadMembers = async () => {
     if (!orgId) return;
@@ -126,6 +127,27 @@ export default function OrgUsersPage() {
       setError(getErrorMessage(err));
     } finally {
       setRemoveLoadingId(null);
+    }
+  };
+
+  const changeRole = async (member: Member, newRole: string) => {
+    if (!orgId || newRole === member.role) return;
+    setRoleLoadingId(member.id);
+    setError("");
+    try {
+      if (newRole === "admin") {
+        const currentAdmin = members.find((m) => m.role === "admin" && m.id !== member.id);
+        if (currentAdmin) {
+          await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, currentAdmin.id), { role: "member" });
+        }
+      }
+      await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, member.id), { role: newRole });
+      setSuccess(`${member.email}'s role updated to ${newRole}.`);
+      loadMembers();
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setRoleLoadingId(null);
     }
   };
 
@@ -245,6 +267,17 @@ export default function OrgUsersPage() {
               <td style={{ padding: "0.5rem" }}>
                 {m.role !== "owner" && (
                   <>
+                    {viewerRole === "owner" && (
+                      <select
+                        value={m.role}
+                        disabled={roleLoadingId === m.id}
+                        onChange={(e) => changeRole(m, e.target.value)}
+                        style={{ marginRight: "0.5rem" }}
+                      >
+                        <option value="admin">admin</option>
+                        <option value="member">member</option>
+                      </select>
+                    )}
                     <button
                       type="button"
                       onClick={() => openEditPermissions(m)}
@@ -335,6 +368,10 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
   const [newName, setNewName] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [editingStatusId, setEditingStatusId] = useState<string | null>(null);
+  const [editingStatusName, setEditingStatusName] = useState("");
+  const [renameLoading, setRenameLoading] = useState(false);
+  const [renameError, setRenameError] = useState("");
 
   const loadStatuses = async () => {
     try {
@@ -377,6 +414,37 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
     }
   };
 
+  const startEdit = (s: TaskStatus) => {
+    setEditingStatusId(s.id);
+    setEditingStatusName(s.name);
+    setRenameError("");
+  };
+
+  const cancelEdit = () => {
+    setEditingStatusId(null);
+    setEditingStatusName("");
+    setRenameError("");
+  };
+
+  const handleRename = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingStatusId || !editingStatusName.trim()) return;
+    setRenameLoading(true);
+    setRenameError("");
+    try {
+      await api.patch(API_ENDPOINTS.orgs.taskStatus(orgId, editingStatusId), {
+        name: editingStatusName.trim(),
+      });
+      setEditingStatusId(null);
+      setEditingStatusName("");
+      loadStatuses();
+    } catch (err) {
+      setRenameError(getErrorMessage(err));
+    } finally {
+      setRenameLoading(false);
+    }
+  };
+
   return (
     <section style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
       <h2>Task statuses</h2>
@@ -390,10 +458,34 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
           <ul style={{ listStyle: "none", padding: 0 }}>
             {statuses.map((s) => (
               <li key={s.id} style={{ marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <span>{s.name}</span>
-                <button type="button" onClick={() => handleDelete(s.id)} style={{ fontSize: "0.85rem" }}>
-                  Delete
-                </button>
+                {editingStatusId === s.id ? (
+                  <form onSubmit={handleRename} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <input
+                      type="text"
+                      value={editingStatusName}
+                      onChange={(e) => setEditingStatusName(e.target.value)}
+                      style={{ padding: "0.2rem 0.4rem", width: "180px" }}
+                      autoFocus
+                    />
+                    <button type="submit" disabled={renameLoading || !editingStatusName.trim()} style={{ fontSize: "0.85rem" }}>
+                      {renameLoading ? "Saving..." : "Save"}
+                    </button>
+                    <button type="button" onClick={cancelEdit} style={{ fontSize: "0.85rem" }}>
+                      Cancel
+                    </button>
+                    {renameError && <span style={{ color: "red", fontSize: "0.85rem" }}>{renameError}</span>}
+                  </form>
+                ) : (
+                  <>
+                    <span>{s.name}</span>
+                    <button type="button" onClick={() => startEdit(s)} style={{ fontSize: "0.85rem" }}>
+                      Edit
+                    </button>
+                    <button type="button" onClick={() => handleDelete(s.id)} style={{ fontSize: "0.85rem" }}>
+                      Delete
+                    </button>
+                  </>
+                )}
               </li>
             ))}
           </ul>

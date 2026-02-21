@@ -32,6 +32,7 @@ export const API_ENDPOINTS = {
     drawWinner: (id: string) => `/api/campaigns/${id}/draw-winner`,
     giveawayLogs: (id: string) => `/api/campaigns/${id}/giveaway-logs`,
     tasks: (id: string) => `/api/campaigns/${id}/tasks`,
+    task: (campaignId: string, taskId: string) => `/api/campaigns/${campaignId}/tasks/${taskId}`,
     donations: (id: string) => `/api/campaigns/${id}/donations`,
     donationsExportCsv: (id: string) => `/api/campaigns/${id}/donations/export.csv`,
     comments: (id: string) => `/api/campaigns/${id}/comments`,
@@ -71,8 +72,10 @@ export const API_ENDPOINTS = {
     createMember: (id: string) => `/api/orgs/${id}/members/create`,
     memberPermissions: (orgId: string, userId: string) =>
       `/api/orgs/${orgId}/members/${userId}/permissions`,
+    memberRole: (orgId: string, userId: string) => `/api/orgs/${orgId}/members/${userId}`,
     deleteMember: (orgId: string, userId: string) => `/api/orgs/${orgId}/members/${userId}`,
     taskStatuses: (id: string) => `/api/orgs/${id}/task-statuses`,
+    taskStatus: (orgId: string, statusId: string) => `/api/orgs/${orgId}/task-statuses/${statusId}`,
     emailSettings: (id: string) => `/api/orgs/${id}/email-settings`,
   },
 };

@@ -962,6 +962,12 @@ function CampaignTasksSection({
   const [newStatusId, setNewStatusId] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+  const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editAssignee, setEditAssignee] = useState("");
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState("");
 
   useEffect(() => {
     api.get<{ user_id: string; role?: string }>(API_ENDPOINTS.me.info).then((res) => {
@@ -1036,6 +1042,40 @@ function CampaignTasksSection({
     return currentUserRole === "owner" || currentUserRole === "admin";
   };
 
+  const canEditTask = (task: TaskRow) => {
+    if (!currentUserId) return false;
+    if (currentUserRole === "owner" || currentUserRole === "admin") return true;
+    return task.assignee_user_id === currentUserId;
+  };
+
+  const openEditTask = (task: TaskRow) => {
+    setEditingTask(task);
+    setEditTitle(task.title);
+    setEditDesc(task.description || "");
+    setEditAssignee(task.assignee_user_id || "");
+    setEditError("");
+  };
+
+  const handleEditTaskSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask || !editTitle.trim()) return;
+    setEditLoading(true);
+    setEditError("");
+    try {
+      await api.patch(API_ENDPOINTS.campaigns.task(campaignId, editingTask.id), {
+        title: editTitle.trim(),
+        description: editDesc.trim() || null,
+        assignee_user_id: editAssignee || null,
+      });
+      setEditingTask(null);
+      load();
+    } catch (err) {
+      setEditError(getErrorMessage(err));
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   return (
     <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
       <h3>Tasks</h3>
@@ -1086,12 +1126,13 @@ function CampaignTasksSection({
               <button type="submit" disabled={createLoading}>Create task</button>
             </form>
           )}
-          <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "600px" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "700px" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid #ddd" }}>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Task</th>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Assignee</th>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Status</th>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -1118,11 +1159,87 @@ function CampaignTasksSection({
                       t.status_name || "—"
                     )}
                   </td>
+                  <td style={{ padding: "0.5rem" }}>
+                    {canEditTask(t) && (
+                      <button type="button" onClick={() => openEditTask(t)} style={{ fontSize: "0.85rem" }}>
+                        Edit
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {tasks.length === 0 && !showCreate && <p>No tasks yet.</p>}
+          {editingTask && (
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.3)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                zIndex: 10,
+              }}
+              onClick={() => setEditingTask(null)}
+            >
+              <div
+                style={{
+                  background: "white",
+                  padding: "1.5rem",
+                  borderRadius: "8px",
+                  maxWidth: "420px",
+                  width: "90%",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 style={{ marginTop: 0 }}>Edit task</h3>
+                {editError && <div style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</div>}
+                <form onSubmit={handleEditTaskSubmit}>
+                  <label style={{ display: "block", marginBottom: "0.5rem" }}>
+                    Title *
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={(e) => setEditTitle(e.target.value)}
+                      required
+                      style={{ display: "block", width: "100%", padding: "0.25rem", marginTop: "0.2rem" }}
+                    />
+                  </label>
+                  <label style={{ display: "block", marginBottom: "0.5rem" }}>
+                    Description
+                    <textarea
+                      value={editDesc}
+                      onChange={(e) => setEditDesc(e.target.value)}
+                      style={{ display: "block", width: "100%", padding: "0.25rem", minHeight: "70px", marginTop: "0.2rem" }}
+                    />
+                  </label>
+                  <label style={{ display: "block", marginBottom: "1rem" }}>
+                    Assignee
+                    <select
+                      value={editAssignee}
+                      onChange={(e) => setEditAssignee(e.target.value)}
+                      style={{ display: "block", width: "100%", padding: "0.25rem", marginTop: "0.2rem" }}
+                    >
+                      <option value="">No assignee</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.id}>{m.name || m.email}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <div style={{ display: "flex", gap: "0.5rem" }}>
+                    <button type="submit" disabled={editLoading || !editTitle.trim()}>
+                      {editLoading ? "Saving..." : "Save"}
+                    </button>
+                    <button type="button" onClick={() => setEditingTask(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
