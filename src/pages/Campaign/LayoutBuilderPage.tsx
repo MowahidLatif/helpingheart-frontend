@@ -1,5 +1,5 @@
 import { useState, useCallback, ChangeEvent } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import React from "react";
 import { getErrorMessage } from "@/lib/api";
 import { uploadMediaToS3, inferMediaType } from "@/lib/mediaUpload";
@@ -90,6 +90,7 @@ function SectionUploader({
 /* ------------------------------------------------------ */
 export default function LayoutBuilderPage() {
   const { campaignId } = useParams<{ campaignId: string }>();
+  const navigate = useNavigate();
 
   const [images, setImages] = useState<MediaItem[]>([]);
   const [videos, setVideos] = useState<MediaItem[]>([]);
@@ -379,8 +380,8 @@ export default function LayoutBuilderPage() {
         isUploading={isUploading}
         render={renderDoc}
       />
-      <button onClick={() => alert("Media is saved automatically as you upload.")}>
-        Done
+      <button onClick={() => navigate(`/campaign/page-layout/${campaignId}`)}>
+        Done — Back to Page Builder
       </button>
     </div>
   );

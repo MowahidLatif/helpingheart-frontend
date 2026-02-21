@@ -240,6 +240,13 @@ const PageLayoutBuilder = () => {
           <button type="button" onClick={handlePreviewToggle} style={{ marginRight: "0.5rem" }}>
             Preview
           </button>
+          <button
+            type="button"
+            onClick={() => navigate(`/campaign/layout-builder/${campaignId}`)}
+            style={{ marginRight: "0.5rem" }}
+          >
+            Upload Media
+          </button>
           <button onClick={() => navigate("/dashboard")}>Back to Dashboard</button>
         </div>
 

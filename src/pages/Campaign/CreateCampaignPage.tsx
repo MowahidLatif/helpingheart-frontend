@@ -29,7 +29,7 @@ const CreateCampaignPage = () => {
 
       const response = await api.post(API_ENDPOINTS.campaigns.create, payload);
       const campaignId = response.data.id;
-      navigate(`/campaign/layout-builder/${campaignId}`);
+      navigate(`/campaign/page-layout/${campaignId}`);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
