@@ -4,9 +4,20 @@ import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
-import { validateLayout } from "@/lib/pageLayoutValidation";
+import { validateLayout, setBlockTypes } from "@/lib/pageLayoutValidation";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
+
+const FALLBACK_BLOCK_TYPES = [
+  "hero",
+  "campaign_info",
+  "donate_button",
+  "media_gallery",
+  "text",
+  "embed",
+  "footer",
+  "progress_tube",
+];
 
 function getPresetAmountsFromBlocks(blocks: Block[]): number[] {
   const donateBlock = blocks.find((b) => b.type === "donate_button");
@@ -41,22 +52,27 @@ const PageLayoutBuilder = () => {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
 
-  const availableBlockTypes = [
-    "hero",
-    "campaign_info",
-    "donate_button",
-    "media_gallery",
-    "text",
-    "embed",
-    "footer",
-    "progress_tube",
-  ];
+  const [availableBlockTypes, setAvailableBlockTypes] = useState<string[]>(FALLBACK_BLOCK_TYPES);
 
   useEffect(() => {
+    fetchSchema();
     if (campaignId) {
       loadLayout();
     }
   }, [campaignId]);
+
+  const fetchSchema = async () => {
+    try {
+      const res = await api.get<{ block_types: string[] }>(API_ENDPOINTS.pageLayout.schema);
+      const types = res.data?.block_types;
+      if (Array.isArray(types) && types.length > 0) {
+        setAvailableBlockTypes(types);
+        setBlockTypes(types);
+      }
+    } catch {
+      // Keep fallback list; validator already has it
+    }
+  };
 
   useEffect(() => {
     if (isPreviewMode && campaignId) {

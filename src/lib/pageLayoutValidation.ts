@@ -3,7 +3,7 @@
  * Mirrors backend rules in app/utils/page_layout.py so preview/save behave consistently.
  */
 
-const BLOCK_TYPES = new Set([
+let BLOCK_TYPES = new Set([
   "hero",
   "campaign_info",
   "donate_button",
@@ -13,6 +13,13 @@ const BLOCK_TYPES = new Set([
   "footer",
   "progress_tube",
 ]);
+
+/** Update the valid block type set from the backend schema response. */
+export function setBlockTypes(types: string[]): void {
+  if (Array.isArray(types) && types.length > 0) {
+    BLOCK_TYPES = new Set(types);
+  }
+}
 
 const MAX_BLOCKS = 50;
 const MAX_ID_LEN = 100;
