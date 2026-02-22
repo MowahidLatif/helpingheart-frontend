@@ -2,6 +2,9 @@ export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0
 
 export const API_ENDPOINTS = {
   contact: '/api/contact',
+  admin: {
+    metrics: '/admin/metrics',
+  },
   auth: {
     login: '/api/auth/login',
     register: '/api/auth/register',
@@ -22,7 +25,6 @@ export const API_ENDPOINTS = {
   campaigns: {
     list: '/api/campaigns',
     create: '/api/campaigns',
-    get: (id: string) => `/api/campaigns/${id}`,
     public: (id: string) => `/api/campaigns/${id}/public`,
     publicByOrgSlug: (org: string, slug: string) => `/api/public/${org}/${slug}`,
     patch: (id: string) => `/api/campaigns/${id}`,
@@ -53,8 +55,6 @@ export const API_ENDPOINTS = {
     schema: '/api/page-layout/schema',
   },
   media: {
-    signedUrl: '/api/media/signed-url',
-    persist: '/api/media',
     upload: '/api/media/upload',
     delete: (id: string) => `/api/media/${id}`,
   },

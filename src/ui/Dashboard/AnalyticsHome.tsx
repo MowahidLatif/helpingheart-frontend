@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { API_ENDPOINTS, API_BASE_URL } from "@/lib/constants";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 type Campaign = {
   id: string;
@@ -34,7 +34,7 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
   const openMetrics = async () => {
     setMetricsLoading(true);
     try {
-      const res = await api.get<string>(`${API_BASE_URL}/admin/metrics`, {
+      const res = await api.get<string>(API_ENDPOINTS.admin.metrics, {
         responseType: "text",
       });
       const win = window.open("", "_blank");

@@ -57,7 +57,7 @@ export default function ResetCredentials() {
         new_password: newPassword,
       });
       setResetDone(true);
-      setTimeout(() => navigate("/SignIn"), 2500);
+      setTimeout(() => navigate("/signin"), 2500);
     } catch (err) {
       setResetError(getErrorMessage(err));
     } finally {
@@ -105,7 +105,7 @@ export default function ResetCredentials() {
           <button type="submit" disabled={resetLoading} style={{ marginRight: "0.5rem" }}>
             {resetLoading ? "Resetting…" : "Reset Password"}
           </button>
-          <button type="button" onClick={() => navigate("/SignIn")}>
+          <button type="button" onClick={() => navigate("/signin")}>
             Back to Sign In
           </button>
         </form>
@@ -121,7 +121,7 @@ export default function ResetCredentials() {
         <p>
           If that email is registered, you will receive a reset link shortly.
         </p>
-        <button type="button" onClick={() => navigate("/SignIn")}>
+        <button type="button" onClick={() => navigate("/signin")}>
           Back to Sign In
         </button>
       </div>
@@ -147,7 +147,7 @@ export default function ResetCredentials() {
         <button type="submit" disabled={requestLoading} style={{ marginRight: "0.5rem" }}>
           {requestLoading ? "Sending…" : "Send Reset Link"}
         </button>
-        <button type="button" onClick={() => navigate("/SignIn")}>
+        <button type="button" onClick={() => navigate("/signin")}>
           Back to Sign In
         </button>
       </form>

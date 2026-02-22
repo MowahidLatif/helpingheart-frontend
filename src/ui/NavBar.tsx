@@ -26,7 +26,7 @@ const NavBar: React.FC = () => {
         <Link to="/contact" className="navbar-link">
           Contact
         </Link>
-        <Link to="/SignIn" className="navbar-link">
+        <Link to="/signin" className="navbar-link">
           Sign In
         </Link>
         <Link to="/signup" className="btn btn-primary btn-sm">

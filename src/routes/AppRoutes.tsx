@@ -31,7 +31,7 @@ export const routes: RouteObject[] = [
     element: <SignUp />,
   },
   {
-    path: "/SignIn",
+    path: "/signin",
     element: <SignIn />,
   },
   {
@@ -72,7 +72,11 @@ export const routes: RouteObject[] = [
   },
   {
     path: "/preview",
-    element: <PreviewPage />,
+    element: (
+      <ProtectedRoute>
+        <PreviewPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/embed/progress/:campaignId",

@@ -1025,7 +1025,7 @@ function CampaignTasksSection({
   const handleStatusChange = async (taskId: string, statusId: string) => {
     setStatusUpdating(taskId);
     try {
-      await api.patch(`${API_ENDPOINTS.campaigns.tasks(campaignId)}/${taskId}`, {
+      await api.patch(API_ENDPOINTS.campaigns.task(campaignId, taskId), {
         status_id: statusId || null,
       });
       load();

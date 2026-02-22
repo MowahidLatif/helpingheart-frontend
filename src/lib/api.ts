@@ -35,7 +35,7 @@ api.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/SignIn';
+        window.location.href = '/signin';
       }
       return Promise.reject(error);
     }
@@ -43,7 +43,7 @@ api.interceptors.response.use(
     if (!refreshToken) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/SignIn';
+      window.location.href = '/signin';
       return Promise.reject(error);
     }
     if (refreshing) {
@@ -73,7 +73,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
-      window.location.href = '/SignIn';
+      window.location.href = '/signin';
       return Promise.reject(error);
     } finally {
       refreshing = false;

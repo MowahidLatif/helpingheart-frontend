@@ -594,7 +594,7 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this status? It will fail if any task uses it.")) return;
     try {
-      await api.delete(`${API_ENDPOINTS.orgs.taskStatuses(orgId)}/${id}`);
+      await api.delete(API_ENDPOINTS.orgs.taskStatus(orgId, id));
       loadStatuses();
     } catch {
       // ignore
