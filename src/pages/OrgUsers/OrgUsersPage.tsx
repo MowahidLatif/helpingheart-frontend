@@ -13,14 +13,24 @@ type Member = {
 
 type OutletContext = { orgId: string | null; role: string | null };
 
+type Tab = "members" | "create";
+
 export default function OrgUsersPage() {
   const { orgId, role: viewerRole } = useOutletContext<OutletContext>();
+  const [activeTab, setActiveTab] = useState<Tab>("members");
+
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const [showCreate, setShowCreate] = useState(false);
+  // Add existing user
+  const [addEmail, setAddEmail] = useState("");
+  const [addRole, setAddRole] = useState("member");
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+
+  // Create new account
   const [createEmail, setCreateEmail] = useState("");
   const [createPassword, setCreatePassword] = useState("");
   const [createName, setCreateName] = useState("");
@@ -28,12 +38,16 @@ export default function OrgUsersPage() {
   const [createLoading, setCreateLoading] = useState(false);
   const [createError, setCreateError] = useState("");
 
+  // Edit permissions modal
   const [editingPermissionsFor, setEditingPermissionsFor] = useState<string | null>(null);
   const [editPermissions, setEditPermissions] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
+
+  // Per-row loading states
   const [removeLoadingId, setRemoveLoadingId] = useState<string | null>(null);
   const [roleLoadingId, setRoleLoadingId] = useState<string | null>(null);
+  const [resetLoadingId, setResetLoadingId] = useState<string | null>(null);
 
   const loadMembers = async () => {
     if (!orgId) return;
@@ -55,6 +69,40 @@ export default function OrgUsersPage() {
     }
   }, [orgId]);
 
+  // Clear global success/error when switching tabs
+  const switchTab = (tab: Tab) => {
+    setActiveTab(tab);
+    setSuccess("");
+    setError("");
+    setAddError("");
+    setCreateError("");
+  };
+
+  const handleAddExistingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orgId) return;
+    setAddError("");
+    if (!addEmail.trim()) {
+      setAddError("Email is required.");
+      return;
+    }
+    setAddLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.orgs.addMember(orgId), {
+        email: addEmail.trim().toLowerCase(),
+        role: addRole,
+      });
+      setSuccess(`${addEmail.trim()} has been added to the organization.`);
+      setAddEmail("");
+      setAddRole("member");
+      loadMembers();
+    } catch (err) {
+      setAddError(getErrorMessage(err));
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orgId) return;
@@ -75,12 +123,11 @@ export default function OrgUsersPage() {
         name: createName.trim() || undefined,
         permissions: createPermissions,
       });
-      setSuccess("Account created successfully.");
+      setSuccess("Account created and added to the organization.");
       setCreateEmail("");
       setCreatePassword("");
       setCreateName("");
       setCreatePermissions([]);
-      setShowCreate(false);
       loadMembers();
     } catch (err) {
       setCreateError(getErrorMessage(err));
@@ -116,7 +163,12 @@ export default function OrgUsersPage() {
 
   const removeMember = async (member: Member) => {
     if (!orgId) return;
-    if (!window.confirm(`Remove ${member.email} from the organization? Their task assignments will be cleared.`)) return;
+    if (
+      !window.confirm(
+        `Remove ${member.email} from the organization? Their task assignments will be cleared.`
+      )
+    )
+      return;
     setRemoveLoadingId(member.id);
     setError("");
     try {
@@ -138,7 +190,9 @@ export default function OrgUsersPage() {
       if (newRole === "admin") {
         const currentAdmin = members.find((m) => m.role === "admin" && m.id !== member.id);
         if (currentAdmin) {
-          await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, currentAdmin.id), { role: "member" });
+          await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, currentAdmin.id), {
+            role: "member",
+          });
         }
       }
       await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, member.id), { role: newRole });
@@ -148,6 +202,25 @@ export default function OrgUsersPage() {
       setError(getErrorMessage(err));
     } finally {
       setRoleLoadingId(null);
+    }
+  };
+
+  const resetPassword = async (member: Member) => {
+    if (
+      !window.confirm(
+        `Send a password reset email to ${member.email}? They will receive a link to set a new password.`
+      )
+    )
+      return;
+    setResetLoadingId(member.id);
+    setError("");
+    try {
+      await api.post(API_ENDPOINTS.auth.forgotPassword, { email: member.email });
+      setSuccess(`Password reset email sent to ${member.email}.`);
+    } catch (err) {
+      setError(getErrorMessage(err));
+    } finally {
+      setResetLoadingId(null);
     }
   };
 
@@ -164,142 +237,259 @@ export default function OrgUsersPage() {
   };
 
   if (!orgId) return <p>Loading organization...</p>;
-  if (loading) return <p>Loading members...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
     <div style={{ padding: "1rem" }}>
       <h1>Organization Users</h1>
+
+      {/* Tab bar */}
+      <div
+        style={{
+          display: "flex",
+          borderBottom: "2px solid #ddd",
+          marginBottom: "1.5rem",
+          gap: "0",
+        }}
+      >
+        {(
+          [
+            { key: "members", label: "All Members" },
+            { key: "create", label: "Create Account" },
+          ] as { key: Tab; label: string }[]
+        ).map(({ key, label }) => (
+          <button
+            key={key}
+            type="button"
+            onClick={() => switchTab(key)}
+            style={{
+              padding: "0.5rem 1.25rem",
+              border: "none",
+              borderBottom: activeTab === key ? "2px solid #333" : "2px solid transparent",
+              background: "none",
+              cursor: "pointer",
+              fontWeight: activeTab === key ? 600 : 400,
+              color: activeTab === key ? "#111" : "#666",
+              marginBottom: "-2px",
+              fontSize: "0.95rem",
+            }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Global feedback */}
       {success && (
         <div style={{ color: "green", marginBottom: "1rem" }}>{success}</div>
       )}
-      <button
-        type="button"
-        onClick={() => setShowCreate(!showCreate)}
-        style={{ marginBottom: "1rem" }}
-      >
-        {showCreate ? "Cancel" : "Create account"}
-      </button>
-
-      {showCreate && (
-        <form
-          onSubmit={handleCreateSubmit}
-          style={{
-            border: "1px solid #ddd",
-            padding: "1rem",
-            marginBottom: "1rem",
-            maxWidth: "400px",
-          }}
-        >
-          <h3>Create new account</h3>
-          {createError && (
-            <div style={{ color: "red", marginBottom: "0.5rem" }}>{createError}</div>
-          )}
-          <label style={{ display: "block", marginBottom: "0.5rem" }}>
-            Email *
-            <input
-              type="email"
-              value={createEmail}
-              onChange={(e) => setCreateEmail(e.target.value)}
-              required
-              style={{ display: "block", width: "100%", padding: "0.25rem" }}
-            />
-          </label>
-          <label style={{ display: "block", marginBottom: "0.5rem" }}>
-            Temporary password * (min 8 characters)
-            <input
-              type="password"
-              value={createPassword}
-              onChange={(e) => setCreatePassword(e.target.value)}
-              minLength={8}
-              required
-              style={{ display: "block", width: "100%", padding: "0.25rem" }}
-            />
-          </label>
-          <label style={{ display: "block", marginBottom: "0.5rem" }}>
-            Name
-            <input
-              type="text"
-              value={createName}
-              onChange={(e) => setCreateName(e.target.value)}
-              style={{ display: "block", width: "100%", padding: "0.25rem" }}
-            />
-          </label>
-          <div style={{ marginBottom: "0.5rem" }}>Permissions</div>
-          {ORG_PERMISSIONS.map((perm) => (
-            <label key={perm} style={{ display: "block", marginLeft: "1rem" }}>
-              <input
-                type="checkbox"
-                checked={createPermissions.includes(perm)}
-                onChange={() => toggleCreatePermission(perm)}
-              />{" "}
-              {perm}
-            </label>
-          ))}
-          <button type="submit" disabled={createLoading} style={{ marginTop: "0.5rem" }}>
-            {createLoading ? "Creating..." : "Create account"}
-          </button>
-        </form>
+      {error && (
+        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
       )}
 
-      <h2>Members</h2>
-      <table style={{ borderCollapse: "collapse", width: "100%" }}>
-        <thead>
-          <tr style={{ borderBottom: "2px solid #ddd" }}>
-            <th style={{ textAlign: "left", padding: "0.5rem" }}>Email</th>
-            <th style={{ textAlign: "left", padding: "0.5rem" }}>Name</th>
-            <th style={{ textAlign: "left", padding: "0.5rem" }}>Role</th>
-            <th style={{ textAlign: "left", padding: "0.5rem" }}>Permissions</th>
-            <th style={{ textAlign: "left", padding: "0.5rem" }}>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {members.map((m) => (
-            <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
-              <td style={{ padding: "0.5rem" }}>{m.email}</td>
-              <td style={{ padding: "0.5rem" }}>{m.name || "—"}</td>
-              <td style={{ padding: "0.5rem" }}>{m.role}</td>
-              <td style={{ padding: "0.5rem" }}>
-                {(m.permissions || []).length
-                  ? (m.permissions || []).join(", ")
-                  : "—"}
-              </td>
-              <td style={{ padding: "0.5rem" }}>
-                {m.role !== "owner" && (
-                  <>
-                    {viewerRole === "owner" && (
-                      <select
-                        value={m.role}
-                        disabled={roleLoadingId === m.id}
-                        onChange={(e) => changeRole(m, e.target.value)}
-                        style={{ marginRight: "0.5rem" }}
-                      >
-                        <option value="admin">admin</option>
-                        <option value="member">member</option>
-                      </select>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => openEditPermissions(m)}
-                      style={{ marginRight: "0.5rem" }}
-                    >
-                      Edit permissions
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeMember(m)}
-                      disabled={removeLoadingId === m.id}
-                    >
-                      {removeLoadingId === m.id ? "Removing..." : "Remove"}
-                    </button>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* ── All Members tab ── */}
+      {activeTab === "members" && (
+        <>
+          {/* Add existing user form */}
+          <section
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: "6px",
+              padding: "1rem",
+              marginBottom: "1.5rem",
+              maxWidth: "480px",
+            }}
+          >
+            <h3 style={{ marginTop: 0, marginBottom: "0.75rem" }}>Add existing user by email</h3>
+            {addError && (
+              <div style={{ color: "red", marginBottom: "0.5rem" }}>{addError}</div>
+            )}
+            <form
+              onSubmit={handleAddExistingSubmit}
+              style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end", flexWrap: "wrap" }}
+            >
+              <label style={{ display: "block", flex: "1 1 200px" }}>
+                <span style={{ fontSize: "0.85rem", display: "block", marginBottom: "0.25rem" }}>
+                  Email
+                </span>
+                <input
+                  type="email"
+                  value={addEmail}
+                  onChange={(e) => setAddEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  required
+                  style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem" }}
+                />
+              </label>
+              <label style={{ display: "block", flex: "0 0 auto" }}>
+                <span style={{ fontSize: "0.85rem", display: "block", marginBottom: "0.25rem" }}>
+                  Role
+                </span>
+                <select
+                  value={addRole}
+                  onChange={(e) => setAddRole(e.target.value)}
+                  style={{ padding: "0.35rem 0.5rem" }}
+                >
+                  <option value="member">member</option>
+                  <option value="admin">admin</option>
+                </select>
+              </label>
+              <button
+                type="submit"
+                disabled={addLoading}
+                style={{ padding: "0.35rem 0.9rem", alignSelf: "flex-end" }}
+              >
+                {addLoading ? "Adding..." : "Add user"}
+              </button>
+            </form>
+          </section>
 
+          {/* Members table */}
+          <h2 style={{ marginBottom: "0.75rem" }}>
+            Members{" "}
+            <span style={{ fontSize: "0.85rem", fontWeight: 400, color: "#666" }}>
+              ({members.length})
+            </span>
+          </h2>
+
+          {loading ? (
+            <p>Loading members...</p>
+          ) : members.length === 0 ? (
+            <p style={{ color: "#666" }}>No members yet.</p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%", minWidth: "600px" }}>
+                <thead>
+                  <tr style={{ borderBottom: "2px solid #ddd" }}>
+                    <th style={{ textAlign: "left", padding: "0.5rem" }}>Email</th>
+                    <th style={{ textAlign: "left", padding: "0.5rem" }}>Name</th>
+                    <th style={{ textAlign: "left", padding: "0.5rem" }}>Role</th>
+                    <th style={{ textAlign: "left", padding: "0.5rem" }}>Permissions</th>
+                    <th style={{ textAlign: "left", padding: "0.5rem" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {members.map((m) => (
+                    <tr key={m.id} style={{ borderBottom: "1px solid #eee" }}>
+                      <td style={{ padding: "0.5rem" }}>{m.email}</td>
+                      <td style={{ padding: "0.5rem" }}>{m.name || "—"}</td>
+                      <td style={{ padding: "0.5rem" }}>{m.role}</td>
+                      <td style={{ padding: "0.5rem", maxWidth: "220px" }}>
+                        {(m.permissions || []).length
+                          ? (m.permissions || []).join(", ")
+                          : "—"}
+                      </td>
+                      <td style={{ padding: "0.5rem" }}>
+                        {m.role !== "owner" ? (
+                          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+                            {viewerRole === "owner" && (
+                              <select
+                                value={m.role}
+                                disabled={roleLoadingId === m.id}
+                                onChange={(e) => changeRole(m, e.target.value)}
+                              >
+                                <option value="admin">admin</option>
+                                <option value="member">member</option>
+                              </select>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => openEditPermissions(m)}
+                            >
+                              Edit permissions
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => resetPassword(m)}
+                              disabled={resetLoadingId === m.id}
+                            >
+                              {resetLoadingId === m.id ? "Sending..." : "Reset password"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeMember(m)}
+                              disabled={removeLoadingId === m.id}
+                            >
+                              {removeLoadingId === m.id ? "Removing..." : "Remove"}
+                            </button>
+                          </div>
+                        ) : (
+                          <span style={{ color: "#aaa", fontSize: "0.85rem" }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ── Create Account tab ── */}
+      {activeTab === "create" && (
+        <div style={{ maxWidth: "420px" }}>
+          <h2 style={{ marginTop: 0 }}>Create new account</h2>
+          <p style={{ color: "#666", fontSize: "0.9rem", marginBottom: "1rem" }}>
+            Creates a brand-new user account and adds them to this organization.
+          </p>
+          {createError && (
+            <div style={{ color: "red", marginBottom: "0.75rem" }}>{createError}</div>
+          )}
+          <form onSubmit={handleCreateSubmit}>
+            <label style={{ display: "block", marginBottom: "0.75rem" }}>
+              Email *
+              <input
+                type="email"
+                value={createEmail}
+                onChange={(e) => setCreateEmail(e.target.value)}
+                required
+                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "0.75rem" }}>
+              Temporary password * (min 8 characters)
+              <input
+                type="password"
+                value={createPassword}
+                onChange={(e) => setCreatePassword(e.target.value)}
+                minLength={8}
+                required
+                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "0.75rem" }}>
+              Name
+              <input
+                type="text"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+              />
+            </label>
+            <div style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Permissions</div>
+            {ORG_PERMISSIONS.map((perm) => (
+              <label key={perm} style={{ display: "block", marginLeft: "0.25rem", marginBottom: "0.25rem" }}>
+                <input
+                  type="checkbox"
+                  checked={createPermissions.includes(perm)}
+                  onChange={() => toggleCreatePermission(perm)}
+                  style={{ marginRight: "0.4rem" }}
+                />
+                {perm}
+              </label>
+            ))}
+            <button
+              type="submit"
+              disabled={createLoading}
+              style={{ marginTop: "1rem", padding: "0.4rem 1rem" }}
+            >
+              {createLoading ? "Creating..." : "Create account"}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {/* Edit permissions modal */}
       {editingPermissionsFor && (
         <div
           style={{
@@ -323,7 +513,7 @@ export default function OrgUsersPage() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3>Edit permissions</h3>
+            <h3 style={{ marginTop: 0 }}>Edit permissions</h3>
             {editError && (
               <div style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</div>
             )}
@@ -334,19 +524,16 @@ export default function OrgUsersPage() {
                     type="checkbox"
                     checked={editPermissions.includes(perm)}
                     onChange={() => toggleEditPermission(perm)}
-                  />{" "}
+                    style={{ marginRight: "0.4rem" }}
+                  />
                   {perm}
                 </label>
               ))}
-              <div style={{ marginTop: "1rem" }}>
+              <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
                 <button type="submit" disabled={editLoading}>
                   {editLoading ? "Saving..." : "Save"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingPermissionsFor(null)}
-                  style={{ marginLeft: "0.5rem" }}
-                >
+                <button type="button" onClick={() => setEditingPermissionsFor(null)}>
                   Cancel
                 </button>
               </div>
@@ -457,9 +644,20 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
         <>
           <ul style={{ listStyle: "none", padding: 0 }}>
             {statuses.map((s) => (
-              <li key={s.id} style={{ marginBottom: "0.5rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <li
+                key={s.id}
+                style={{
+                  marginBottom: "0.5rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
                 {editingStatusId === s.id ? (
-                  <form onSubmit={handleRename} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <form
+                    onSubmit={handleRename}
+                    style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+                  >
                     <input
                       type="text"
                       value={editingStatusName}
@@ -467,13 +665,19 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
                       style={{ padding: "0.2rem 0.4rem", width: "180px" }}
                       autoFocus
                     />
-                    <button type="submit" disabled={renameLoading || !editingStatusName.trim()} style={{ fontSize: "0.85rem" }}>
+                    <button
+                      type="submit"
+                      disabled={renameLoading || !editingStatusName.trim()}
+                      style={{ fontSize: "0.85rem" }}
+                    >
                       {renameLoading ? "Saving..." : "Save"}
                     </button>
                     <button type="button" onClick={cancelEdit} style={{ fontSize: "0.85rem" }}>
                       Cancel
                     </button>
-                    {renameError && <span style={{ color: "red", fontSize: "0.85rem" }}>{renameError}</span>}
+                    {renameError && (
+                      <span style={{ color: "red", fontSize: "0.85rem" }}>{renameError}</span>
+                    )}
                   </form>
                 ) : (
                   <>
@@ -481,7 +685,11 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
                     <button type="button" onClick={() => startEdit(s)} style={{ fontSize: "0.85rem" }}>
                       Edit
                     </button>
-                    <button type="button" onClick={() => handleDelete(s.id)} style={{ fontSize: "0.85rem" }}>
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(s.id)}
+                      style={{ fontSize: "0.85rem" }}
+                    >
                       Delete
                     </button>
                   </>
@@ -489,7 +697,15 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
               </li>
             ))}
           </ul>
-          <form onSubmit={handleCreate} style={{ marginTop: "0.5rem", display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <form
+            onSubmit={handleCreate}
+            style={{
+              marginTop: "0.5rem",
+              display: "flex",
+              gap: "0.5rem",
+              alignItems: "center",
+            }}
+          >
             <input
               type="text"
               value={newName}
