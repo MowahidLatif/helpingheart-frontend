@@ -64,7 +64,6 @@ export const API_ENDPOINTS = {
   },
   orgs: {
     list: '/api/orgs',
-    create: '/api/orgs',
     get: (id: string) => `/api/orgs/${id}`,
     update: (id: string) => `/api/orgs/${id}`,
     subdomain: (id: string) => `/api/orgs/${id}/subdomain`,
