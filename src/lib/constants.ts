@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
       `/api/campaigns/${campaignId}/receipts/${receiptId}/preview`,
     receiptResend: (campaignId: string, receiptId: string) =>
       `/api/campaigns/${campaignId}/receipts/${receiptId}/resend`,
+    stripeEvents: (id: string) => `/api/campaigns/${id}/webhooks/stripe-events`,
   },
   pageLayout: {
     get: (id: string) => `/api/campaigns/${id}/page-layout`,
