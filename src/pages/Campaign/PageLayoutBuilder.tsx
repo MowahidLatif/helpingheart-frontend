@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
@@ -69,8 +70,8 @@ const PageLayoutBuilder = () => {
         setAvailableBlockTypes(types);
         setBlockTypes(types);
       }
-    } catch {
-      // Keep fallback list; validator already has it
+    } catch (err) {
+      message.warn(getErrorMessage(err) || "Could not load block schema; using default blocks.");
     }
   };
 
@@ -147,7 +148,9 @@ const PageLayoutBuilder = () => {
       });
       alert("Layout saved successfully!");
     } catch (err) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      message.error(msg || "Failed to save layout");
     } finally {
       setSaving(false);
     }

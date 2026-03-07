@@ -1,5 +1,6 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import Modal from "@/components/Modal";
@@ -232,8 +233,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       setNewCommentBody("");
       const r = await api.get<CommentRow[]>(API_ENDPOINTS.campaigns.comments(campaign.id), { params: { limit: 50 } });
       setComments(Array.isArray(r.data) ? r.data : []);
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to add comment");
     } finally {
       setCommentSubmitLoading(false);
     }
@@ -244,8 +245,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     try {
       await api.delete(API_ENDPOINTS.campaigns.comment(campaign.id, commentId));
       setComments((prev) => prev.filter((c) => c.id !== commentId));
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to delete comment");
     }
   };
 
@@ -259,8 +260,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       setNewUpdateBody("");
       const r = await api.get<UpdateRow[]>(API_ENDPOINTS.campaigns.updates(campaign.id), { params: { limit: 50 } });
       setUpdates(Array.isArray(r.data) ? r.data : []);
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to add update");
     } finally {
       setUpdateSubmitLoading(false);
     }
@@ -271,8 +272,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     try {
       await api.delete(API_ENDPOINTS.campaigns.update(campaign.id, updateId));
       setUpdates((prev) => prev.filter((u) => u.id !== updateId));
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to delete update");
     }
   };
 
@@ -282,8 +283,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     try {
       await api.post(API_ENDPOINTS.campaigns.receiptResend(campaign.id, receiptId));
       setSuccessMessage("Receipt resent.");
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to resend receipt");
     } finally {
       setResendLoading(null);
     }
@@ -298,8 +299,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         w.document.write(res.data);
         w.document.close();
       }
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Could not open receipt preview");
     }
   };
 
@@ -354,7 +355,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.progress(campaign.id));
       setProgress(response.data);
     } catch (err) {
-      console.error("Failed to load progress:", getErrorMessage(err));
+      message.warn(getErrorMessage(err) || "Could not load progress");
     }
   };
 
@@ -365,7 +366,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.giveawayLogs(campaign.id));
       setGiveawayLogs(response.data || []);
     } catch (err) {
-      console.error("Failed to load giveaway logs:", getErrorMessage(err));
+      message.warn(getErrorMessage(err) || "Could not load giveaway logs");
       setGiveawayLogs([]);
     } finally {
       setLogsLoading(false);
@@ -1015,8 +1016,8 @@ function CampaignTasksSection({
       setNewStatusId("");
       setShowCreate(false);
       load();
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to create task");
     } finally {
       setCreateLoading(false);
     }
@@ -1029,8 +1030,8 @@ function CampaignTasksSection({
         status_id: statusId || null,
       });
       load();
-    } catch {
-      // ignore
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to update task status");
     } finally {
       setStatusUpdating(null);
     }

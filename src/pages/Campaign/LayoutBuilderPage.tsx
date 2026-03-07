@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import React from "react";
+import { message } from "antd";
 import { getErrorMessage } from "@/lib/api";
 import { uploadMediaToS3, inferMediaType } from "@/lib/mediaUpload";
 import api from "@/lib/api";
@@ -131,8 +132,8 @@ export default function LayoutBuilderPage() {
         setImages(existingImages);
         setVideos(existingVideos);
         setDocs(existingDocs);
-      } catch {
-        // Non-fatal: start empty if fetch fails
+      } catch (err) {
+        message.error(getErrorMessage(err) || "Failed to load media");
       } finally {
         if (!cancelled) setMediaLoading(false);
       }
@@ -184,6 +185,7 @@ export default function LayoutBuilderPage() {
           );
         } catch (err) {
           const msg = getErrorMessage(err);
+          message.error(msg || "Failed to upload");
           setter((prev) =>
             prev.map((item) =>
               item.name === file.name && item.status === "uploading"
@@ -239,6 +241,7 @@ export default function LayoutBuilderPage() {
         );
       } catch (err) {
         const msg = getErrorMessage(err);
+        message.error(msg || "Failed to upload");
         setter((prev) =>
           prev.map((i) =>
             i === item ? { ...i, status: "error" as const, error: msg } : i
