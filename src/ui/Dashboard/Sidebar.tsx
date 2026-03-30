@@ -20,7 +20,7 @@ type SidebarProps = {
   refreshCampaignsTrigger?: number;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, orgId, role, refreshCampaignsTrigger = 0 }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampaignsTrigger = 0 }) => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);

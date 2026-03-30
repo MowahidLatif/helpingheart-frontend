@@ -61,11 +61,18 @@ type CommentRow = { id: string; body: string; user_id: string; created_at: strin
 type UpdateRow = { id: string; title: string; body: string; created_at: string };
 type ReceiptRow = { id: string; donation_id: string; to_email: string; subject: string; sent_at: string | null; created_at: string };
 
+type CampaignProgress = {
+  percent: number;
+  donations_count: number;
+  total_raised: number;
+  goal: number;
+};
+
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignUpdated }) => {
   const navigate = useNavigate();
   const outletContext = useOutletContext<OutletContext>();
   const { onRefreshCampaigns, onCampaignDeleted, role } = outletContext || {};
-  const [progress, setProgress] = useState<any>(null);
+  const [progress, setProgress] = useState<CampaignProgress | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [drawLoading, setDrawLoading] = useState(false);
   const [drawError, setDrawError] = useState("");
@@ -355,7 +362,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.progress(campaign.id));
       setProgress(response.data);
     } catch (err) {
-      message.warn(getErrorMessage(err) || "Could not load progress");
+      message.warning(getErrorMessage(err) || "Could not load progress");
     }
   };
 
@@ -366,7 +373,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.giveawayLogs(campaign.id));
       setGiveawayLogs(response.data || []);
     } catch (err) {
-      message.warn(getErrorMessage(err) || "Could not load giveaway logs");
+      message.warning(getErrorMessage(err) || "Could not load giveaway logs");
       setGiveawayLogs([]);
     } finally {
       setLogsLoading(false);
@@ -385,9 +392,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       setDrawResult(response.data);
       setShowConfirmModal(false);
       loadGiveawayLogs();
-    } catch (err: any) {
+    } catch (err: unknown) {
       const msg = getErrorMessage(err);
-      const errData = err?.response?.data;
+      const errData = (err as { response?: { data?: { error?: string } } })?.response?.data;
       const serverMsg = errData?.error;
       setDrawError(serverMsg || msg);
     } finally {
