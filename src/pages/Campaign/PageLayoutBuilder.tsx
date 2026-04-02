@@ -71,7 +71,7 @@ const PageLayoutBuilder = () => {
         setBlockTypes(types);
       }
     } catch (err) {
-      message.warn(getErrorMessage(err) || "Could not load block schema; using default blocks.");
+      message.warning(getErrorMessage(err) || "Could not load block schema; using default blocks.");
     }
   };
 

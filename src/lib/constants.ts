@@ -25,6 +25,7 @@ export const API_ENDPOINTS = {
   campaigns: {
     list: '/api/campaigns',
     create: '/api/campaigns',
+    get: (id: string) => `/api/campaigns/${id}`,
     public: (id: string) => `/api/campaigns/${id}/public`,
     publicByOrgSlug: (org: string, slug: string) => `/api/public/${org}/${slug}`,
     patch: (id: string) => `/api/campaigns/${id}`,
@@ -54,6 +55,14 @@ export const API_ENDPOINTS = {
     get: (id: string) => `/api/campaigns/${id}/page-layout`,
     put: (id: string) => `/api/campaigns/${id}/page-layout`,
     schema: '/api/page-layout/schema',
+  },
+  aiSite: {
+    generate: (campaignId: string) => `/api/campaigns/${campaignId}/ai-site/generate`,
+    job: (campaignId: string, jobId: string) =>
+      `/api/campaigns/${campaignId}/ai-site/jobs/${jobId}`,
+  },
+  platform: {
+    aiGenerationCheckout: '/api/platform/ai-generation/checkout',
   },
   media: {
     upload: '/api/media/upload',

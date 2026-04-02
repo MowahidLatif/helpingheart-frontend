@@ -54,7 +54,8 @@ Protected routes are wrapped in `<ProtectedRoute>`. The dashboard layout uses Re
 
 Notable routes:
 - `/dashboard` — Campaign list + details (protected)
-- `/campaign/new` — Campaign creation (protected)
+- `/campaign/new` — Multi-step campaign + AI wizard: details → assets → prompt → generation → in-app preview with live public polling and Stripe donate modal (`CampaignAiWizardPage.tsx`, protected)
+- `/campaign/ai-site/:campaignId` — Same wizard in resume mode (dashboard); jumps to preview if `ai_site_recipe` exists (protected)
 - `/campaign/layout-builder/:campaignId` — Media upload manager (protected)
 - `/campaign/page-layout/:campaignId` — Block-based page builder (protected)
 - `/donate/:campaignId` and `/donate/:org/:slug` — Public donation pages
@@ -63,6 +64,8 @@ Notable routes:
 ### Page Builder System
 
 The block-based page builder (`src/pages/Campaign/PageLayoutBuilder.tsx`) lets users compose donation pages from typed blocks: `hero`, `campaign_info`, `donate_button`, `media_gallery`, `text`, `embed`, `footer`. Layouts are saved/loaded via `PUT/GET /api/campaigns/{id}/page-layout`. Block rendering on the public-facing side is handled by `src/ui/DonateBlocks/BlockRenderer.tsx`.
+
+**AI site builder:** `src/pages/Campaign/CampaignAiWizardPage.tsx` implements the full flow (Ant Design `Steps`: details, assets, describe, generating, preview). `CreateCampaignPage` and `AiSiteWizardPage` are thin wrappers (`mode="new"` vs `resume`). Resume opens on preview when `ai_site_recipe` exists. Generation uses `POST /api/campaigns/{id}/ai-site/generate` and job polling; preview polls `GET /api/campaigns/{id}/public` for live totals. Public pages use `src/ui/AiSite/AiSiteRenderer.tsx` when a recipe exists. Set `VITE_ENABLE_CLASSIC_PAGE_BUILDER=true` for the legacy page layout editor on the dashboard. Multi-tenant host routing: `docs/MULTITENANT_HOSTING.md`, `src/lib/hostTenant.ts`.
 
 ### API Layer
 

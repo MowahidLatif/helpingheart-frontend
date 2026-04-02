@@ -487,9 +487,18 @@ export default function LayoutBuilderPage() {
           />
         </>
       )}
-      <button onClick={() => navigate(`/campaign/page-layout/${campaignId}`)}>
-        Done — Back to Page Builder
+      <button type="button" onClick={() => navigate(`/campaign/ai-site/${campaignId}`)}>
+        Continue to AI site builder
       </button>
+      {import.meta.env.VITE_ENABLE_CLASSIC_PAGE_BUILDER === "true" ? (
+        <button
+          type="button"
+          style={{ marginLeft: "0.5rem" }}
+          onClick={() => navigate(`/campaign/page-layout/${campaignId}`)}
+        >
+          Classic block editor
+        </button>
+      ) : null}
     </div>
   );
 }

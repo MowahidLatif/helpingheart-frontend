@@ -22,6 +22,7 @@ export type Campaign = {
   giveaway_prize_cents?: number;
   latest_winner?: LatestWinner;
   page_layout?: { blocks?: Array<{ id: string; type: string; props?: Record<string, unknown> }> };
+  ai_site_recipe?: unknown;
 };
 
 export type Block = {

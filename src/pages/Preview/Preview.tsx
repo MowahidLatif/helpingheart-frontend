@@ -4,10 +4,14 @@ import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
+import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
+import { getDonatePresetsFromRecipe, parseAiSiteRecipe } from "@/lib/aiSiteRecipe";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
 function getPresetAmounts(campaign: Campaign | null): number[] {
+  const recipe = parseAiSiteRecipe(campaign?.ai_site_recipe);
+  if (recipe) return getDonatePresetsFromRecipe(recipe);
   if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
   const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
   const presets = donateBlock?.props?.preset_amounts;
@@ -62,6 +66,7 @@ export default function PreviewPage() {
   }
 
   const presets = getPresetAmounts(campaign);
+  const aiRecipe = parseAiSiteRecipe(campaign.ai_site_recipe);
 
   return (
     <div className="preview-page">
@@ -81,10 +86,15 @@ export default function PreviewPage() {
       </div>
 
       <div className="donate-page donate-page-blocks">
-        <BlockRenderer
-          campaign={campaign}
-          onDonateClick={() => setModalOpen(true)}
-        />
+        {aiRecipe ? (
+          <AiSiteRenderer
+            campaign={campaign}
+            recipe={aiRecipe}
+            onDonateClick={() => setModalOpen(true)}
+          />
+        ) : (
+          <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />
+        )}
         <DonationModal
           open={modalOpen}
           onClose={() => setModalOpen(false)}

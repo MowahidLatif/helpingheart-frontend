@@ -1,0 +1,44 @@
+.ai-site-renderer {
+  .ai-site-image {
+    margin: 0 auto 1.5rem;
+    max-width: 900px;
+    text-align: center;
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    figcaption {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      opacity: 0.85;
+    }
+  }
+
+  .ai-site-video {
+    margin: 0 auto 1.5rem;
+    max-width: 900px;
+
+    video {
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    &--embed iframe {
+      width: 100%;
+      min-height: 360px;
+      border: 0;
+      border-radius: 8px;
+    }
+  }
+
+  .ai-site-gallery {
+    --media-cols: 2;
+  }
+
+  .ai-site-spacer {
+    width: 100%;
+  }
+}

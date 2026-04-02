@@ -18,8 +18,16 @@ import ThankYouPage from "@/pages/Donate/ThankYouPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
+import AiSiteWizardPage from "@/pages/Campaign/AiSiteWizardPage";
+import TenantPublicHome from "@/pages/Campaign/TenantPublicHome";
 import ProgressEmbedPage from "@/pages/Embed/ProgressEmbedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+
+/** Routes when the SPA is served on `{org}.{VITE_PUBLIC_SITE_HOST_SUFFIX}` (public sites only). */
+export const tenantPublicOnlyRoutes: RouteObject[] = [
+  { path: "/", element: <TenantPublicHome /> },
+  { path: "/:siteSlug", element: <DonatePage /> },
+];
 
 export const routes: RouteObject[] = [
   {
@@ -123,6 +131,14 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <PageLayoutBuilder />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/campaign/ai-site/:campaignId",
+    element: (
+      <ProtectedRoute>
+        <AiSiteWizardPage />
       </ProtectedRoute>
     ),
   },

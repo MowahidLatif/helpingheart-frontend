@@ -437,6 +437,10 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     navigate(`/campaign/layout-builder/${campaign.id}`);
   };
 
+  const handleAiSite = () => {
+    navigate(`/campaign/ai-site/${campaign.id}`);
+  };
+
   const handleEditLayout = () => {
     navigate(`/campaign/page-layout/${campaign.id}`);
   };
@@ -512,7 +516,12 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         </a>
         <button onClick={handleOpenEdit} style={{ marginRight: "0.5rem" }}>Edit campaign</button>
         <button onClick={handleEditMedia} style={{ marginRight: "0.5rem" }}>Edit Media</button>
-        <button onClick={handleEditLayout} style={{ marginRight: "0.5rem" }}>Edit Page Layout</button>
+        <button onClick={handleAiSite} style={{ marginRight: "0.5rem" }}>AI site builder</button>
+        {import.meta.env.VITE_ENABLE_CLASSIC_PAGE_BUILDER === "true" ? (
+          <button onClick={handleEditLayout} style={{ marginRight: "0.5rem" }}>
+            Classic page layout
+          </button>
+        ) : null}
         {isGiveaway && (
           <button
             onClick={() => setShowConfirmModal(true)}

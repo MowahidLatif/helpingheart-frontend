@@ -2,12 +2,17 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
+import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
+import { getDonatePresetsFromRecipe, parseAiSiteRecipe } from "@/lib/aiSiteRecipe";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
 function getPresetAmounts(campaign: Campaign | null): number[] {
+  const recipe = parseAiSiteRecipe(campaign?.ai_site_recipe);
+  if (recipe) return getDonatePresetsFromRecipe(recipe);
   if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
   const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
   const presets = donateBlock?.props?.preset_amounts;
@@ -18,20 +23,23 @@ function getPresetAmounts(campaign: Campaign | null): number[] {
 }
 
 export default function DonatePage() {
-  const { org, slug, campaignId } = useParams<{
+  const { org, slug, campaignId, siteSlug } = useParams<{
     org?: string;
     slug?: string;
     campaignId?: string;
+    siteSlug?: string;
   }>();
+  const orgResolved = org ?? getTenantOrgSubdomainFromHost() ?? undefined;
+  const slugResolved = slug ?? siteSlug ?? undefined;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
-    if (org && slug) {
+    if (orgResolved && slugResolved) {
       api
-        .get(API_ENDPOINTS.campaigns.publicByOrgSlug(org, slug))
+        .get(API_ENDPOINTS.campaigns.publicByOrgSlug(orgResolved, slugResolved))
         .then((res) => {
           setCampaign(res.data);
           setError("");
@@ -51,9 +59,10 @@ export default function DonatePage() {
       setError("Missing campaign");
       setLoading(false);
     }
-  }, [org, slug, campaignId]);
+  }, [orgResolved, slugResolved, campaignId]);
 
   const presets = getPresetAmounts(campaign);
+  const aiRecipe = parseAiSiteRecipe(campaign?.ai_site_recipe);
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const stripeConfigured = stripeKey && stripeKey.startsWith("pk_");
 
@@ -85,10 +94,15 @@ export default function DonatePage() {
 
   return (
     <div className="donate-page donate-page-blocks">
-      <BlockRenderer
-        campaign={campaign}
-        onDonateClick={() => setModalOpen(true)}
-      />
+      {aiRecipe ? (
+        <AiSiteRenderer
+          campaign={campaign}
+          recipe={aiRecipe}
+          onDonateClick={() => setModalOpen(true)}
+        />
+      ) : (
+        <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />
+      )}
       <DonationModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
