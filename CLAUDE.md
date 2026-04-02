@@ -33,7 +33,7 @@ poetry run python run.py
 
 ### Key Directories
 
-- `src/lib/` — Shared utilities: `api.ts` (Axios instance), `auth.ts` (auth helpers), `constants.ts` (all API endpoint strings), `mediaUpload.ts`, `pageLayoutValidation.ts`
+- `src/lib/` — Shared utilities: `api.ts` (Axios instance), `auth.ts` (auth helpers), `constants.ts` (all API endpoint strings), `mediaUpload.ts`, `pageLayoutValidation.ts`, `aiSiteRecipe.ts`, `aiRecipeNormalize.ts`, `mediaRecipeUrlAllowlist.ts`, `campaignMediaLimits.ts`
 - `src/pages/` — Route-level page components
 - `src/ui/` — Feature-specific UI components (Dashboard, DonateBlocks, LandingPage, etc.)
 - `src/components/` — Generic reusable components (ProtectedRoute, DonationModal, etc.)
@@ -66,6 +66,8 @@ Notable routes:
 The block-based page builder (`src/pages/Campaign/PageLayoutBuilder.tsx`) lets users compose donation pages from typed blocks: `hero`, `campaign_info`, `donate_button`, `media_gallery`, `text`, `embed`, `footer`. Layouts are saved/loaded via `PUT/GET /api/campaigns/{id}/page-layout`. Block rendering on the public-facing side is handled by `src/ui/DonateBlocks/BlockRenderer.tsx`.
 
 **AI site builder:** `src/pages/Campaign/CampaignAiWizardPage.tsx` implements the full flow (Ant Design `Steps`: details, assets, describe, generating, preview). `CreateCampaignPage` and `AiSiteWizardPage` are thin wrappers (`mode="new"` vs `resume`). Resume opens on preview when `ai_site_recipe` exists. Generation uses `POST /api/campaigns/{id}/ai-site/generate` and job polling; preview polls `GET /api/campaigns/{id}/public` for live totals. Public pages use `src/ui/AiSite/AiSiteRenderer.tsx` when a recipe exists. Set `VITE_ENABLE_CLASSIC_PAGE_BUILDER=true` for the legacy page layout editor on the dashboard. Multi-tenant host routing: `docs/MULTITENANT_HOSTING.md`, `src/lib/hostTenant.ts`.
+
+**AI site recipe pipeline (public + preview):** normalize with `src/lib/aiRecipeNormalize.ts`, then parse/validate with `parseAiSiteRecipe` / `parseAiSiteRecipeFromDb` in `src/lib/aiSiteRecipe.ts`, then render. `AiSiteRenderer` skips media URLs that fail `src/lib/mediaRecipeUrlAllowlist.ts` (`VITE_MEDIA_URL_HOSTS`). Limits are shared in `src/lib/aiRecipeConstants.ts`.
 
 ### API Layer
 

@@ -11,11 +11,16 @@ import {
 } from "@stripe/react-stripe-js";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import {
+  MAX_CAMPAIGN_DOCS,
+  MAX_CAMPAIGN_IMAGES,
+  MAX_CAMPAIGN_VIDEOS,
+} from "@/lib/campaignMediaLimits";
 import { uploadMediaToS3, inferMediaType, type PersistedMedia } from "@/lib/mediaUpload";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
-import { getDonatePresetsFromRecipe, parseAiSiteRecipe } from "@/lib/aiSiteRecipe";
+import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -115,8 +120,16 @@ function PlatformPaymentForm({
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
+function mediaCountsByType(items: PersistedMedia[]) {
+  return {
+    image: items.filter((m) => m.type === "image").length,
+    video: items.filter((m) => m.type === "video").length,
+    doc: items.filter((m) => m.type === "doc").length,
+  };
+}
+
 function getPresetAmounts(campaign: Campaign | null): number[] {
-  const recipe = parseAiSiteRecipe(campaign?.ai_site_recipe);
+  const recipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
   if (recipe) return getDonatePresetsFromRecipe(recipe);
   return DEFAULT_PRESETS;
 }
@@ -187,7 +200,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         if (cancelled) return;
         setCampaignId(initialCampaignId);
         setCampaignTitle(res.data?.title || "");
-        const recipe = parseAiSiteRecipe(res.data?.ai_site_recipe);
+        const recipe = parseAiSiteRecipeFromDb(res.data?.ai_site_recipe);
         if (recipe) {
           setStep(STEP_PREVIEW);
           setPreviewLoading(true);
@@ -328,6 +341,20 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const handleUpload = async (file: UploadFile) => {
     if (!campaignId || !file.originFileObj) return false;
     setError("");
+    const inferred = inferMediaType(file.originFileObj);
+    const counts = mediaCountsByType(media);
+    if (inferred === "image" && counts.image >= MAX_CAMPAIGN_IMAGES) {
+      setError(`Campaign media limit reached for type image (max ${MAX_CAMPAIGN_IMAGES}).`);
+      return false;
+    }
+    if (inferred === "video" && counts.video >= MAX_CAMPAIGN_VIDEOS) {
+      setError(`Campaign media limit reached for type video (max ${MAX_CAMPAIGN_VIDEOS}).`);
+      return false;
+    }
+    if (inferred === "doc" && counts.doc >= MAX_CAMPAIGN_DOCS) {
+      setError(`Campaign media limit reached for type doc (max ${MAX_CAMPAIGN_DOCS}).`);
+      return false;
+    }
     try {
       const row = await uploadMediaToS3(
         campaignId,
@@ -379,8 +406,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const showStripePlatform =
     requirePlatformPay && stripePromise && platformClientSecret && !platformDevMode;
 
-  const aiRecipe = parseAiSiteRecipe(previewCampaign?.ai_site_recipe);
+  const aiRecipe = parseAiSiteRecipeFromDb(previewCampaign?.ai_site_recipe);
   const presets = getPresetAmounts(previewCampaign);
+  const assetQuota = mediaCountsByType(media);
   const stripeConfigured = stripePk && stripePk.startsWith("pk_");
 
   if (resumeLoading) {
@@ -465,6 +493,11 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
             Campaign: <strong>{campaignTitle || campaignId}</strong>
           </p>
           <p>Upload images, videos, or PDFs the AI can use on your page. This step is optional.</p>
+          <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+            Remaining slots: {Math.max(0, MAX_CAMPAIGN_IMAGES - assetQuota.image)} images,{" "}
+            {Math.max(0, MAX_CAMPAIGN_VIDEOS - assetQuota.video)} videos,{" "}
+            {Math.max(0, MAX_CAMPAIGN_DOCS - assetQuota.doc)} documents (per campaign).
+          </Text>
           <Space style={{ marginBottom: 16 }}>
             <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*,video/*,.pdf">
               <Button>Upload file</Button>

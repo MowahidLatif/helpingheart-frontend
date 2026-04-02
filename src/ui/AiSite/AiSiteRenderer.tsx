@@ -1,5 +1,6 @@
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import type { AiNode, AiSiteRecipeV1 } from "@/lib/aiSiteRecipe";
+import { isAllowedRecipeMediaUrl } from "@/lib/mediaRecipeUrlAllowlist";
 import { CampaignInfoBlock } from "@/ui/DonateBlocks/CampaignInfoBlock";
 import { DonateButtonBlock } from "@/ui/DonateBlocks/DonateButtonBlock";
 import { FooterBlock } from "@/ui/DonateBlocks/FooterBlock";
@@ -18,7 +19,8 @@ type Props = {
 function HeroAi({ node, campaign }: { node: AiNode; campaign: Campaign }) {
   const title = String(node.props.title ?? campaign.title ?? "Campaign");
   const subtitle = node.props.subtitle != null ? String(node.props.subtitle) : "";
-  const bg = node.props.background_image_url != null ? String(node.props.background_image_url) : "";
+  const bgRaw = node.props.background_image_url != null ? String(node.props.background_image_url) : "";
+  const bg = bgRaw && isAllowedRecipeMediaUrl(bgRaw) ? bgRaw : "";
   const block: Block = {
     id: node.id,
     type: "hero",
@@ -41,7 +43,7 @@ function TextAi({ node }: { node: AiNode }) {
 function ImageAi({ node }: { node: AiNode }) {
   const url = String(node.props.url ?? "");
   const alt = node.props.alt != null ? String(node.props.alt) : "";
-  if (!url) return null;
+  if (!url || !isAllowedRecipeMediaUrl(url)) return null;
   return (
     <figure key={node.id} className="ai-site-image">
       <img src={url} alt={alt} />
@@ -52,7 +54,7 @@ function ImageAi({ node }: { node: AiNode }) {
 
 function VideoAi({ node }: { node: AiNode }) {
   const url = String(node.props.url ?? "");
-  if (!url) return null;
+  if (!url || !isAllowedRecipeMediaUrl(url)) return null;
   const isEmbed = url.includes("youtube.com") || url.includes("youtu.be") || url.includes("vimeo.com");
   if (isEmbed) {
     return (
@@ -75,7 +77,7 @@ function GalleryAi({ node }: { node: AiNode }) {
   for (const it of items) {
     if (!it || typeof it !== "object") continue;
     const o = it as Record<string, unknown>;
-    if (typeof o.url !== "string" || !o.url) continue;
+    if (typeof o.url !== "string" || !o.url || !isAllowedRecipeMediaUrl(o.url)) continue;
     urls.push({
       url: o.url,
       alt: typeof o.alt === "string" ? o.alt : "",
