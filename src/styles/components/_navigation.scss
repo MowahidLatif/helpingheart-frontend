@@ -98,6 +98,31 @@
     align-items: center;
     gap: $spacing-sm;
   }
+
+  // Keep the auth menu visible on mobile (overrides public nav's display:none)
+  .navbar-menu {
+    @include respond-below(mobile) {
+      display: flex;
+      gap: $spacing-sm;
+    }
+  }
+
+  // Hide text nav links on mobile — sidebar provides navigation instead
+  .navbar-link {
+    @include respond-below(mobile) {
+      display: none;
+    }
+  }
+
+  .navbar-user {
+    @include respond-below(mobile) {
+      gap: $spacing-xs;
+    }
+  }
+
+  @include respond-below(mobile) {
+    padding: $spacing-sm $spacing-md;
+  }
 }
 
 .navbar-logo {

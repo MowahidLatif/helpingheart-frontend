@@ -32,7 +32,7 @@ const Hero: React.FC = () => {
             </Link>
           </div>
 
-          <div className="landing-hero__features" style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.5rem" }}>
+          <div className="landing-hero__features">
             {BADGES.map((b) => (
               <span key={b.label} className="landing-hero__feature-badge">
                 {b.icon} {b.label}

@@ -85,15 +85,15 @@
 }
 
 .landing-hero__features {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: $spacing-md;
-  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: $spacing-sm;
   max-width: 700px;
   margin: 0 auto;
   
   @include respond-below(mobile) {
-    grid-template-columns: 1fr;
+    gap: $spacing-xs;
   }
 }
 
@@ -222,7 +222,7 @@
 // -----------------------------------------------------------------------------
 .landing-how-it-works__steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: $spacing-xl;
   margin-top: $spacing-xl;
   

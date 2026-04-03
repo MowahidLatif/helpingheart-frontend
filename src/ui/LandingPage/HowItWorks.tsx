@@ -38,7 +38,7 @@ const HowItWorks: React.FC = () => {
           <p>Five simple steps to start raising funds for your cause</p>
         </div>
 
-        <div className="landing-how-it-works__steps" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
+        <div className="landing-how-it-works__steps">
           {STEPS.map((step) => (
             <div key={step.number} className="landing-step">
               <div className="landing-step__number">{step.number}</div>
