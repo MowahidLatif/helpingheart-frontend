@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter as Router, useRoutes, useLocation } from "react-router-dom";
 import NavBar from "@/ui/NavBar";
 import AuthenticatedNavBar from "@/ui/AuthenticatedNavBar";
@@ -28,9 +29,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <HelmetProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </HelmetProvider>
   );
 }
 

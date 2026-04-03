@@ -2,6 +2,7 @@ import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
 
 type Progress = {
   goal: number;
@@ -41,6 +42,25 @@ export default function ProgressEmbedPage() {
       .catch((err) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
   }, [campaignId]);
+
+  useCampaignLiveTotals(campaignId, Boolean(campaignId), (patch) => {
+    setProgress((prev) => {
+      if (!prev) return prev;
+      const goal = prev.goal ?? 0;
+      const raised = patch.total_raised;
+      const percent =
+        goal > 0 ? Math.min(100, Math.round((raised / goal) * 100 * 100) / 100) : 0;
+      return {
+        ...prev,
+        total_raised: raised,
+        percent,
+        donations_count:
+          patch.donations_count !== undefined
+            ? patch.donations_count
+            : prev.donations_count,
+      };
+    });
+  });
 
   if (loading) {
     return (

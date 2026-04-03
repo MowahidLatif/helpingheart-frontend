@@ -188,3 +188,38 @@ export function getDonatePresetsFromRecipe(recipe: AiSiteRecipeV1 | null): numbe
   }
   return fallback;
 }
+
+/** Label from the first donate_section, for sticky CTA chrome. */
+export function getDonateStickyLabelFromRecipe(recipe: AiSiteRecipeV1 | null): string {
+  if (!recipe) return "Donate";
+  for (const n of recipe.nodes) {
+    if (n.type !== "donate_section") continue;
+    const label = n.props.label;
+    if (typeof label === "string" && label.trim()) return label.trim();
+    return "Donate";
+  }
+  return "Donate";
+}
+
+const SEO_DESC_MAX = 300;
+
+/** Plain-text snippet for meta description from recipe nodes (hero subtitle, then first text). */
+export function getSeoDescriptionFromRecipe(recipe: AiSiteRecipeV1 | null): string {
+  if (!recipe) return "";
+  for (const n of recipe.nodes) {
+    if (n.type === "hero") {
+      const sub = n.props.subtitle;
+      if (typeof sub === "string" && sub.trim()) return sub.trim().slice(0, SEO_DESC_MAX);
+    }
+  }
+  for (const n of recipe.nodes) {
+    if (n.type === "text") {
+      const body = n.props.body;
+      if (typeof body === "string" && body.trim()) {
+        const oneLine = body.replace(/\s+/g, " ").trim();
+        return oneLine.slice(0, SEO_DESC_MAX);
+      }
+    }
+  }
+  return "";
+}

@@ -685,6 +685,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                 campaign={previewCampaign}
                 recipe={aiRecipe}
                 onDonateClick={() => setModalOpen(true)}
+                stickyDonate={false}
               />
               <DonationModal
                 open={modalOpen}

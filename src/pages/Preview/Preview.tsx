@@ -92,6 +92,7 @@ export default function PreviewPage() {
             campaign={campaign}
             recipe={aiRecipe}
             onDonateClick={() => setModalOpen(true)}
+            stickyDonate={false}
           />
         ) : (
           <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />

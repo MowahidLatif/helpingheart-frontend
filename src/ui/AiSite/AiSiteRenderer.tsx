@@ -3,7 +3,11 @@
  * Contract: docs/AI_SITE_DSL_V1.md — bump `recipe.version` and add a renderer branch before changing v1 semantics.
  */
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
-import type { AiNode, AiSiteRecipeV1 } from "@/lib/aiSiteRecipe";
+import {
+  type AiNode,
+  type AiSiteRecipeV1,
+  getDonateStickyLabelFromRecipe,
+} from "@/lib/aiSiteRecipe";
 import { isAllowedRecipeMediaUrl } from "@/lib/mediaRecipeUrlAllowlist";
 import { CampaignInfoBlock } from "@/ui/DonateBlocks/CampaignInfoBlock";
 import { DonateButtonBlock } from "@/ui/DonateBlocks/DonateButtonBlock";
@@ -18,6 +22,8 @@ type Props = {
   campaign: Campaign;
   recipe: AiSiteRecipeV1;
   onDonateClick: () => void;
+  /** When true, show a fixed bottom primary CTA (public donate). Dashboard previews should set false. */
+  stickyDonate?: boolean;
 };
 
 function HeroAi({ node, campaign }: { node: AiNode; campaign: Campaign }) {
@@ -149,7 +155,12 @@ function SpacerAi({ node }: { node: AiNode }) {
   return <div key={node.id} className="ai-site-spacer" style={{ height: Math.min(400, Math.max(0, h)) }} />;
 }
 
-export function AiSiteRenderer({ campaign, recipe, onDonateClick }: Props) {
+export function AiSiteRenderer({
+  campaign,
+  recipe,
+  onDonateClick,
+  stickyDonate = true,
+}: Props) {
   if (recipe.version !== "1") {
     return (
       <div className="ai-site-renderer donate-page-blocks">
@@ -159,6 +170,7 @@ export function AiSiteRenderer({ campaign, recipe, onDonateClick }: Props) {
       </div>
     );
   }
+  const stickyLabel = getDonateStickyLabelFromRecipe(recipe);
   return (
     <div className="ai-site-renderer donate-page-blocks">
       {recipe.nodes.map((node) => {
@@ -185,6 +197,13 @@ export function AiSiteRenderer({ campaign, recipe, onDonateClick }: Props) {
             return null;
         }
       })}
+      {stickyDonate ? (
+        <div className="ai-site-sticky-donate">
+          <button type="button" className="ai-site-sticky-donate__btn" onClick={onDonateClick}>
+            {stickyLabel}
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

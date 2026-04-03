@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
 import { useParams } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
@@ -6,7 +7,12 @@ import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
-import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
+import {
+  getDonatePresetsFromRecipe,
+  getSeoDescriptionFromRecipe,
+  parseAiSiteRecipeFromDb,
+} from "@/lib/aiSiteRecipe";
+import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
@@ -61,10 +67,29 @@ export default function DonatePage() {
     }
   }, [orgResolved, slugResolved, campaignId]);
 
+  useCampaignLiveTotals(campaign?.id, Boolean(campaign?.id), (patch) => {
+    setCampaign((prev) =>
+      prev ? { ...prev, total_raised: patch.total_raised } : prev,
+    );
+  });
+
   const presets = getPresetAmounts(campaign);
   const aiRecipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const stripeConfigured = stripeKey && stripeKey.startsWith("pk_");
+
+  const seo = useMemo(() => {
+    if (!campaign) return null;
+    const recipe = parseAiSiteRecipeFromDb(campaign.ai_site_recipe);
+    const titleBase = campaign.title?.trim() || "Campaign";
+    const title = `${titleBase} · Donate`;
+    const fromRecipe = getSeoDescriptionFromRecipe(recipe);
+    const description =
+      fromRecipe || `Support ${titleBase}. Make a secure donation.`;
+    const canonical =
+      typeof window !== "undefined" ? window.location.href.split("#")[0] : "";
+    return { title, description, canonical };
+  }, [campaign]);
 
   if (loading) {
     return (
@@ -94,6 +119,17 @@ export default function DonatePage() {
 
   return (
     <div className="donate-page donate-page-blocks">
+      {seo ? (
+        <Helmet>
+          <title>{seo.title}</title>
+          <meta name="description" content={seo.description} />
+          <meta property="og:title" content={seo.title} />
+          <meta property="og:description" content={seo.description} />
+          <meta property="og:type" content="website" />
+          {seo.canonical ? <link rel="canonical" href={seo.canonical} /> : null}
+          <meta name="twitter:card" content="summary" />
+        </Helmet>
+      ) : null}
       {/* Missing, corrupt, or invalid ai_site_recipe parses as null → classic blocks (defaultBlocks if no page_layout). */}
       {aiRecipe ? (
         <AiSiteRenderer

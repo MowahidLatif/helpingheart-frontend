@@ -1,4 +1,44 @@
 .ai-site-renderer {
+  /* Space so fixed bar does not cover last blocks */
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+
+  .ai-site-sticky-donate {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.96) 60%, transparent);
+    box-sizing: border-box;
+  }
+
+  .ai-site-sticky-donate__btn {
+    pointer-events: auto;
+    min-width: min(100%, 280px);
+    padding: 0.85rem 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #fff;
+    background: #2563eb;
+    border: none;
+    border-radius: 999px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    cursor: pointer;
+  }
+
+  .ai-site-sticky-donate__btn:hover {
+    background: #1d4ed8;
+  }
+
+  .ai-site-sticky-donate__btn:focus-visible {
+    outline: 2px solid #1e40af;
+    outline-offset: 2px;
+  }
+
   .ai-site-image {
     margin: 0 auto 1.5rem;
     max-width: 900px;
