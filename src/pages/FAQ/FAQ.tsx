@@ -43,40 +43,21 @@ const faqs = [
 
 const FAQ = () => {
   return (
-    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+    <div className="info-page">
       <h1>Frequently Asked Questions</h1>
-      <p style={{ color: "#555", marginBottom: "2rem" }}>
+      <p className="mb-xl">
         Everything you need to know about Helping Hands. Can't find an answer?{" "}
         <a href="/contact">Contact us</a>.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+      <div className="landing-faq">
         {faqs.map((item, i) => (
-          <details
-            key={i}
-            style={{
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px",
-              padding: "1rem 1.25rem",
-            }}
-          >
-            <summary
-              style={{
-                fontWeight: 600,
-                cursor: "pointer",
-                listStyle: "none",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              {item.q}
-              <span style={{ fontSize: "1.2rem", color: "#6b7280" }}>+</span>
-            </summary>
-            <p style={{ marginTop: "0.75rem", color: "#374151", lineHeight: 1.6 }}>
-              {item.a}
-            </p>
-          </details>
+          <div key={i} className="landing-faq__item">
+            <details>
+              <summary>{item.q}</summary>
+              <p>{item.a}</p>
+            </details>
+          </div>
         ))}
       </div>
     </div>

@@ -5,20 +5,19 @@ const FinalCTA: React.FC = () => {
   return (
     <section className="landing-cta">
       <div className="container">
-        <h2>Start Your Fundraiser Today—It's Free</h2>
+        <h2>Ready to Make a Difference?</h2>
         <p>
           Sign up in seconds. No credit card required. Create your first
           campaign and start accepting donations right away.
         </p>
-        <Link to="/signup" className="btn btn-lg">
-          Get Started Free
-        </Link>
-        <p className="mt-lg text-sm" style={{ opacity: 0.8 }}>
-          Already have an account?{" "}
-          <Link to="/signin" style={{ color: "white", textDecoration: "underline" }}>
-            Sign in
+        <div className="btn-group" style={{ justifyContent: "center" }}>
+          <Link to="/signup" className="btn btn-lg">
+            Get Started Free
           </Link>
-        </p>
+          <Link to="/contact" className="btn btn-lg btn-outline" style={{ borderColor: "white", color: "white" }}>
+            Contact Sales
+          </Link>
+        </div>
       </div>
     </section>
   );

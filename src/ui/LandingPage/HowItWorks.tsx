@@ -9,16 +9,21 @@ const STEPS = [
   },
   {
     number: 2,
+    title: "Create a Campaign",
+    text: "Set your fundraising goal, add a title, and optionally include a giveaway prize.",
+  },
+  {
+    number: 3,
     title: "Build Your Page",
     text: "Use our drag-and-drop builder to add blocks, set your goal, and customize your design.",
   },
   {
-    number: 3,
+    number: 4,
     title: "Share Your Link",
     text: "Send your unique URL to friends, family, and supporters. Your org gets its own subdomain.",
   },
   {
-    number: 4,
+    number: 5,
     title: "Watch It Grow",
     text: "Get real-time updates as donations roll in. Draw giveaway winners when you're ready.",
   },
@@ -30,10 +35,10 @@ const HowItWorks: React.FC = () => {
       <div className="container">
         <div className="landing-section__title">
           <h2>How It Works</h2>
-          <p>Four simple steps to start raising funds for your cause</p>
+          <p>Five simple steps to start raising funds for your cause</p>
         </div>
 
-        <div className="landing-how-it-works__steps">
+        <div className="landing-how-it-works__steps" style={{ gridTemplateColumns: "repeat(5, 1fr)" }}>
           {STEPS.map((step) => (
             <div key={step.number} className="landing-step">
               <div className="landing-step__number">{step.number}</div>

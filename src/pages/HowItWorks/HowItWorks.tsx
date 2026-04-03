@@ -28,61 +28,34 @@ const steps = [
 
 const HowItWorks = () => {
   return (
-    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+    <div className="info-page">
       <h1>How It Works</h1>
-      <p style={{ color: "#555", marginBottom: "2.5rem" }}>
+      <p className="mb-2xl">
         Helping Hands makes it easy to launch a professional fundraising campaign
         in minutes — no coding, no complicated setup, just results.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "2rem" }}>
+      <div className="d-flex" style={{ flexDirection: "column", gap: "2rem" }}>
         {steps.map((step) => (
-          <div
-            key={step.number}
-            style={{
-              display: "flex",
-              gap: "1.5rem",
-              alignItems: "flex-start",
-            }}
-          >
-            <div
-              style={{
-                flexShrink: 0,
-                width: "3rem",
-                height: "3rem",
-                borderRadius: "50%",
-                background: "#f3f4f6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 700,
-                fontSize: "0.85rem",
-                color: "#374151",
-              }}
-            >
+          <div key={step.number} className="d-flex" style={{ gap: "1.5rem", alignItems: "flex-start" }}>
+            <div className="landing-step__number" style={{ flexShrink: 0 }}>
               {step.number}
             </div>
             <div>
-              <h2 style={{ marginTop: 0, marginBottom: "0.5rem", fontSize: "1.15rem" }}>
+              <h2 className="mb-xs" style={{ fontSize: "1.15rem", marginTop: 0 }}>
                 {step.title}
               </h2>
-              <p style={{ color: "#555", lineHeight: 1.6, margin: 0 }}>{step.body}</p>
+              <p className="text-secondary" style={{ lineHeight: 1.6, margin: 0 }}>
+                {step.body}
+              </p>
             </div>
           </div>
         ))}
       </div>
 
-      <div
-        style={{
-          marginTop: "3rem",
-          padding: "1.5rem",
-          background: "#f9fafb",
-          borderRadius: "8px",
-          borderLeft: "4px solid #6b7280",
-        }}
-      >
-        <p style={{ margin: 0, fontWeight: 600 }}>Ready to get started?</p>
-        <p style={{ margin: "0.5rem 0 0", color: "#555" }}>
+      <div className="info-callout">
+        <p>Ready to get started?</p>
+        <p>
           <a href="/signup">Create your free account</a> and launch your first
           campaign today. No credit card required.
         </p>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 
@@ -18,7 +18,7 @@ export default function SignUp() {
     e.preventDefault();
 
     if (!email || !firstName || !lastName || !password || !orgName) {
-      alert("Please fill in all required fields.");
+      setError("Please fill in all required fields.");
       return;
     }
 
@@ -49,85 +49,93 @@ export default function SignUp() {
   };
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "500px", margin: "0 auto" }}>
-      <h2>Sign Up</h2>
-      {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <label>First Name:</label>
-        <input
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-
-        <label>Last Name:</label>
-        <input
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-
-        <label>Email:</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-
-        <label>Password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-
-        <label>Organization Name:</label>
-        <input
-          type="text"
-          value={orgName}
-          onChange={(e) => setOrgName(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-
-        <label>Organization Subdomain (optional):</label>
-        <input
-          type="text"
-          value={orgSubdomain}
-          onChange={(e) => setOrgSubdomain(e.target.value)}
-          placeholder="e.g., myorg"
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-        <small style={{ display: "block", marginBottom: "1rem", color: "#666" }}>
-          Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
-        </small>
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Creating account..." : "Sign Up"}
-        </button>
-      </form>
-      <button
-        type="button"
-        onClick={() => navigate("/signin")}
-        style={{
-          marginTop: "1rem",
-          background: "none",
-          border: "none",
-          color: "blue",
-          cursor: "pointer",
-          textDecoration: "underline",
-        }}
-      >
-        Already have an account? Sign in
-      </button>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Sign Up</h1>
+          <p>Create your account and start fundraising.</p>
+        </div>
+        {error && <div className="form-error mb-md">{error}</div>}
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">First Name</label>
+              <input
+                className="form-input"
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+                placeholder="John"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name</label>
+              <input
+                className="form-input"
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+                placeholder="Doe"
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              className="form-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Organization Name</label>
+            <input
+              className="form-input"
+              type="text"
+              value={orgName}
+              onChange={(e) => setOrgName(e.target.value)}
+              required
+              placeholder="My Organization"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Organization Subdomain (optional)</label>
+            <input
+              className="form-input"
+              type="text"
+              value={orgSubdomain}
+              onChange={(e) => setOrgSubdomain(e.target.value)}
+              placeholder="e.g., myorg"
+            />
+            <span className="form-help-text">
+              Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
+            </span>
+          </div>
+          <div className="form-actions">
+            <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+              {loading ? "Creating account..." : "Sign Up"}
+            </button>
+          </div>
+        </form>
+        <div className="auth-footer">
+          Already have an account? <Link to="/signin">Sign in</Link>
+        </div>
+      </div>
     </div>
   );
 }

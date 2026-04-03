@@ -2,29 +2,34 @@ import React from "react";
 
 const FAQ_ITEMS = [
   {
-    question: "How do I withdraw funds?",
+    question: "How much does it cost?",
     answer:
-      "Funds are processed through Stripe. Once donations are received, you can transfer them directly to your bank account via your Stripe dashboard. Payouts typically take 2–7 business days.",
+      "Helping Hands is completely free to use. We only take a small platform percentage from each successful donation — you'll always see the exact fee before a transaction is processed. No monthly fees, no setup costs.",
   },
   {
-    question: "What payment methods are supported?",
+    question: "Do I need technical skills?",
     answer:
-      "We use Stripe, which supports major credit cards (Visa, Mastercard, American Express), debit cards, Apple Pay, Google Pay, and more. Donors can choose their preferred method at checkout.",
+      "Not at all. Our drag-and-drop page builder lets you create professional campaign pages without writing a single line of code. Just pick your blocks, customize the content, and publish.",
   },
   {
-    question: "What are the platform fees?",
+    question: "How do I receive donations?",
     answer:
-      "We use a tiered fee structure when your campaign reaches its goal: 5% for campaigns under $50K, 4% for $50K–$500K, 3% for $500K–$1M, and 2.5% for $1M+. Stripe payment processing fees apply separately.",
+      "Donations are processed securely through Stripe. Funds are transferred directly to your connected bank account. Payouts typically take 2–7 business days depending on your region.",
   },
   {
-    question: "Can I run a giveaway or raffle?",
+    question: "Can I run multiple campaigns?",
     answer:
-      "Yes! You can add an optional giveaway to any campaign. When you're ready, randomly select one donor as the winner. You can also set an optional cash prize amount.",
+      "Yes! You can create and manage as many campaigns as you need, all from a single dashboard. Each campaign gets its own page, goal, and shareable link.",
   },
   {
-    question: "How do custom subdomains work?",
+    question: "Is there a transaction fee?",
     answer:
-      "When you sign up, you get a unique subdomain like yourorg.helpinghands.ca. All your campaigns can be accessed through this branded URL for a professional, memorable presence.",
+      "We use a tiered fee structure: 5% for campaigns under $50K, 4% for $50K–$500K, 3% for $500K–$1M, and 2.5% for $1M+. Standard Stripe payment processing fees apply separately.",
+  },
+  {
+    question: "Can I add team members?",
+    answer:
+      "Absolutely. Invite team members to your organization and assign them roles (owner, admin, or member). Control who can create campaigns, edit content, manage tasks, and more.",
   },
 ];
 

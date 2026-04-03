@@ -20,6 +20,14 @@ type SidebarProps = {
   refreshCampaignsTrigger?: number;
 };
 
+const STATUS_CLASS: Record<string, string> = {
+  active: "status-badge--active",
+  completed: "status-badge--completed",
+  paused: "status-badge--paused",
+  draft: "status-badge--draft",
+  archived: "status-badge--archived",
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampaignsTrigger = 0 }) => {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -47,45 +55,61 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampai
   };
 
   return (
-    <div style={{ padding: "1rem" }}>
+    <div className="sidebar-nav">
       {showUsers && (
         <button
+          type="button"
+          className="sidebar-nav-item"
           onClick={() => navigate("/dashboard/users")}
-          style={{ marginBottom: "1rem", display: "block" }}
         >
-          Users
+          <span>👥</span> Users
         </button>
       )}
-      <button onClick={() => navigate("/campaign/new")} style={{ marginBottom: "1rem" }}>
-        ➕ Add Campaign
+
+      <button
+        type="button"
+        className="btn btn-primary btn-block mb-lg"
+        onClick={() => navigate("/campaign/new")}
+      >
+        + Add Campaign
       </button>
-      <h2>Campaigns</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <div className="sidebar-section-label">Campaigns</div>
+
+      {loading && <p className="text-sm text-secondary">Loading...</p>}
+      {error && <p className="text-sm text-danger">{error}</p>}
+
       {!loading && campaigns.length === 0 ? (
-        <p>No campaigns yet.</p>
+        <p className="text-sm text-secondary">No campaigns yet.</p>
       ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {campaigns.map((c) => (
-            <li
+        campaigns.map((c) => {
+          const percent =
+            c.goal > 0 ? Math.min(100, ((c.total_raised ?? 0) / c.goal) * 100) : 0;
+
+          return (
+            <div
               key={c.id}
+              className="sidebar-campaign-card"
               onClick={() => onSelectCampaign(c)}
-              style={{
-                cursor: "pointer",
-                marginBottom: "0.5rem",
-                padding: "0.5rem",
-                border: "1px solid #ddd",
-                borderRadius: "4px",
-              }}
             >
-              <strong>{c.title}</strong>
-              <br />
-              <small>
-                ${c.total_raised || 0} / ${c.goal} · {c.status}
-              </small>
-            </li>
-          ))}
-        </ul>
+              <div className="sidebar-campaign-card__top">
+                <span className="sidebar-campaign-card__title">{c.title}</span>
+                <span className={`status-badge ${STATUS_CLASS[c.status] ?? "status-badge--draft"}`}>
+                  {c.status}
+                </span>
+              </div>
+              <div className="sidebar-campaign-card__amount">
+                ${Number(c.total_raised ?? 0).toLocaleString()} / ${Number(c.goal).toLocaleString()}
+              </div>
+              <div className="sidebar-campaign-card__progress">
+                <div
+                  className="sidebar-campaign-card__progress-fill"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
+            </div>
+          );
+        })
       )}
     </div>
   );

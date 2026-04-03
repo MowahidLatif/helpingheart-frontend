@@ -41,59 +41,78 @@ const Contact = () => {
   };
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "600px", margin: "0 auto" }}>
-      <h1>Contact Us</h1>
-      <p>We'd love to hear from you. Please fill out the form below:</p>
-
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
-      {submitted && (
-        <div style={{ color: "green", marginBottom: "1rem" }}>
-          Message sent. We'll get back to you soon.
+    <div className="auth-page">
+      <div className="auth-card" style={{ maxWidth: 600 }}>
+        <div className="auth-header">
+          <h1>Contact Us</h1>
+          <p>We'd love to hear from you. Please fill out the form below.</p>
         </div>
-      )}
 
-      <form
-        onSubmit={handleSubmit}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
-      >
-        <input
-          type="text"
-          name="firstName"
-          placeholder="First Name"
-          value={formData.firstName}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="text"
-          name="lastName"
-          placeholder="Last Name"
-          value={formData.lastName}
-          onChange={handleChange}
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          placeholder="Email Address"
-          value={formData.email}
-          onChange={handleChange}
-          required
-        />
-        <textarea
-          name="message"
-          placeholder="Your Message"
-          rows={5}
-          value={formData.message}
-          onChange={handleChange}
-          required
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Sending..." : "Send Message"}
-        </button>
-      </form>
+        {error && <div className="form-error mb-md">{error}</div>}
+        {submitted && (
+          <div className="text-success mb-md font-medium">
+            Message sent. We'll get back to you soon.
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">First Name</label>
+              <input
+                className="form-input"
+                type="text"
+                name="firstName"
+                placeholder="First Name"
+                value={formData.firstName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Last Name</label>
+              <input
+                className="form-input"
+                type="text"
+                name="lastName"
+                placeholder="Last Name"
+                value={formData.lastName}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Email Address</label>
+            <input
+              className="form-input"
+              type="email"
+              name="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Your Message</label>
+            <textarea
+              className="form-textarea"
+              name="message"
+              placeholder="How can we help?"
+              rows={5}
+              value={formData.message}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+              {loading ? "Sending..." : "Send Message"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

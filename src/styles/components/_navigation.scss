@@ -88,6 +88,54 @@
   }
 }
 
+// Authenticated nav modifier (white bar, dashboard-specific layout)
+.navbar--auth {
+  background-color: $color-background;
+  border-bottom: 1px solid $color-border;
+
+  .navbar-brand {
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+}
+
+.navbar-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: $border-radius-full;
+  background-color: $color-success;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-bold;
+  font-size: $font-size-sm;
+  flex-shrink: 0;
+}
+
+.navbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $border-radius-full;
+  background-color: $color-background-dark;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-sm;
+  flex-shrink: 0;
+}
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+}
+
 // Sidebar navigation
 .sidebar-nav {
   padding: $spacing-lg;

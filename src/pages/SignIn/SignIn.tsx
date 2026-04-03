@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 
@@ -105,100 +105,93 @@ export default function SignIn() {
 
   if (requires2Fa) {
     return (
-      <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
-        <h2>Two-Factor Authentication</h2>
-        <p>Enter the 6-digit code from your authenticator app.</p>
-        {error && (
-          <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-        )}
-        <form onSubmit={handle2FaSubmit}>
-          <label>Code:</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            value={code}
-            onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-            placeholder="000000"
-            maxLength={6}
-            style={{ width: "100%", marginBottom: "1rem", padding: "0.5rem" }}
-          />
-          <button type="submit" disabled={loading} style={{ marginRight: "0.5rem" }}>
-            {loading ? "Verifying..." : "Verify"}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setRequires2Fa(false);
-              setTempToken("");
-              setCode("");
-              setError("");
-            }}
-          >
-            Back
-          </button>
-        </form>
+      <div className="auth-page">
+        <div className="auth-card">
+          <div className="auth-header">
+            <h1>Two-Factor Authentication</h1>
+            <p>Enter the 6-digit code from your authenticator app.</p>
+          </div>
+          {error && <div className="form-error mb-md">{error}</div>}
+          <form onSubmit={handle2FaSubmit} className="auth-form">
+            <div className="form-group">
+              <label className="form-label">Code</label>
+              <input
+                className="form-input"
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                placeholder="000000"
+                maxLength={6}
+              />
+            </div>
+            <div className="form-actions">
+              <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+                {loading ? "Verifying..." : "Verify"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-outline btn-block"
+                onClick={() => {
+                  setRequires2Fa(false);
+                  setTempToken("");
+                  setCode("");
+                  setError("");
+                }}
+              >
+                Back
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ padding: "2rem", maxWidth: "400px", margin: "0 auto" }}>
-      <h2>Sign In</h2>
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
-      <form onSubmit={handleLoginSubmit}>
-        <label>Email:</label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-        <label>Password:</label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          style={{ width: "100%", marginBottom: "1rem" }}
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Signing in..." : "Sign In"}
-        </button>
-      </form>
-      <button
-        type="button"
-        onClick={() => navigate("/reset-credentials")}
-        style={{
-          marginTop: "0.75rem",
-          background: "none",
-          border: "none",
-          color: "blue",
-          cursor: "pointer",
-          textDecoration: "underline",
-          padding: 0,
-        }}
-      >
-        Forgot password?
-      </button>
-      <button
-        type="button"
-        onClick={() => navigate("/signup")}
-        style={{
-          marginTop: "1rem",
-          background: "none",
-          border: "none",
-          color: "blue",
-          cursor: "pointer",
-          textDecoration: "underline",
-          display: "block",
-        }}
-      >
-        Don't have an account? Sign up
-      </button>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1>Sign In</h1>
+          <p>Welcome back! Sign in to your account.</p>
+        </div>
+        {error && <div className="form-error mb-md">{error}</div>}
+        <form onSubmit={handleLoginSubmit} className="auth-form">
+          <div className="form-group">
+            <label className="form-label">Email</label>
+            <input
+              className="form-input"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="you@example.com"
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Password</label>
+            <input
+              className="form-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div className="form-actions">
+            <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </div>
+        </form>
+        <div className="auth-footer">
+          <Link to="/reset-credentials">Forgot password?</Link>
+          <p className="mt-md">
+            Don't have an account? <Link to="/signup">Sign up</Link>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

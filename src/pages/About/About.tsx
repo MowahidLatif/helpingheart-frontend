@@ -43,15 +43,15 @@ const features = [
 
 const About = () => {
   return (
-    <div style={{ padding: "2rem", maxWidth: "800px", margin: "0 auto" }}>
+    <div className="info-page">
       <h1>About Helping Hands</h1>
-      <p style={{ color: "#555", lineHeight: 1.7, marginBottom: "1rem" }}>
+      <p className="mb-md">
         Helping Hands is a fundraising platform built for individuals,
         nonprofits, and community organizations who want to launch professional
         donation campaigns without the complexity of traditional fundraising
         software.
       </p>
-      <p style={{ color: "#555", lineHeight: 1.7, marginBottom: "2.5rem" }}>
+      <p className="mb-2xl">
         We believe that collecting donations online should be as simple as
         writing a message and sharing a link. Everything else — payments,
         receipts, campaign pages, donor management — should happen
@@ -59,40 +59,26 @@ const About = () => {
       </p>
 
       <h2>What we have built</h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", marginBottom: "2.5rem" }}>
+      <div className="mb-2xl" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
         {features.map((f) => (
-          <div
-            key={f.title}
-            style={{
-              padding: "1.25rem",
-              border: "1px solid #e5e7eb",
-              borderRadius: "8px",
-            }}
-          >
-            <h3 style={{ margin: "0 0 0.4rem", fontSize: "1rem" }}>{f.title}</h3>
-            <p style={{ margin: 0, color: "#555", lineHeight: 1.6 }}>{f.description}</p>
+          <div key={f.title} className="card" style={{ padding: "1.25rem" }}>
+            <h3 className="m-0 mb-xs" style={{ fontSize: "1rem" }}>{f.title}</h3>
+            <p className="text-secondary m-0" style={{ lineHeight: 1.6 }}>{f.description}</p>
           </div>
         ))}
       </div>
 
       <h2>Our mission</h2>
-      <p style={{ color: "#555", lineHeight: 1.7, marginBottom: "2rem" }}>
+      <p className="mb-xl">
         Our mission is to lower the barrier to fundraising for everyone. Whether
         you are helping a neighbor, running a community project, or growing a
         nonprofit, Helping Hands gives you the infrastructure to do it
         professionally — for free.
       </p>
 
-      <div
-        style={{
-          background: "#f9fafb",
-          borderRadius: "8px",
-          padding: "1.5rem",
-          borderLeft: "4px solid #6b7280",
-        }}
-      >
-        <p style={{ margin: 0, fontWeight: 600 }}>We are just getting started.</p>
-        <p style={{ margin: "0.5rem 0 0", color: "#555" }}>
+      <div className="info-callout">
+        <p>We are just getting started.</p>
+        <p>
           Have a question or want to get in touch?{" "}
           <a href="/contact">Send us a message</a>.
         </p>

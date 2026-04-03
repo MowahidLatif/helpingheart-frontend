@@ -3,6 +3,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { BrowserRouter as Router, useRoutes, useLocation } from "react-router-dom";
 import NavBar from "@/ui/NavBar";
 import AuthenticatedNavBar from "@/ui/AuthenticatedNavBar";
+import Footer from "@/ui/Footer";
 import { routes, tenantPublicOnlyRoutes } from "@/routes/AppRoutes";
 import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
 
@@ -19,10 +20,13 @@ function AppContent() {
   const isTenantHost = useMemo(() => !!getTenantOrgSubdomainFromHost(), []);
   const showNav = !isEmbed && !isTenantHost;
 
+  const showFooter = showNav && !isAuthenticated;
+
   return (
     <>
       {showNav && (isAuthenticated ? <AuthenticatedNavBar /> : <NavBar />)}
       <AppRoutesWrapper />
+      {showFooter && <Footer />}
     </>
   );
 }

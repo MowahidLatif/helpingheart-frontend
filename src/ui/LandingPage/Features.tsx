@@ -3,40 +3,40 @@ import { Link } from "react-router-dom";
 
 const FEATURES = [
   {
-    icon: "🎨",
-    title: "Custom Page Builder",
+    icon: "⚡",
+    title: "Quick Setup",
     description:
-      "Drag-and-drop blocks to design your donation page. Add hero sections, media galleries, donate buttons, and embeds—no coding required.",
+      "Create your fundraising page in minutes. No technical skills required — just sign up, set your goal, and start accepting donations.",
+  },
+  {
+    icon: "🎨",
+    title: "Custom Branding",
+    description:
+      "Make your page truly yours. Add your organization's logo, colors, images, and messaging with the drag-and-drop page builder.",
+  },
+  {
+    icon: "🔒",
+    title: "Secure Payments",
+    description:
+      "Accept donations safely through Stripe. Credit cards, Apple Pay, Google Pay, and more — fully PCI compliant and trusted by millions.",
   },
   {
     icon: "📊",
-    title: "Real-Time Progress",
+    title: "Real-Time Analytics",
     description:
-      "Watch donations roll in with live updates. Track goals, see donor counts, and display progress bars that inspire more giving.",
-  },
-  {
-    icon: "💳",
-    title: "Secure Stripe Payments",
-    description:
-      "Accept donations via Stripe. Credit cards, Apple Pay, and more. Secure, compliant, and trusted by millions worldwide.",
+      "Track donations as they come in. Monitor your progress, see donor counts, and export data — all from a live dashboard.",
   },
   {
     icon: "🔗",
-    title: "Custom URLs",
+    title: "Easy Sharing",
     description:
-      "Your own subdomain: yourorg.helpinghands.ca. Brand your fundraising page with a professional, memorable URL.",
+      "Get a branded URL for your organization. Share your campaign link anywhere, or embed a live progress widget on your own website.",
   },
   {
-    icon: "🎁",
-    title: "Giveaway & Raffles",
+    icon: "📱",
+    title: "Mobile Optimized",
     description:
-      "Add optional giveaways to campaigns. Randomly select a winner and optionally offer cash prizes. Perfect for raffles and contests.",
-  },
-  {
-    icon: "📧",
-    title: "Email Receipts",
-    description:
-      "Automatic donation receipts for donors. Customizable templates. Build trust and keep donors engaged.",
+      "Your donation pages look great on every device. Responsive design ensures donors can give easily from phones, tablets, or desktops.",
   },
 ];
 
@@ -45,9 +45,9 @@ const Features: React.FC = () => {
     <section className="landing-section landing-features">
       <div className="container">
         <div className="landing-section__title">
-          <h2>Everything You Need to Fundraise</h2>
+          <h2>Everything You Need to Succeed</h2>
           <p>
-            Powerful features to help you reach your goals—without the complexity
+            Powerful features to help you reach your goals — without the complexity
           </p>
         </div>
 

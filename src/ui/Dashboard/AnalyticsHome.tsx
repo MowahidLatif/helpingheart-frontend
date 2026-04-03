@@ -9,6 +9,7 @@ type Campaign = {
   goal: number;
   status: string;
   total_raised: number;
+  donations_count?: number;
   created_at?: string;
 };
 
@@ -19,12 +20,12 @@ type Props = {
   onSelectCampaign?: (campaign: Campaign) => void;
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: "Draft",
-  active: "Active",
-  paused: "Paused",
-  completed: "Completed",
-  archived: "Archived",
+const STATUS_CLASS: Record<string, string> = {
+  active: "status-badge--active",
+  completed: "status-badge--completed",
+  paused: "status-badge--paused",
+  draft: "status-badge--draft",
+  archived: "status-badge--archived",
 };
 
 export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign }: Props) {
@@ -43,7 +44,7 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
         win.document.title = "Server Metrics";
       }
     } catch {
-      // silently ignore — user will see nothing opened
+      // silently ignore
     } finally {
       setMetricsLoading(false);
     }
@@ -73,30 +74,51 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
     }
   })();
   const userName = user.name || user.email || "there";
+  const firstName = userName.split(" ")[0];
 
   return (
-    <div className="dashboard-page" style={{ padding: "2rem" }}>
+    <div className="dashboard-page">
       <div className="dashboard-welcome">
-        <h1>Welcome back, {userName}</h1>
-        <p>Here's a summary of your organization's campaigns.</p>
+        <h1>Welcome back, {firstName}!</h1>
+        <p>Here's an overview of your fundraising campaigns</p>
       </div>
 
       <div className="dashboard-stats">
         <div className="stat-card">
-          <div className="stat-label">Total Raised</div>
+          <div className="stat-header">
+            <span className="stat-label">Total Raised</span>
+            <span className="stat-icon">💰</span>
+          </div>
           <div className="stat-value">${Number(totalRaised).toLocaleString()}</div>
+          <div className="stat-description">All time across all campaigns</div>
         </div>
+
         <div className="stat-card">
-          <div className="stat-label">Campaigns</div>
+          <div className="stat-header">
+            <span className="stat-label">Campaigns</span>
+            <span className="stat-icon">🌐</span>
+          </div>
           <div className="stat-value">{campaigns.length}</div>
+          <div className="stat-description">
+            {activeCount} active, {completedCount} completed
+          </div>
         </div>
+
         <div className="stat-card">
-          <div className="stat-label">Active</div>
+          <div className="stat-header">
+            <span className="stat-label">Active Campaigns</span>
+            <span className="stat-icon">📈</span>
+          </div>
           <div className="stat-value">{activeCount}</div>
+          <div className="stat-description">Currently accepting donations</div>
         </div>
+
         <div className="stat-card">
-          <div className="stat-label">
-            {role === "admin" || role === "owner" ? "Team Members" : "Completed"}
+          <div className="stat-header">
+            <span className="stat-label">
+              {role === "admin" || role === "owner" ? "Team Members" : "Completed"}
+            </span>
+            <span className="stat-icon">👥</span>
           </div>
           <div className="stat-value">
             {role === "admin" || role === "owner"
@@ -105,75 +127,54 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
                 : "—"
               : completedCount}
           </div>
+          <div className="stat-description">
+            {role === "admin" || role === "owner"
+              ? "Collaborating on campaigns"
+              : "Finished campaigns"}
+          </div>
         </div>
       </div>
 
       {campaigns.length === 0 ? (
-        <p style={{ color: "#666" }}>No campaigns yet. Create one to get started.</p>
+        <p className="text-secondary">No campaigns yet. Create one to get started.</p>
       ) : (
-        <div>
-          <h2 style={{ marginBottom: "1rem" }}>Campaign Progress</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+        <div className="campaign-progress">
+          <div className="campaign-progress__header">
+            <h2>Campaign Progress</h2>
+            <p>Click on any campaign to view details and manage donations</p>
+          </div>
+          <div className="campaign-progress__list">
             {campaigns.map((c) => {
               const percent =
                 c.goal > 0 ? Math.min(100, ((c.total_raised ?? 0) / c.goal) * 100) : 0;
               return (
                 <div
                   key={c.id}
+                  className="campaign-progress-card"
                   onClick={() => onSelectCampaign?.(c)}
-                  style={{
-                    border: "1px solid #e5e7eb",
-                    borderRadius: "8px",
-                    padding: "1rem 1.25rem",
-                    cursor: onSelectCampaign ? "pointer" : "default",
-                    background: "#fff",
-                  }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    <strong style={{ fontSize: "1rem" }}>{c.title}</strong>
-                    <span
-                      style={{
-                        fontSize: "0.75rem",
-                        padding: "0.2rem 0.6rem",
-                        borderRadius: "999px",
-                        background:
-                          c.status === "active"
-                            ? "#d1fae5"
-                            : c.status === "completed"
-                            ? "#dbeafe"
-                            : c.status === "paused"
-                            ? "#fef3c7"
-                            : "#f3f4f6",
-                        color:
-                          c.status === "active"
-                            ? "#065f46"
-                            : c.status === "completed"
-                            ? "#1e40af"
-                            : c.status === "paused"
-                            ? "#92400e"
-                            : "#374151",
-                      }}
-                    >
-                      {STATUS_LABELS[c.status] ?? c.status}
+                  <div className="campaign-progress-card__top">
+                    <div>
+                      <div className="campaign-progress-card__title">{c.title}</div>
+                      <div className="campaign-progress-card__meta">
+                        {c.donations_count != null
+                          ? `${c.donations_count} donations`
+                          : ""}{" "}
+                        &middot; ${Number(c.total_raised ?? 0).toLocaleString()} raised
+                      </div>
+                    </div>
+                    <span className={`status-badge ${STATUS_CLASS[c.status] ?? "status-badge--draft"}`}>
+                      {c.status}
                     </span>
                   </div>
-                  <div
-                    style={{
-                      fontSize: "0.85rem",
-                      color: "#6b7280",
-                      marginBottom: "0.5rem",
-                    }}
-                  >
-                    ${Number(c.total_raised ?? 0).toLocaleString()} of $
-                    {Number(c.goal).toLocaleString()} raised &middot;{" "}
-                    {Math.round(percent)}%
+                  <div className="campaign-progress-card__amounts">
+                    <span>
+                      ${Number(c.total_raised ?? 0).toLocaleString()} / $
+                      {Number(c.goal).toLocaleString()}
+                    </span>
+                    <span className="campaign-progress-card__percent">
+                      {Math.round(percent)}%
+                    </span>
                   </div>
                   <div className="progress-bar">
                     <div className="progress-fill" style={{ width: `${percent}%` }} />
@@ -186,14 +187,15 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
       )}
 
       {(role === "admin" || role === "owner") && (
-        <div style={{ marginTop: "2rem", borderTop: "1px solid #e5e7eb", paddingTop: "1.5rem" }}>
-          <h2 style={{ marginBottom: "0.75rem", fontSize: "1rem" }}>Admin</h2>
+        <div className="dashboard-admin">
+          <h2>Admin</h2>
           <button
             type="button"
+            className="btn btn-sm btn-outline"
             onClick={openMetrics}
             disabled={metricsLoading}
           >
-            {metricsLoading ? "Loading…" : "View Server Metrics"}
+            {metricsLoading ? "Loading..." : "View Server Metrics"}
           </button>
         </div>
       )}

@@ -46,21 +46,19 @@ export default function DashboardLayout() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
-      <div style={{ width: "25%", borderRight: "1px solid #eee" }}>
+    <div className="dashboard-layout">
+      <aside className="dashboard-sidebar">
         <Sidebar
           onSelectCampaign={handleSelectCampaign}
           orgId={orgId}
           role={role}
           refreshCampaignsTrigger={refreshCampaignsTrigger}
         />
-      </div>
-      <div style={{ flexGrow: 1, overflow: "auto" }}>
-        {meError && (
-          <div style={{ padding: "1rem", color: "red" }}>{meError}</div>
-        )}
+      </aside>
+      <main className="dashboard-main">
+        {meError && <div className="form-error mb-md">{meError}</div>}
         <Outlet context={{ orgId, role, onRefreshCampaigns, onCampaignDeleted }} />
-      </div>
+      </main>
     </div>
   );
 }

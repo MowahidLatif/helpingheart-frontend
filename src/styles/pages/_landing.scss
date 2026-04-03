@@ -112,6 +112,20 @@
   }
 }
 
+.landing-hero__feature-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  background-color: $color-background;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-full;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+}
+
 // -----------------------------------------------------------------------------
 // Section Common
 // -----------------------------------------------------------------------------
@@ -461,5 +475,54 @@
   
   @include respond-below(mobile) {
     padding: $spacing-2xl 0;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Info Pages (HowItWorks, Pricing, About, FAQ, Contact)
+// -----------------------------------------------------------------------------
+.info-page {
+  padding: $spacing-3xl 0;
+  max-width: 800px;
+  margin: 0 auto;
+  padding-left: $spacing-lg;
+  padding-right: $spacing-lg;
+
+  h1 {
+    margin-bottom: $spacing-sm;
+  }
+
+  > p {
+    color: $color-text-secondary;
+    line-height: $line-height-relaxed;
+  }
+
+  @include respond-below(mobile) {
+    padding: $spacing-2xl $spacing-md;
+  }
+}
+
+.info-callout {
+  background-color: $color-background-light;
+  border-radius: $border-radius-md;
+  padding: $spacing-lg;
+  border-left: 4px solid $color-secondary;
+  margin-top: $spacing-2xl;
+
+  p {
+    margin: 0;
+    color: $color-text-secondary;
+    line-height: $line-height-relaxed;
+  }
+
+  p:first-child {
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    margin-bottom: $spacing-xs;
+  }
+
+  a {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
   }
 }

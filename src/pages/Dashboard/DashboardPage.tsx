@@ -57,7 +57,7 @@ export default function DashboardPage() {
 
   if (selectedCampaign) {
     return (
-      <div style={{ padding: "2rem" }}>
+      <div className="dashboard-page">
         <CampaignDetails
           campaign={selectedCampaign}
           onCampaignUpdated={setSelectedCampaign}
@@ -68,16 +68,16 @@ export default function DashboardPage() {
 
   if (campaignsLoading) {
     return (
-      <div style={{ padding: "2rem" }}>
-        <p>Loading…</p>
+      <div className="dashboard-page">
+        <p className="text-secondary">Loading...</p>
       </div>
     );
   }
 
   if (campaignsError) {
     return (
-      <div style={{ padding: "2rem" }}>
-        <p style={{ color: "red" }}>{campaignsError}</p>
+      <div className="dashboard-page">
+        <p className="text-danger">{campaignsError}</p>
       </div>
     );
   }

@@ -44,10 +44,72 @@
   }
 }
 
+.dashboard-sidebar {
+  @include custom-scrollbar;
+}
+
 .dashboard-header {
   margin-bottom: $spacing-xl;
   
   @include respond-below(mobile) {
     margin-bottom: $spacing-lg;
   }
+}
+
+// Sidebar campaign cards
+.sidebar-campaign-card {
+  padding: $spacing-md;
+  border: 1px solid $color-border-light;
+  border-radius: $border-radius-md;
+  cursor: pointer;
+  transition: $transition-fast;
+  margin-bottom: $spacing-sm;
+
+  &:hover {
+    background-color: $color-background-light;
+  }
+
+  &__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-xs;
+  }
+
+  &__title {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $color-text-primary;
+    line-height: 1.3;
+  }
+
+  &__amount {
+    font-size: 12px;
+    color: $color-text-secondary;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__progress {
+    height: 4px;
+    background-color: $color-border-light;
+    border-radius: $border-radius-full;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background-color: $color-primary;
+    border-radius: $border-radius-full;
+    transition: width 0.3s ease;
+  }
+}
+
+// Sidebar section label
+.sidebar-section-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-text-secondary;
+  margin-bottom: $spacing-sm;
+  padding: 0 $spacing-xs;
 }
