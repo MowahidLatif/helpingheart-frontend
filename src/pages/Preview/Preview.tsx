@@ -86,6 +86,7 @@ export default function PreviewPage() {
       </div>
 
       <div className="donate-page donate-page-blocks">
+        {/* Invalid or absent recipe → same fallback as DonatePage (BlockRenderer + defaultBlocks). */}
         {aiRecipe ? (
           <AiSiteRenderer
             campaign={campaign}

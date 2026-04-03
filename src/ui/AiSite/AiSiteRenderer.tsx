@@ -1,3 +1,7 @@
+/**
+ * Renders `ai_site_recipe` DSL v1 only.
+ * Contract: docs/AI_SITE_DSL_V1.md — bump `recipe.version` and add a renderer branch before changing v1 semantics.
+ */
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import type { AiNode, AiSiteRecipeV1 } from "@/lib/aiSiteRecipe";
 import { isAllowedRecipeMediaUrl } from "@/lib/mediaRecipeUrlAllowlist";
@@ -146,6 +150,15 @@ function SpacerAi({ node }: { node: AiNode }) {
 }
 
 export function AiSiteRenderer({ campaign, recipe, onDonateClick }: Props) {
+  if (recipe.version !== "1") {
+    return (
+      <div className="ai-site-renderer donate-page-blocks">
+        <p className="donation-error" role="alert">
+          Unsupported AI site recipe version: {String(recipe.version)}. Expected v1.
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="ai-site-renderer donate-page-blocks">
       {recipe.nodes.map((node) => {

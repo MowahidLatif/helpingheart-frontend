@@ -94,6 +94,7 @@ export default function DonatePage() {
 
   return (
     <div className="donate-page donate-page-blocks">
+      {/* Missing, corrupt, or invalid ai_site_recipe parses as null → classic blocks (defaultBlocks if no page_layout). */}
       {aiRecipe ? (
         <AiSiteRenderer
           campaign={campaign}
