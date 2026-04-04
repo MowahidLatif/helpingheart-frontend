@@ -35,6 +35,35 @@ interface Block {
   props: Record<string, string | number | boolean | number[] | null | undefined>;
 }
 
+const propAsString = (
+  value: string | number | boolean | number[] | null | undefined,
+  fallback = ""
+): string => {
+  if (typeof value === "string") return value;
+  if (typeof value === "number") return String(value);
+  return fallback;
+};
+
+const propAsNumber = (
+  value: string | number | boolean | number[] | null | undefined,
+  fallback: number
+): number => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return fallback;
+};
+
+const propAsBoolean = (
+  value: string | number | boolean | number[] | null | undefined,
+  fallback: boolean
+): boolean => {
+  if (typeof value === "boolean") return value;
+  return fallback;
+};
+
 const PageLayoutBuilder = () => {
   const { campaignId } = useParams();
   const navigate = useNavigate();
@@ -318,7 +347,7 @@ const PageLayoutBuilder = () => {
                   Title:
                   <input
                     type="text"
-                    value={selectedBlock.props.title || ""}
+                    value={propAsString(selectedBlock.props.title)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "title", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -327,7 +356,7 @@ const PageLayoutBuilder = () => {
                   Subtitle:
                   <input
                     type="text"
-                    value={selectedBlock.props.subtitle || ""}
+                    value={propAsString(selectedBlock.props.subtitle)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "subtitle", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -336,7 +365,7 @@ const PageLayoutBuilder = () => {
                   Image URL:
                   <input
                     type="text"
-                    value={selectedBlock.props.image_url || ""}
+                    value={propAsString(selectedBlock.props.image_url)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "image_url", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -345,7 +374,7 @@ const PageLayoutBuilder = () => {
                   Background Color:
                   <input
                     type="text"
-                    value={selectedBlock.props.background_color || ""}
+                    value={propAsString(selectedBlock.props.background_color)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "background_color", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -357,7 +386,7 @@ const PageLayoutBuilder = () => {
                 <label>
                   Content:
                   <textarea
-                    value={selectedBlock.props.content || ""}
+                    value={propAsString(selectedBlock.props.content)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "content", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                     rows={5}
@@ -366,7 +395,7 @@ const PageLayoutBuilder = () => {
                 <label>
                   Align:
                   <select
-                    value={selectedBlock.props.align || "left"}
+                    value={propAsString(selectedBlock.props.align, "left")}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "align", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   >
@@ -383,7 +412,7 @@ const PageLayoutBuilder = () => {
                   URL:
                   <input
                     type="text"
-                    value={selectedBlock.props.url || ""}
+                    value={propAsString(selectedBlock.props.url)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "url", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -392,7 +421,7 @@ const PageLayoutBuilder = () => {
                   Height (px):
                   <input
                     type="number"
-                    value={selectedBlock.props.height || 400}
+                    value={propAsNumber(selectedBlock.props.height, 400)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "height", parseInt(e.target.value))}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -405,7 +434,7 @@ const PageLayoutBuilder = () => {
                   Label:
                   <input
                     type="text"
-                    value={selectedBlock.props.label || "Donate Now"}
+                    value={propAsString(selectedBlock.props.label, "Donate Now")}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "label", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -414,7 +443,7 @@ const PageLayoutBuilder = () => {
                   Min Amount:
                   <input
                     type="number"
-                    value={selectedBlock.props.min_amount || 1}
+                    value={propAsNumber(selectedBlock.props.min_amount, 1)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "min_amount", parseInt(e.target.value))}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -427,7 +456,7 @@ const PageLayoutBuilder = () => {
                   Text:
                   <input
                     type="text"
-                    value={selectedBlock.props.text || ""}
+                    value={propAsString(selectedBlock.props.text)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "text", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   />
@@ -435,7 +464,7 @@ const PageLayoutBuilder = () => {
                 <label>
                   <input
                     type="checkbox"
-                    checked={selectedBlock.props.show_org_name || false}
+                    checked={propAsBoolean(selectedBlock.props.show_org_name, false)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "show_org_name", e.target.checked)}
                   />
                   Show Organization Name
@@ -483,7 +512,7 @@ const PageLayoutBuilder = () => {
                 <label>
                   Columns:
                   <select
-                    value={selectedBlock.props.columns || 3}
+                    value={propAsNumber(selectedBlock.props.columns, 3)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "columns", parseInt(e.target.value))}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   >
@@ -496,7 +525,7 @@ const PageLayoutBuilder = () => {
                 <label>
                   Aspect Ratio:
                   <select
-                    value={selectedBlock.props.aspect_ratio || "auto"}
+                    value={propAsString(selectedBlock.props.aspect_ratio, "auto")}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "aspect_ratio", e.target.value)}
                     style={{ width: "100%", marginBottom: "0.5rem" }}
                   >
@@ -514,7 +543,7 @@ const PageLayoutBuilder = () => {
                   Label (optional heading):
                   <input
                     type="text"
-                    value={selectedBlock.props.label || ""}
+                    value={propAsString(selectedBlock.props.label)}
                     onChange={(e) => updateBlockProp(selectedBlock.id, "label", e.target.value)}
                     placeholder="e.g. Our Progress"
                     style={{ width: "100%", marginBottom: "0.5rem" }}
