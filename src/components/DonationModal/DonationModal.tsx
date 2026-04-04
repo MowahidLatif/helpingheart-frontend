@@ -25,12 +25,16 @@ type DonationModalProps = {
 function PaymentForm({
   campaignId,
   donationId,
-  amount,
+  chargeAmount,
+  baseAmount,
+  donorCoverAmount,
   onError,
 }: {
   campaignId: string;
   donationId: string;
-  amount: number;
+  chargeAmount: number;
+  baseAmount: number;
+  donorCoverAmount: number;
   onError: (msg: string) => void;
 }) {
   const stripe = useStripe();
@@ -65,11 +69,17 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="donation-payment-form">
       <div className="donation-summary">
-        <p>Amount: ${amount.toFixed(2)}</p>
+        <p>Donation: ${baseAmount.toFixed(2)}</p>
+        {donorCoverAmount > 0 ? (
+          <p>
+            Processing fee: ${donorCoverAmount.toFixed(2)} (covered by donor)
+          </p>
+        ) : null}
+        <p>Total charge: ${chargeAmount.toFixed(2)}</p>
       </div>
       <PaymentElement />
       <button type="submit" disabled={loading} className="donation-submit-btn">
-        {loading ? "Processing…" : `Pay $${amount.toFixed(2)}`}
+        {loading ? "Processing…" : `Pay $${chargeAmount.toFixed(2)}`}
       </button>
     </form>
   );
@@ -89,7 +99,9 @@ export function DonationModal({
   const [checkoutData, setCheckoutData] = useState<{
     clientSecret: string;
     donationId: string;
-    amount: number;
+    baseAmount: number;
+    chargeAmount: number;
+    donorCoverAmount: number;
   } | null>(null);
   const [error, setError] = useState("");
   const [creatingCheckout, setCreatingCheckout] = useState(false);
@@ -139,7 +151,11 @@ export function DonationModal({
       setCheckoutData({
         clientSecret: data.clientSecret,
         donationId: data.donation_id,
-        amount: amt,
+        baseAmount: ((data.base_amount_cents ?? Math.round(amt * 100)) as number) / 100,
+        chargeAmount:
+          ((data.charge_amount_cents ?? Math.round(amt * 100)) as number) / 100,
+        donorCoverAmount:
+          ((data.donor_cover_amount_cents ?? 0) as number) / 100,
       });
     } catch (err) {
       setError(getErrorMessage(err));
@@ -192,7 +208,9 @@ export function DonationModal({
               <PaymentForm
                 campaignId={campaignId}
                 donationId={checkoutData.donationId}
-                amount={checkoutData.amount}
+                baseAmount={checkoutData.baseAmount}
+                chargeAmount={checkoutData.chargeAmount}
+                donorCoverAmount={checkoutData.donorCoverAmount}
                 onError={setError}
               />
             </Elements>

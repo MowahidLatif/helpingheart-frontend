@@ -646,7 +646,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
             <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}>
               <option value="draft">Draft</option>
               <option value="active">Active</option>
-              <option value="ended">Ended</option>
+              <option value="completed">Completed</option>
             </select>
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
