@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useOutletContext } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS, ORG_PERMISSIONS } from "@/lib/constants";
@@ -49,7 +49,7 @@ export default function OrgUsersPage() {
   const [roleLoadingId, setRoleLoadingId] = useState<string | null>(null);
   const [resetLoadingId, setResetLoadingId] = useState<string | null>(null);
 
-  const loadMembers = async () => {
+  const loadMembers = useCallback(async () => {
     if (!orgId) return;
     setError("");
     try {
@@ -60,14 +60,14 @@ export default function OrgUsersPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orgId]);
 
   useEffect(() => {
     if (orgId) {
       setLoading(true);
       loadMembers();
     }
-  }, [orgId]);
+  }, [orgId, loadMembers]);
 
   // Clear global success/error when switching tabs
   const switchTab = (tab: Tab) => {
@@ -560,7 +560,7 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
   const [renameLoading, setRenameLoading] = useState(false);
   const [renameError, setRenameError] = useState("");
 
-  const loadStatuses = async () => {
+  const loadStatuses = useCallback(async () => {
     try {
       const res = await api.get<TaskStatus[]>(API_ENDPOINTS.orgs.taskStatuses(orgId));
       setStatuses(res.data || []);
@@ -569,11 +569,11 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [orgId]);
 
   useEffect(() => {
     loadStatuses();
-  }, [orgId]);
+  }, [loadStatuses]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();

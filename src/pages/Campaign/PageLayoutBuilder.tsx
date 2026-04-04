@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
@@ -32,7 +32,7 @@ function getPresetAmountsFromBlocks(blocks: Block[]): number[] {
 interface Block {
   id: string;
   type: string;
-  props: Record<string, any>;
+  props: Record<string, string | number | boolean | number[] | null | undefined>;
 }
 
 const PageLayoutBuilder = () => {
@@ -55,14 +55,7 @@ const PageLayoutBuilder = () => {
 
   const [availableBlockTypes, setAvailableBlockTypes] = useState<string[]>(FALLBACK_BLOCK_TYPES);
 
-  useEffect(() => {
-    fetchSchema();
-    if (campaignId) {
-      loadLayout();
-    }
-  }, [campaignId]);
-
-  const fetchSchema = async () => {
+  const fetchSchema = useCallback(async () => {
     try {
       const res = await api.get<{ block_types: string[] }>(API_ENDPOINTS.pageLayout.schema);
       const types = res.data?.block_types;
@@ -73,7 +66,7 @@ const PageLayoutBuilder = () => {
     } catch (err) {
       message.warning(getErrorMessage(err) || "Could not load block schema; using default blocks.");
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isPreviewMode && campaignId) {
@@ -95,7 +88,7 @@ const PageLayoutBuilder = () => {
     }
   }, [isPreviewMode, campaignId]);
 
-  const loadLayout = async () => {
+  const loadLayout = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -113,7 +106,14 @@ const PageLayoutBuilder = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId]);
+
+  useEffect(() => {
+    fetchSchema();
+    if (campaignId) {
+      loadLayout();
+    }
+  }, [campaignId, fetchSchema, loadLayout]);
 
   const addBlock = (type: string) => {
     const newBlock: Block = {
@@ -124,7 +124,11 @@ const PageLayoutBuilder = () => {
     setBlocks([...blocks, newBlock]);
   };
 
-  const updateBlockProp = (blockId: string, key: string, value: any) => {
+  const updateBlockProp = (
+    blockId: string,
+    key: string,
+    value: string | number | boolean | number[] | null | undefined
+  ) => {
     setBlocks((prev) =>
       prev.map((b) =>
         b.id === blockId ? { ...b, props: { ...b.props, [key]: value } } : b

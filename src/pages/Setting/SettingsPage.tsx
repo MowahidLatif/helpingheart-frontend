@@ -146,7 +146,7 @@ const SettingsPage = () => {
         } else {
           setOrg(null);
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
           setProfile(null);
           setOrg(null);

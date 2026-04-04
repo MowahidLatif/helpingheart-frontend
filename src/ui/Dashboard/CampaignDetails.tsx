@@ -1,5 +1,5 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
@@ -135,21 +135,10 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const [exportCsvLoading, setExportCsvLoading] = useState(false);
   const [embedCopied, setEmbedCopied] = useState(false);
 
-  useEffect(() => {
-    if (campaign?.id) {
-      loadProgress();
-      if (campaign.giveaway_prize_cents) {
-        loadGiveawayLogs();
-      } else {
-        setGiveawayLogs([]);
-      }
-    }
-  }, [campaign?.id, campaign?.giveaway_prize_cents]);
-
   const orgId = campaign?.org_id;
   const showDonations = role === "admin" || role === "owner";
 
-  const loadDonations = async () => {
+  const loadDonations = useCallback(async () => {
     if (!campaign?.id || !showDonations) return;
     setDonationsLoading(true);
     setDonationsError("");
@@ -173,7 +162,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     } finally {
       setDonationsLoading(false);
     }
-  };
+  }, [campaign?.id, showDonations, donationsPage, donationsPerPage, donationsSort, donationsOrder, searchQuery]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -187,7 +176,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     if (campaign?.id && showDonations) {
       loadDonations();
     }
-  }, [campaign?.id, showDonations, donationsPage, donationsPerPage, donationsSort, donationsOrder, searchQuery]);
+  }, [campaign?.id, showDonations, loadDonations]);
 
   useEffect(() => {
     if (!campaign?.id) return;
@@ -383,7 +372,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     }
   };
 
-  const loadProgress = async () => {
+  const loadProgress = useCallback(async () => {
     if (!campaign?.id) return;
     try {
       const response = await api.get(API_ENDPOINTS.campaigns.progress(campaign.id));
@@ -391,9 +380,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     } catch (err) {
       message.warning(getErrorMessage(err) || "Could not load progress");
     }
-  };
+  }, [campaign?.id]);
 
-  const loadGiveawayLogs = async () => {
+  const loadGiveawayLogs = useCallback(async () => {
     if (!campaign?.id) return;
     setLogsLoading(true);
     try {
@@ -405,7 +394,18 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     } finally {
       setLogsLoading(false);
     }
-  };
+  }, [campaign?.id]);
+
+  useEffect(() => {
+    if (campaign?.id) {
+      loadProgress();
+      if (campaign.giveaway_prize_cents) {
+        loadGiveawayLogs();
+      } else {
+        setGiveawayLogs([]);
+      }
+    }
+  }, [campaign?.id, campaign?.giveaway_prize_cents, loadGiveawayLogs, loadProgress]);
 
   const handleDrawWinner = async () => {
     if (!campaign?.id) return;
@@ -1080,7 +1080,7 @@ function CampaignTasksSection({
     }).catch(() => {});
   }, []);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setError("");
     try {
       const [tasksRes, statusesRes, membersRes] = await Promise.all([
@@ -1096,11 +1096,11 @@ function CampaignTasksSection({
     } finally {
       setLoading(false);
     }
-  };
+  }, [campaignId, orgId]);
 
   useEffect(() => {
     load();
-  }, [campaignId, orgId]);
+  }, [load]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
