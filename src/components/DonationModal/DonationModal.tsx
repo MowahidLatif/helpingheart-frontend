@@ -39,7 +39,10 @@ function PaymentForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements) {
+      onError("Payment form is still loading. Please try again.");
+      return;
+    }
     setLoading(true);
     onError("");
     try {
@@ -89,6 +92,7 @@ export function DonationModal({
     amount: number;
   } | null>(null);
   const [error, setError] = useState("");
+  const [creatingCheckout, setCreatingCheckout] = useState(false);
 
   const selectedAmount = amount ?? (customAmount ? parseFloat(customAmount) : null);
 
@@ -119,6 +123,7 @@ export function DonationModal({
       return;
     }
     setError("");
+    setCreatingCheckout(true);
     try {
       const res = await api.post(API_ENDPOINTS.donations.checkout, {
         campaign_id: campaignId,
@@ -138,6 +143,8 @@ export function DonationModal({
       });
     } catch (err) {
       setError(getErrorMessage(err));
+    } finally {
+      setCreatingCheckout(false);
     }
   };
 
@@ -158,6 +165,7 @@ export function DonationModal({
       <div
         className="donation-modal"
         onClick={(e) => e.stopPropagation()}
+        aria-busy={creatingCheckout}
       >
         <button
           type="button"
@@ -173,7 +181,7 @@ export function DonationModal({
 
         {checkoutData && stripePromise ? (
           <>
-            {error && <p className="donation-error">{error}</p>}
+            {error && <p className="donation-error" role="alert" aria-live="polite">{error}</p>}
             <Elements
               stripe={stripePromise}
               options={{
@@ -198,7 +206,7 @@ export function DonationModal({
           </>
         ) : (
           <>
-            {error && <p className="donation-error">{error}</p>}
+            {error && <p className="donation-error" role="alert" aria-live="polite">{error}</p>}
             <div className="donation-form">
               <div className="amount-presets">
                 {presetAmounts.map((p) => (
@@ -254,9 +262,11 @@ export function DonationModal({
                 type="button"
                 className="donation-submit-btn"
                 onClick={handleDonateClick}
-                disabled={!selectedAmount || selectedAmount <= 0}
+                disabled={!selectedAmount || selectedAmount <= 0 || creatingCheckout}
               >
-                Donate ${selectedAmount ? selectedAmount.toFixed(2) : "—"}
+                {creatingCheckout
+                  ? "Preparing checkout..."
+                  : `Donate $${selectedAmount ? selectedAmount.toFixed(2) : "—"}`}
               </button>
             </div>
           </>

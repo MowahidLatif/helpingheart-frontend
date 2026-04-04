@@ -6,6 +6,7 @@ import AuthenticatedNavBar from "@/ui/AuthenticatedNavBar";
 import Footer from "@/ui/Footer";
 import { routes, tenantPublicOnlyRoutes } from "@/routes/AppRoutes";
 import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 
 function AppRoutesWrapper() {
   const isTenantHost = useMemo(() => !!getTenantOrgSubdomainFromHost(), []);
@@ -35,7 +36,9 @@ function App() {
   return (
     <HelmetProvider>
       <Router>
-        <AppContent />
+        <AppErrorBoundary>
+          <AppContent />
+        </AppErrorBoundary>
       </Router>
     </HelmetProvider>
   );

@@ -71,7 +71,14 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { index: true, element: <Dashboard /> },
-      { path: "users", element: <OrgUsersPage /> },
+      {
+        path: "users",
+        element: (
+          <ProtectedRoute requiredRoles={["owner", "admin"]}>
+            <OrgUsersPage />
+          </ProtectedRoute>
+        ),
+      },
     ],
   },
   {
@@ -113,7 +120,7 @@ export const routes: RouteObject[] = [
   {
     path: "/campaign/new",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermissions={["campaign:create"]}>
         <CreateCampaignPage />
       </ProtectedRoute>
     ),
@@ -121,7 +128,7 @@ export const routes: RouteObject[] = [
   {
     path: "/campaign/layout-builder/:campaignId",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermissions={["campaign:edit"]}>
         <LayoutBuilderPage />
       </ProtectedRoute>
     ),
@@ -129,7 +136,7 @@ export const routes: RouteObject[] = [
   {
     path: "/campaign/page-layout/:campaignId",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermissions={["campaign:edit"]}>
         <PageLayoutBuilder />
       </ProtectedRoute>
     ),
@@ -137,7 +144,7 @@ export const routes: RouteObject[] = [
   {
     path: "/campaign/ai-site/:campaignId",
     element: (
-      <ProtectedRoute>
+      <ProtectedRoute requiredPermissions={["campaign:edit"]}>
         <AiSiteWizardPage />
       </ProtectedRoute>
     ),

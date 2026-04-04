@@ -23,6 +23,8 @@ export default function ThankYouPage() {
   const [campaignLatestWinner, setCampaignLatestWinner] = useState<{ donor: string; created_at?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [copyStatus, setCopyStatus] = useState("");
+  const [pollVersion, setPollVersion] = useState(0);
 
   useEffect(() => {
     if (!donationId) {
@@ -30,6 +32,8 @@ export default function ThankYouPage() {
       setLoading(false);
       return;
     }
+    setLoading(true);
+    setError("");
 
     const pollStatus = async () => {
       try {
@@ -55,6 +59,10 @@ export default function ThankYouPage() {
           setError("Your payment could not be completed.");
           return true;
         }
+        if (d.status === "refunded") {
+          setError("This donation was refunded.");
+          return true;
+        }
         return false;
       } catch (err) {
         setError(getErrorMessage(err));
@@ -63,20 +71,24 @@ export default function ThankYouPage() {
     };
 
     let attempts = 0;
-    const maxAttempts = 15;
+    const maxAttempts = 20;
 
     const runPoll = async () => {
       const done = await pollStatus();
       if (done || attempts >= maxAttempts) {
+        if (!done && attempts >= maxAttempts) {
+          setError("Payment confirmation is taking longer than expected. Please retry in a moment.");
+        }
         setLoading(false);
         return;
       }
       attempts += 1;
-      setTimeout(runPoll, 2000);
+      const nextDelayMs = Math.min(2000 + attempts * 300, 5000);
+      setTimeout(runPoll, nextDelayMs);
     };
 
     runPoll();
-  }, [donationId, campaignId]);
+  }, [donationId, campaignId, pollVersion]);
 
   const shareUrl = campaignId
     ? `${window.location.origin}/donate/${campaignId}`
@@ -85,8 +97,13 @@ export default function ThankYouPage() {
     ? `I just donated to ${campaignTitle}!`
     : "I just made a donation!";
 
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopyStatus("Campaign link copied.");
+    } catch {
+      setCopyStatus("Unable to copy link. Please copy it manually.");
+    }
   };
 
   if (loading) {
@@ -103,6 +120,15 @@ export default function ThankYouPage() {
       <div className="thank-you-page">
         <h1>Something went wrong</h1>
         <p className="donation-error">{error}</p>
+        {donationId && (
+          <button
+            type="button"
+            className="thank-you-link"
+            onClick={() => setPollVersion((v) => v + 1)}
+          >
+            Retry status check
+          </button>
+        )}
         {campaignId && (
           <Link to={`/donate/${campaignId}`} className="thank-you-link">
             Try again
@@ -133,6 +159,11 @@ export default function ThankYouPage() {
 
       <div className="share-section">
         <h2>Share your support</h2>
+        {copyStatus && (
+          <p className="thank-you-share-status" role="status" aria-live="polite">
+            {copyStatus}
+          </p>
+        )}
         <div className="share-buttons">
           <a
             href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
