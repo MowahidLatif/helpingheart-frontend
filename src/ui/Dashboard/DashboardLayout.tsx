@@ -11,6 +11,9 @@ type Campaign = {
   goal: number;
   status: string;
   total_raised: number;
+  fee_option?: "donor_pays" | "platform_absorbs";
+  fee_policy_version?: string;
+  fee_option_locked?: boolean;
 };
 
 type MeInfo = {

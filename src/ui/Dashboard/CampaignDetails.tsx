@@ -17,6 +17,9 @@ type Campaign = {
   giveaway_prize_cents?: number;
   platform_fee_cents?: number;
   platform_fee_percent?: number;
+  fee_option?: "donor_pays" | "platform_absorbs";
+  fee_policy_version?: string;
+  fee_option_locked?: boolean;
 };
 
 type GiveawayLog = {
@@ -53,6 +56,12 @@ type DonationRow = {
   donor_email: string | null;
   message: string | null;
   status: string;
+  fee_option?: "donor_pays" | "platform_absorbs";
+  stripe_processing_fee_cents?: number;
+  platform_fee_cents?: number;
+  donor_fee_cents?: number;
+  platform_absorbed_fee_cents?: number;
+  net_to_org_cents?: number;
   created_at: string;
   updated_at?: string;
 };
@@ -66,6 +75,11 @@ type CampaignProgress = {
   donations_count: number;
   total_raised: number;
   goal: number;
+  fee_option?: "donor_pays" | "platform_absorbs";
+  fee_option_locked?: boolean;
+  platform_fee_cents?: number;
+  stripe_fee_cents?: number;
+  net_to_org_cents?: number;
 };
 
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignUpdated }) => {
@@ -88,6 +102,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const [editTitle, setEditTitle] = useState("");
   const [editGoal, setEditGoal] = useState("");
   const [editStatus, setEditStatus] = useState("");
+  const [editFeeOption, setEditFeeOption] = useState<"donor_pays" | "platform_absorbs">(
+    "donor_pays"
+  );
   const [editSlug, setEditSlug] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
@@ -203,6 +220,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     setEditTitle(campaign?.title ?? "");
     setEditGoal(String(campaign?.goal ?? ""));
     setEditStatus(campaign?.status ?? "draft");
+    setEditFeeOption(campaign?.fee_option ?? "donor_pays");
     setEditSlug(campaign?.slug ?? "");
     setEditError("");
     setShowEditModal(true);
@@ -214,11 +232,20 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     setEditError("");
     setEditLoading(true);
     try {
-      const body: { title?: string; goal?: number; status?: string; slug?: string } = {};
+      const body: {
+        title?: string;
+        goal?: number;
+        status?: string;
+        slug?: string;
+        fee_option?: "donor_pays" | "platform_absorbs";
+      } = {};
       if (editTitle.trim()) body.title = editTitle.trim();
       if (editGoal.trim()) body.goal = parseFloat(editGoal);
       if (editStatus.trim()) body.status = editStatus.trim();
       if (editSlug.trim()) body.slug = editSlug.trim();
+      if (!campaign.fee_option_locked) {
+        body.fee_option = editFeeOption;
+      }
       const res = await api.patch<Campaign>(API_ENDPOINTS.campaigns.patch(campaign.id), body);
       onCampaignUpdated?.(res.data);
       onRefreshCampaigns?.();
@@ -448,6 +475,18 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const progressPercent = progress?.percent || 0;
   const donationsCount = progress?.donations_count || 0;
   const isGiveaway = !!campaign.giveaway_prize_cents;
+  const feeOption = progress?.fee_option || campaign.fee_option || "donor_pays";
+  const feeOptionLocked =
+    typeof progress?.fee_option_locked === "boolean"
+      ? progress.fee_option_locked
+      : !!campaign.fee_option_locked;
+  const grossRaised = progress?.total_raised ?? campaign.total_raised ?? 0;
+  const netToOrgCents = progress?.net_to_org_cents;
+  const stripeFeeCents = progress?.stripe_fee_cents;
+  const progressPlatformFeeCents = progress?.platform_fee_cents;
+
+  const feeOptionLabel =
+    feeOption === "platform_absorbs" ? "Platform absorbs fees" : "Donor pays fees";
 
   return (
     <div style={{ padding: "2rem" }}>
@@ -470,7 +509,11 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       <div style={{ marginTop: "1rem", marginBottom: "2rem" }}>
         <strong>🎯 Goal:</strong> ${campaign.goal}
         <br />
-        <strong>💰 Raised:</strong> ${campaign.total_raised || 0}
+        <strong>💰 Gross Raised:</strong> ${grossRaised}
+        <br />
+        <strong>🏷️ Payment Model:</strong> {feeOptionLabel}
+        <br />
+        <strong>🔒 Model Lock:</strong> {feeOptionLocked ? "Locked (published/completed)" : "Editable (draft)"}
         <br />
         <strong>📈 Progress:</strong> {progressPercent.toFixed(1)}%
         <br />
@@ -486,17 +529,34 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
             <br />
           </>
         )}
-        {campaign.platform_fee_cents && (
+        {progressPlatformFeeCents ? (
+          <>
+            <strong>💳 Platform Fee:</strong> ${(progressPlatformFeeCents / 100).toFixed(2)}
+            <br />
+          </>
+        ) : campaign.platform_fee_cents ? (
           <>
             <strong>💳 Platform Fee:</strong> ${(campaign.platform_fee_cents / 100).toFixed(2)} ({campaign.platform_fee_percent}%)
             <br />
           </>
-        )}
+        ) : null}
+        {typeof stripeFeeCents === "number" ? (
+          <>
+            <strong>🏦 Stripe Fees:</strong> ${(stripeFeeCents / 100).toFixed(2)}
+            <br />
+          </>
+        ) : null}
+        {typeof netToOrgCents === "number" ? (
+          <>
+            <strong>✅ Estimated Net To Org:</strong> ${(netToOrgCents / 100).toFixed(2)}
+            <br />
+          </>
+        ) : null}
       </div>
 
       <div className="campaign-progress" style={{ marginBottom: "1.5rem", maxWidth: "400px" }}>
         <p>
-          ${(progress?.total_raised ?? campaign.total_raised ?? 0).toLocaleString()} of $
+          ${grossRaised.toLocaleString()} of $
           {(progress?.goal ?? campaign.goal ?? 0).toLocaleString()} raised
         </p>
         <div className="progress-bar">
@@ -592,6 +652,25 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           <label style={{ display: "block", marginBottom: "1rem" }}>
             Slug:
             <input type="text" value={editSlug} onChange={(e) => setEditSlug(e.target.value)} style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+          </label>
+          <label style={{ display: "block", marginBottom: "1rem" }}>
+            Payment model:
+            <select
+              value={editFeeOption}
+              onChange={(e) =>
+                setEditFeeOption(e.target.value as "donor_pays" | "platform_absorbs")
+              }
+              disabled={feeOptionLocked}
+              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            >
+              <option value="donor_pays">Donor pays fees (default)</option>
+              <option value="platform_absorbs">Platform absorbs fees</option>
+            </select>
+            <small style={{ color: "#666" }}>
+              {feeOptionLocked
+                ? "Payment model is locked after publish/completion."
+                : "Payment model can be changed while campaign is in draft."}
+            </small>
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button type="submit" disabled={editLoading}>{editLoading ? "Saving…" : "Save"}</button>
@@ -753,6 +832,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
                     >
                       Amount {donationsSort === "amount_cents" ? (donationsOrder === "asc" ? "↑" : "↓") : ""}
                     </th>
+                    <th style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "right" }}>
+                      Net To Org
+                    </th>
                     <th
                       style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "left", cursor: "pointer" }}
                       onClick={() => handleDonationsSort("status")}
@@ -771,6 +853,11 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
                       <td style={{ border: "1px solid #ddd", padding: "0.5rem" }}>{d.donor_email ?? "—"}</td>
                       <td style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "right" }}>
                         ${((d.amount_cents || 0) / 100).toFixed(2)} {d.currency?.toUpperCase() || "USD"}
+                      </td>
+                      <td style={{ border: "1px solid #ddd", padding: "0.5rem", textAlign: "right" }}>
+                        {typeof d.net_to_org_cents === "number"
+                          ? `$${(d.net_to_org_cents / 100).toFixed(2)}`
+                          : "—"}
                       </td>
                       <td style={{ border: "1px solid #ddd", padding: "0.5rem" }}>{d.status}</td>
                       <td style={{ border: "1px solid #ddd", padding: "0.5rem", maxWidth: "200px", overflow: "hidden", textOverflow: "ellipsis" }}>

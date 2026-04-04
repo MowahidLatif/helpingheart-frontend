@@ -13,6 +13,11 @@ type Campaign = {
   status: string;
   total_raised: number;
   created_at?: string;
+  fee_option?: "donor_pays" | "platform_absorbs";
+  fee_policy_version?: string;
+  fee_option_locked?: boolean;
+  platform_fee_cents?: number;
+  platform_fee_percent?: number;
 };
 
 type OutletContext = {

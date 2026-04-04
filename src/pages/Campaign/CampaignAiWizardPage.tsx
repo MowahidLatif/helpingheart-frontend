@@ -146,6 +146,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const [title, setTitle] = useState("");
   const [goal, setGoal] = useState("");
   const [status, setStatus] = useState("draft");
+  const [feeOption, setFeeOption] = useState<"donor_pays" | "platform_absorbs">(
+    "donor_pays"
+  );
   const [giveawayPrize, setGiveawayPrize] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -312,11 +315,13 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         title: string;
         goal: number;
         status: string;
+        fee_option: "donor_pays" | "platform_absorbs";
         giveaway_prize_cents?: number;
       } = {
         title: title.trim(),
         goal: parseFloat(goal) || 0,
         status,
+        fee_option: feeOption,
       };
       if (giveawayPrize) {
         payload.giveaway_prize_cents = Math.round(parseFloat(giveawayPrize) * 100);
@@ -405,6 +410,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const platformPayOk = !requirePlatformPay || !!platformPiId;
   const showStripePlatform =
     requirePlatformPay && stripePromise && platformClientSecret && !platformDevMode;
+  const feeOptionLockedInWizard = !!campaignId && status !== "draft";
 
   const aiRecipe = parseAiSiteRecipeFromDb(previewCampaign?.ai_site_recipe);
   const presets = getPresetAmounts(previewCampaign);
@@ -479,6 +485,25 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
               </select>
+            </label>
+            <label style={{ display: "block", marginBottom: 16 }}>
+              Payment model
+              <select
+                value={feeOption}
+                onChange={(e) =>
+                  setFeeOption(e.target.value as "donor_pays" | "platform_absorbs")
+                }
+                disabled={feeOptionLockedInWizard}
+                style={{ display: "block", marginTop: 4 }}
+              >
+                <option value="donor_pays">Donor pays fees (default)</option>
+                <option value="platform_absorbs">Platform absorbs fees</option>
+              </select>
+              <Text type="secondary">
+                {feeOptionLockedInWizard
+                  ? "Payment model is locked because this campaign is no longer draft."
+                  : "You can change this while the campaign is in draft. It locks after publish."}
+              </Text>
             </label>
             <Button type="primary" htmlType="submit" loading={createLoading} disabled={!title.trim()}>
               Next
