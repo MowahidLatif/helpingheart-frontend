@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
+import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
 
 export default function SignUp() {
@@ -35,10 +36,21 @@ export default function SignUp() {
         org_subdomain: orgSubdomain || undefined,
       });
 
-      const { access_token, refresh_token, id, email: userEmail, name, org_id } = response.data;
-      localStorage.setItem("token", access_token);
-      if (refresh_token) localStorage.setItem("refreshToken", refresh_token);
-      localStorage.setItem("user", JSON.stringify({ id, email: userEmail, name, org_id }));
+      const { access_token, id, email: userEmail, name, org_id } = response.data;
+      // Tokens are stored as HttpOnly cookies by the server.
+      // Decode claims to store role/permissions for local auth checks.
+      const claims = decodeTokenClaims(access_token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id,
+          email: userEmail,
+          name,
+          org_id: org_id ?? claims?.org_id ?? null,
+          role: claims?.role ?? null,
+          permissions: claims?.permissions ?? [],
+        })
+      );
 
       navigate("/dashboard");
     } catch (err) {

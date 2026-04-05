@@ -1,14 +1,17 @@
+import { API_BASE_URL } from './constants';
+
 export function isAuthenticated(): boolean {
-  return !!localStorage.getItem("token");
+  return !!localStorage.getItem("user");
 }
 
 type AuthClaims = {
   role?: string;
   permissions?: string[];
+  org_id?: string;
   [key: string]: unknown;
 };
 
-function decodeTokenClaims(token: string): AuthClaims | null {
+export function decodeTokenClaims(token: string): AuthClaims | null {
   try {
     const payload = token.split(".")[1];
     if (!payload) return null;
@@ -20,9 +23,13 @@ function decodeTokenClaims(token: string): AuthClaims | null {
 }
 
 export function getAuthClaims(): AuthClaims | null {
-  const token = localStorage.getItem("token");
-  if (!token) return null;
-  return decodeTokenClaims(token);
+  const user = getUser();
+  if (!user) return null;
+  return {
+    role: user.role,
+    permissions: user.permissions,
+    org_id: user.org_id,
+  };
 }
 
 export function hasAnyRole(allowedRoles: string[]): boolean {
@@ -55,8 +62,16 @@ export function getUser() {
   return userStr ? JSON.parse(userStr) : null;
 }
 
-export function logout() {
-  localStorage.removeItem("token");
+export function logout(): void {
+  // Clear all local auth state (including any legacy token keys)
   localStorage.removeItem("user");
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  // Ask server to unset HttpOnly cookies; fire-and-forget
+  fetch(`${API_BASE_URL}/api/auth/logout`, {
+    method: "POST",
+    credentials: "include",
+    keepalive: true,
+  }).catch(() => {});
   window.location.href = "/signin";
 }

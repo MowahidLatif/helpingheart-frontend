@@ -8,6 +8,12 @@ type State = {
   hasError: boolean;
 };
 
+function reportError(error: unknown): void {
+  // Replace this with your error reporting service (e.g. Sentry.captureException(error))
+  // when VITE_SENTRY_DSN is configured.
+  console.error("Unhandled app error:", error);
+}
+
 export default class AppErrorBoundary extends React.Component<Props, State> {
   state: State = { hasError: false };
 
@@ -16,7 +22,7 @@ export default class AppErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: unknown) {
-    console.error("Unhandled app error:", error);
+    reportError(error);
   }
 
   private handleReload = () => {

@@ -4,27 +4,24 @@ import { API_ENDPOINTS } from './constants';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true, // send HttpOnly auth cookies automatically
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add auth token to requests
+// Let browser set Content-Type with boundary for FormData
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  // Let browser set Content-Type with boundary for FormData
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
   return config;
 });
 
-// On 401: try refresh token, then retry; else logout
+// On 401: try cookie-based refresh, then retry; else logout
 let refreshing = false;
-let queue: Array<(token: string) => void> = [];
+let queue: Array<() => void> = [];
 
 api.interceptors.response.use(
   (response) => response,
@@ -32,47 +29,35 @@ api.interceptors.response.use(
     const originalRequest = error.config as { _retry?: boolean } & NonNullable<AxiosError['config']>;
     if (error.response?.status !== 401 || originalRequest._retry) {
       if (error.response?.status === 401) {
+        localStorage.removeItem('user');
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
         window.location.href = '/signin';
       }
       return Promise.reject(error);
     }
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (!refreshToken) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/signin';
-      return Promise.reject(error);
-    }
     if (refreshing) {
       await new Promise<void>((resolve) => {
-        queue.push((newToken: string) => {
-          if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          resolve();
-        });
+        queue.push(resolve);
       });
       return api(originalRequest);
     }
     originalRequest._retry = true;
     refreshing = true;
     try {
-      const res = await axios.post<{ access_token: string }>(
+      // Refresh token is in an HttpOnly cookie — no Authorization header needed
+      await axios.post(
         `${API_BASE_URL}${API_ENDPOINTS.auth.refresh}`,
         {},
-        { headers: { Authorization: `Bearer ${refreshToken}` } }
+        { withCredentials: true }
       );
-      const newToken = res.data.access_token;
-      localStorage.setItem('token', newToken);
-      queue.forEach((cb) => cb(newToken));
+      queue.forEach((resolve) => resolve());
       queue = [];
-      if (originalRequest.headers) originalRequest.headers.Authorization = `Bearer ${newToken}`;
       return api(originalRequest);
     } catch {
+      localStorage.removeItem('user');
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
       window.location.href = '/signin';
       return Promise.reject(error);
     } finally {

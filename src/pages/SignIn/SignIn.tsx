@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
+import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
 
 export default function SignIn() {
@@ -20,16 +21,18 @@ export default function SignIn() {
     email: string;
     name?: string;
   }) => {
-    localStorage.setItem("token", data.access_token);
-    if (data.refresh_token) {
-      localStorage.setItem("refreshToken", data.refresh_token);
-    }
+    // Decode the access token to extract role/permissions for local auth checks.
+    // Tokens themselves are stored as HttpOnly cookies by the server.
+    const claims = decodeTokenClaims(data.access_token);
     localStorage.setItem(
       "user",
       JSON.stringify({
         id: data.id,
         email: data.email,
         name: data.name ?? "",
+        role: claims?.role ?? null,
+        org_id: claims?.org_id ?? null,
+        permissions: claims?.permissions ?? [],
       })
     );
     navigate("/dashboard");

@@ -17,6 +17,7 @@ export const API_ENDPOINTS = {
     twoFaConfirmLogin: '/api/auth/2fa/confirm-login',
     forgotPassword: '/api/auth/forgot-password',
     resetPassword: '/api/auth/reset-password',
+    logout: '/api/auth/logout',
   },
   me: {
     profile: '/api/me/profile',
