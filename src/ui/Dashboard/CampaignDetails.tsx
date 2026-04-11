@@ -2,7 +2,7 @@ import { useNavigate, useOutletContext } from "react-router-dom";
 import { useCallback, useEffect, useState } from "react";
 import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
-import { API_ENDPOINTS } from "@/lib/constants";
+import { API_ENDPOINTS, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
 
 type Campaign = {
@@ -1031,19 +1031,33 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   );
 };
 
+type TaskAssignee = {
+  user_id: string;
+  name: string | null;
+  email: string | null;
+};
 type TaskRow = {
   id: string;
   title: string;
   description: string | null;
-  assignee_user_id: string | null;
-  assignee_name: string | null;
-  assignee_email: string | null;
   status_id: string | null;
   status_name: string | null;
+  assignees?: TaskAssignee[];
+  assignee_user_id?: string | null;
+  assignee_name?: string | null;
+  assignee_email?: string | null;
 };
 
 type TaskStatusRow = { id: string; name: string };
 type MemberRow = { id: string; email: string; name: string | null };
+
+function normalizeTaskAssignees(task: TaskRow): TaskAssignee[] {
+  if (Array.isArray(task.assignees) && task.assignees.length) return task.assignees;
+  if (task.assignee_user_id) {
+    return [{ user_id: task.assignee_user_id, name: task.assignee_name ?? null, email: task.assignee_email ?? null }];
+  }
+  return [];
+}
 
 function CampaignTasksSection({
   campaignId,
@@ -1054,31 +1068,39 @@ function CampaignTasksSection({
 }) {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
+  const [tasks, setTasks] = useState<(TaskRow & { assignees: TaskAssignee[] })[]>([]);
   const [statuses, setStatuses] = useState<TaskStatusRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showCreate, setShowCreate] = useState(false);
-  const [newTitle, setNewTitle] = useState("");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createStep, setCreateStep] = useState<"details" | "assign">("details");
+  const [customTitle, setCustomTitle] = useState("");
+  const [selectedSuggestionTitle, setSelectedSuggestionTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
-  const [newAssignee, setNewAssignee] = useState("");
   const [newStatusId, setNewStatusId] = useState("");
+  const [newAssigneeIds, setNewAssigneeIds] = useState<string[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
   const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
-  const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
+  const [editingTask, setEditingTask] = useState<(TaskRow & { assignees: TaskAssignee[] }) | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
-  const [editAssignee, setEditAssignee] = useState("");
+  const [editStatusId, setEditStatusId] = useState("");
+  const [editAssigneeIds, setEditAssigneeIds] = useState<string[]>([]);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
   const [takingTaskId, setTakingTaskId] = useState<string | null>(null);
 
+  const canCreateTask = currentUserRole === "owner" || currentUserRole === "admin";
+
   useEffect(() => {
-    api.get<{ user_id: string; role?: string }>(API_ENDPOINTS.me.info).then((res) => {
-      setCurrentUserId(res.data.user_id ?? null);
-      setCurrentUserRole(res.data.role ?? null);
-    }).catch(() => {});
+    api
+      .get<{ user_id: string; role?: string }>(API_ENDPOINTS.me.info)
+      .then((res) => {
+        setCurrentUserId(res.data.user_id ?? null);
+        setCurrentUserRole(res.data.role ?? null);
+      })
+      .catch(() => {});
   }, []);
 
   const load = useCallback(async () => {
@@ -1089,7 +1111,11 @@ function CampaignTasksSection({
         api.get<TaskStatusRow[]>(API_ENDPOINTS.orgs.taskStatuses(orgId)),
         api.get<MemberRow[]>(API_ENDPOINTS.orgs.members(orgId)),
       ]);
-      setTasks(tasksRes.data || []);
+      const taskRows = (tasksRes.data || []).map((task) => ({
+        ...task,
+        assignees: normalizeTaskAssignees(task),
+      }));
+      setTasks(taskRows);
       setStatuses(statusesRes.data || []);
       setMembers(membersRes.data || []);
     } catch (err) {
@@ -1103,22 +1129,33 @@ function CampaignTasksSection({
     load();
   }, [load]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const selectedTitle = customTitle.trim() || selectedSuggestionTitle;
+
+  const toggleId = (
+    value: string,
+    setter: (updater: (prev: string[]) => string[]) => void
+  ) => {
+    setter((prev) => (prev.includes(value) ? prev.filter((id) => id !== value) : [...prev, value]));
+  };
+
+  const handleCreateComplete = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (!selectedTitle.trim()) return;
     setCreateLoading(true);
     try {
       await api.post(API_ENDPOINTS.campaigns.tasks(campaignId), {
-        title: newTitle.trim(),
+        title: selectedTitle.trim(),
         description: newDesc.trim() || undefined,
-        assignee_user_id: newAssignee || undefined,
         status_id: newStatusId || undefined,
+        assignee_user_ids: newAssigneeIds,
       });
-      setNewTitle("");
+      setShowCreateModal(false);
+      setCreateStep("details");
+      setCustomTitle("");
+      setSelectedSuggestionTitle("");
       setNewDesc("");
-      setNewAssignee("");
       setNewStatusId("");
-      setShowCreate(false);
+      setNewAssigneeIds([]);
       load();
     } catch (err) {
       message.error(getErrorMessage(err) || "Failed to create task");
@@ -1141,28 +1178,22 @@ function CampaignTasksSection({
     }
   };
 
-  const canChangeStatus = (task: TaskRow) => {
+  const canChangeStatus = (task: { assignees: TaskAssignee[] }) => {
     if (!currentUserId) return false;
-    if (task.assignee_user_id === currentUserId) return true;
+    if (task.assignees.some((a) => a.user_id === currentUserId)) return true;
     return currentUserRole === "owner" || currentUserRole === "admin";
   };
 
-  const canCreateTask = currentUserRole === "owner" || currentUserRole === "admin";
+  const canEditTask = () => currentUserRole === "owner" || currentUserRole === "admin";
+  const canTakeTask = (task: { assignees: TaskAssignee[] }) =>
+    Boolean(currentUserId && task.assignees.length === 0);
 
-  const canEditTask = (task: TaskRow) => {
-    if (!task) return false;
-    return currentUserRole === "owner" || currentUserRole === "admin";
-  };
-
-  const canTakeTask = (task: TaskRow) =>
-    Boolean(currentUserId && !task.assignee_user_id);
-
-  const handleTakeTask = async (task: TaskRow) => {
+  const handleTakeTask = async (task: TaskRow & { assignees: TaskAssignee[] }) => {
     if (!currentUserId) return;
     setTakingTaskId(task.id);
     try {
       await api.patch(API_ENDPOINTS.campaigns.task(campaignId, task.id), {
-        assignee_user_id: currentUserId,
+        assignee_user_ids: [currentUserId],
       });
       load();
     } catch (err) {
@@ -1172,11 +1203,12 @@ function CampaignTasksSection({
     }
   };
 
-  const openEditTask = (task: TaskRow) => {
+  const openEditTask = (task: TaskRow & { assignees: TaskAssignee[] }) => {
     setEditingTask(task);
     setEditTitle(task.title);
     setEditDesc(task.description || "");
-    setEditAssignee(task.assignee_user_id || "");
+    setEditStatusId(task.status_id || "");
+    setEditAssigneeIds(task.assignees.map((a) => a.user_id));
     setEditError("");
   };
 
@@ -1189,7 +1221,8 @@ function CampaignTasksSection({
       await api.patch(API_ENDPOINTS.campaigns.task(campaignId, editingTask.id), {
         title: editTitle.trim(),
         description: editDesc.trim() || null,
-        assignee_user_id: editAssignee || null,
+        status_id: editStatusId || null,
+        assignee_user_ids: editAssigneeIds,
       });
       setEditingTask(null);
       load();
@@ -1209,97 +1242,58 @@ function CampaignTasksSection({
       ) : (
         <>
           {canCreateTask && (
-            <>
-              <button type="button" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: "0.5rem" }}>
-                {showCreate ? "Cancel" : "Add task"}
-              </button>
-              {showCreate && (
-                <form onSubmit={handleCreate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Task title"
-                    required
-                    style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px" }}
-                  />
-                  <textarea
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    placeholder="Description (optional)"
-                    style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px", minHeight: "60px" }}
-                  />
-                  <select
-                    value={newAssignee}
-                    onChange={(e) => setNewAssignee(e.target.value)}
-                    style={{ display: "block", marginBottom: "0.25rem" }}
-                  >
-                    <option value="">No assignee</option>
-                    {members.map((m) => (
-                      <option key={m.id} value={m.id}>{m.name || m.email}</option>
-                    ))}
-                  </select>
-                  <select
-                    value={newStatusId}
-                    onChange={(e) => setNewStatusId(e.target.value)}
-                    style={{ display: "block", marginBottom: "0.25rem" }}
-                  >
-                    <option value="">No status</option>
-                    {statuses.map((s) => (
-                      <option key={s.id} value={s.id}>{s.name}</option>
-                    ))}
-                  </select>
-                  <button type="submit" disabled={createLoading}>Create task</button>
-                </form>
-              )}
-            </>
+            <button type="button" onClick={() => setShowCreateModal(true)} style={{ marginBottom: "0.75rem" }}>
+              Create Task
+            </button>
           )}
-          <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "700px" }}>
+          <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "850px" }}>
             <thead>
               <tr style={{ borderBottom: "2px solid #ddd" }}>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Task</th>
-                <th style={{ textAlign: "left", padding: "0.5rem" }}>Assignee</th>
+                <th style={{ textAlign: "left", padding: "0.5rem" }}>Assignees</th>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Status</th>
                 <th style={{ textAlign: "left", padding: "0.5rem" }}>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {tasks.map((t) => (
-                <tr key={t.id} style={{ borderBottom: "1px solid #eee" }}>
+              {tasks.map((task) => (
+                <tr key={task.id} style={{ borderBottom: "1px solid #eee" }}>
                   <td style={{ padding: "0.5rem" }}>
-                    <strong>{t.title}</strong>
-                    {t.description && <div style={{ fontSize: "0.9rem", color: "#666" }}>{t.description}</div>}
+                    <strong>{task.title}</strong>
+                    {task.description && <div style={{ fontSize: "0.9rem", color: "#666" }}>{task.description}</div>}
                   </td>
-                  <td style={{ padding: "0.5rem" }}>{t.assignee_name || t.assignee_email || "—"}</td>
                   <td style={{ padding: "0.5rem" }}>
-                    {canChangeStatus(t) ? (
+                    {task.assignees.length ? task.assignees.map((a) => a.name || a.email).join(", ") : "Unassigned"}
+                  </td>
+                  <td style={{ padding: "0.5rem" }}>
+                    {canChangeStatus(task) ? (
                       <select
-                        value={t.status_id || ""}
-                        onChange={(e) => handleStatusChange(t.id, e.target.value)}
-                        disabled={statusUpdating === t.id}
+                        value={task.status_id || ""}
+                        onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                        disabled={statusUpdating === task.id}
                       >
                         <option value="">—</option>
-                        {statuses.map((s) => (
-                          <option key={s.id} value={s.id}>{s.name}</option>
+                        {statuses.map((status) => (
+                          <option key={status.id} value={status.id}>{status.name}</option>
                         ))}
                       </select>
                     ) : (
-                      t.status_name || "—"
+                      task.status_name || "—"
                     )}
                   </td>
                   <td style={{ padding: "0.5rem" }}>
-                    {canEditTask(t) ? (
-                      <button type="button" onClick={() => openEditTask(t)} style={{ fontSize: "0.85rem" }}>
+                    {canEditTask() ? (
+                      <button type="button" onClick={() => openEditTask(task)} style={{ fontSize: "0.85rem" }}>
                         Edit
                       </button>
-                    ) : canTakeTask(t) ? (
+                    ) : canTakeTask(task) ? (
                       <button
                         type="button"
-                        onClick={() => handleTakeTask(t)}
-                        disabled={takingTaskId === t.id}
+                        onClick={() => handleTakeTask(task)}
+                        disabled={takingTaskId === task.id}
                         style={{ fontSize: "0.85rem" }}
                       >
-                        {takingTaskId === t.id ? "Taking..." : "Take task"}
+                        {takingTaskId === task.id ? "Taking..." : "Take task"}
                       </button>
                     ) : (
                       "—"
@@ -1309,76 +1303,165 @@ function CampaignTasksSection({
               ))}
             </tbody>
           </table>
-          {tasks.length === 0 && !showCreate && <p>No tasks yet.</p>}
-          {editingTask && (
-            <div
-              style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(0,0,0,0.3)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 10,
-              }}
-              onClick={() => setEditingTask(null)}
-            >
-              <div
-                style={{
-                  background: "white",
-                  padding: "1.5rem",
-                  borderRadius: "8px",
-                  maxWidth: "420px",
-                  width: "90%",
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h3 style={{ marginTop: 0 }}>Edit task</h3>
-                {editError && <div style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</div>}
-                <form onSubmit={handleEditTaskSubmit}>
-                  <label style={{ display: "block", marginBottom: "0.5rem" }}>
-                    Title *
-                    <input
-                      type="text"
-                      value={editTitle}
-                      onChange={(e) => setEditTitle(e.target.value)}
-                      required
-                      style={{ display: "block", width: "100%", padding: "0.25rem", marginTop: "0.2rem" }}
-                    />
-                  </label>
-                  <label style={{ display: "block", marginBottom: "0.5rem" }}>
-                    Description
-                    <textarea
-                      value={editDesc}
-                      onChange={(e) => setEditDesc(e.target.value)}
-                      style={{ display: "block", width: "100%", padding: "0.25rem", minHeight: "70px", marginTop: "0.2rem" }}
-                    />
-                  </label>
-                  <label style={{ display: "block", marginBottom: "1rem" }}>
-                    Assignee
-                    <select
-                      value={editAssignee}
-                      onChange={(e) => setEditAssignee(e.target.value)}
-                      style={{ display: "block", width: "100%", padding: "0.25rem", marginTop: "0.2rem" }}
-                    >
-                      <option value="">No assignee</option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.id}>{m.name || m.email}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button type="submit" disabled={editLoading || !editTitle.trim()}>
-                      {editLoading ? "Saving..." : "Save"}
-                    </button>
-                    <button type="button" onClick={() => setEditingTask(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                </form>
+          {tasks.length === 0 && <p>No tasks yet.</p>}
+
+          <Modal isOpen={showCreateModal} onClose={() => !createLoading && setShowCreateModal(false)}>
+            <h3 style={{ marginTop: 0 }}>Create Task</h3>
+            {createStep === "details" ? (
+              <div>
+                <p style={{ marginTop: 0, color: "#666" }}>
+                  Choose a suggestion below or enter your own task title.
+                </p>
+                <div style={{ maxHeight: "220px", overflowY: "auto", border: "1px solid #eee", padding: "0.5rem", borderRadius: "6px" }}>
+                  {TASK_TITLE_SUGGESTIONS.map((group) => (
+                    <details key={group.category} style={{ marginBottom: "0.35rem" }}>
+                      <summary>{group.category}</summary>
+                      <ul style={{ margin: "0.35rem 0 0.2rem 1.2rem" }}>
+                        {group.items.map((item) => (
+                          <li key={item} style={{ marginBottom: "0.2rem" }}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedSuggestionTitle(item)}
+                              style={{ background: "none", border: "none", padding: 0, textAlign: "left", cursor: "pointer", color: selectedSuggestionTitle === item ? "#111" : "#444" }}
+                            >
+                              {item}
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </details>
+                  ))}
+                </div>
+                <label style={{ display: "block", marginTop: "0.75rem" }}>
+                  Title
+                  <input
+                    type="text"
+                    value={customTitle}
+                    onChange={(e) => setCustomTitle(e.target.value)}
+                    placeholder={selectedSuggestionTitle || "Add your own task title"}
+                    style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
+                  />
+                </label>
+                <label style={{ display: "block", marginTop: "0.5rem" }}>
+                  Details
+                  <textarea
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder="Further details or paste URL link"
+                    style={{ display: "block", width: "100%", minHeight: "80px", marginTop: "0.25rem", padding: "0.35rem" }}
+                  />
+                </label>
+                <label style={{ display: "block", marginTop: "0.5rem" }}>
+                  Status
+                  <select
+                    value={newStatusId}
+                    onChange={(e) => setNewStatusId(e.target.value)}
+                    style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
+                  >
+                    <option value="">No status</option>
+                    {statuses.map((status) => (
+                      <option key={status.id} value={status.id}>{status.name}</option>
+                    ))}
+                  </select>
+                </label>
+                <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
+                  <button
+                    type="button"
+                    onClick={() => setCreateStep("assign")}
+                    disabled={!selectedTitle.trim()}
+                  >
+                    Assign Task Next
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            ) : (
+              <form onSubmit={handleCreateComplete}>
+                <p style={{ color: "#666", marginTop: 0 }}>
+                  Assign one or more people now, or leave it unassigned.
+                </p>
+                <div style={{ maxHeight: "220px", overflowY: "auto", border: "1px solid #eee", padding: "0.5rem", borderRadius: "6px" }}>
+                  {members.map((member) => (
+                    <label key={member.id} style={{ display: "block", marginBottom: "0.25rem" }}>
+                      <input
+                        type="checkbox"
+                        checked={newAssigneeIds.includes(member.id)}
+                        onChange={() => toggleId(member.id, setNewAssigneeIds)}
+                        style={{ marginRight: "0.35rem" }}
+                      />
+                      {member.name || member.email}
+                    </label>
+                  ))}
+                </div>
+                <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "space-between" }}>
+                  <button type="button" onClick={() => setCreateStep("details")} disabled={createLoading}>
+                    Back
+                  </button>
+                  <button type="submit" disabled={createLoading}>
+                    {createLoading ? "Saving..." : "Complete"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </Modal>
+
+          <Modal isOpen={Boolean(editingTask)} onClose={() => !editLoading && setEditingTask(null)}>
+            <h3 style={{ marginTop: 0 }}>Edit task</h3>
+            {editError && <div style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</div>}
+            <form onSubmit={handleEditTaskSubmit}>
+              <label style={{ display: "block", marginBottom: "0.5rem" }}>
+                Title *
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  required
+                  style={{ display: "block", width: "100%", padding: "0.35rem", marginTop: "0.2rem" }}
+                />
+              </label>
+              <label style={{ display: "block", marginBottom: "0.5rem" }}>
+                Description
+                <textarea
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                  style={{ display: "block", width: "100%", padding: "0.35rem", minHeight: "70px", marginTop: "0.2rem" }}
+                />
+              </label>
+              <label style={{ display: "block", marginBottom: "0.5rem" }}>
+                Status
+                <select
+                  value={editStatusId}
+                  onChange={(e) => setEditStatusId(e.target.value)}
+                  style={{ display: "block", width: "100%", padding: "0.35rem", marginTop: "0.2rem" }}
+                >
+                  <option value="">No status</option>
+                  {statuses.map((status) => (
+                    <option key={status.id} value={status.id}>{status.name}</option>
+                  ))}
+                </select>
+              </label>
+              <div style={{ marginBottom: "0.75rem", border: "1px solid #eee", borderRadius: "6px", padding: "0.5rem" }}>
+                {members.map((member) => (
+                  <label key={member.id} style={{ display: "block", marginBottom: "0.2rem" }}>
+                    <input
+                      type="checkbox"
+                      checked={editAssigneeIds.includes(member.id)}
+                      onChange={() => toggleId(member.id, setEditAssigneeIds)}
+                      style={{ marginRight: "0.35rem" }}
+                    />
+                    {member.name || member.email}
+                  </label>
+                ))}
+              </div>
+              <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setEditingTask(null)} disabled={editLoading}>
+                  Cancel
+                </button>
+                <button type="submit" disabled={editLoading || !editTitle.trim()}>
+                  {editLoading ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
+          </Modal>
         </>
       )}
     </div>

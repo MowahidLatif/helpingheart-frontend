@@ -101,3 +101,195 @@ export const ORG_PERMISSIONS = [
   'tasks:assign',
   'tasks:edit_any',
 ] as const;
+
+export const TASK_TITLE_SUGGESTIONS = [
+  {
+    category: "Maintenance & upkeep",
+    items: [
+      "Clean or tidy an area",
+      "Repair or fix something",
+      "Perform a routine check",
+      "Replace or swap out equipment",
+    ],
+  },
+  {
+    category: "Administrative",
+    items: [
+      "Record or log information",
+      "Submit a form or request",
+      "Schedule or book something",
+      "Review and approve something",
+    ],
+  },
+  {
+    category: "People & coordination",
+    items: [
+      "Onboard or orient someone",
+      "Cover a shift or role",
+      "Assist a team member",
+      "Train or demonstrate something",
+    ],
+  },
+  {
+    category: "Safety & compliance",
+    items: [
+      "Conduct an inspection",
+      "Report a hazard or issue",
+      "Verify something meets a standard",
+      "Complete a required checklist",
+    ],
+  },
+  {
+    category: "Project & task work",
+    items: [
+      "Research or gather information",
+      "Build or create something",
+      "Test or evaluate something",
+      "Complete a milestone or deliverable",
+    ],
+  },
+  {
+    category: "Outreach & engagement",
+    items: [
+      "Reach out to a new contact",
+      "Follow up with a member or client",
+      "Promote an event or initiative",
+      "Welcome or greet someone",
+    ],
+  },
+  {
+    category: "Finance & resources",
+    items: [
+      "Process a payment or donation",
+      "Track or record an expense",
+      "Request or allocate a budget",
+      "Reconcile or audit records",
+    ],
+  },
+  {
+    category: "Events & planning",
+    items: [
+      "Organize or plan an event",
+      "Coordinate volunteers or staff",
+      "Prepare materials or resources",
+      "Follow up after an event",
+    ],
+  },
+  {
+    category: "Learning & development",
+    items: [
+      "Complete a training or course",
+      "Share knowledge with the team",
+      "Review a policy or guideline",
+      "Attend a meeting or session",
+    ],
+  },
+  {
+    category: "Monitoring & reporting",
+    items: [
+      "Track progress on a goal",
+      "Compile a status update",
+      "Flag an issue or blocker",
+      "Document an outcome or result",
+    ],
+  },
+  {
+    category: "Community & support",
+    items: [
+      "Support a person in need",
+      "Connect someone to a resource",
+      "Check in on a member",
+      "Coordinate a care or aid effort",
+    ],
+  },
+  {
+    category: "Content & media",
+    items: [
+      "Create or publish content",
+      "Review or edit a submission",
+      "Capture photos or media",
+      "Update a website or platform",
+    ],
+  },
+  {
+    category: "Research & evaluation",
+    items: [
+      "Survey or gather feedback",
+      "Analyze data or results",
+      "Compare options or vendors",
+      "Summarize findings",
+    ],
+  },
+  {
+    category: "Purchasing & procurement",
+    items: [
+      "Source or find a vendor",
+      "Place or track an order",
+      "Compare quotes or proposals",
+      "Return or exchange an item",
+    ],
+  },
+  {
+    category: "Legal & documentation",
+    items: [
+      "Prepare or file a document",
+      "Obtain a signature or approval",
+      "Store or archive a record",
+      "Review a contract or agreement",
+    ],
+  },
+  {
+    category: "Technology & systems",
+    items: [
+      "Set up a device or account",
+      "Troubleshoot a technical issue",
+      "Update software or settings",
+      "Back up or migrate data",
+    ],
+  },
+  {
+    category: "Fundraising & donations",
+    items: [
+      "Solicit a donation or contribution",
+      "Acknowledge or thank a donor",
+      "Track a fundraising goal",
+      "Apply for a grant or funding",
+    ],
+  },
+  {
+    category: "Volunteer & member management",
+    items: [
+      "Recruit or invite a new member",
+      "Assign a role or responsibility",
+      "Recognize or reward a contributor",
+      "Offboard or transition someone out",
+    ],
+  },
+  {
+    category: "Worship & spiritual care (religious orgs)",
+    items: [
+      "Prepare for a service or ceremony",
+      "Coordinate a pastoral visit",
+      "Arrange spiritual materials or resources",
+      "Follow up with a congregation member",
+    ],
+  },
+  {
+    category: "Advocacy & awareness",
+    items: [
+      "Distribute materials or information",
+      "Represent the organization publicly",
+      "Collect signatures or pledges",
+      "Attend an external meeting or hearing",
+    ],
+  },
+  {
+    category: "Data & records management",
+    items: [
+      "Enter or update a record",
+      "Clean or verify existing data",
+      "Export or share a dataset",
+      "Perform a data audit",
+    ],
+  },
+] as const;
