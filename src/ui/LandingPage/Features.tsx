@@ -38,6 +38,12 @@ const FEATURES = [
     description:
       "Your donation pages look great on every device. Responsive design ensures donors can give easily from phones, tablets, or desktops.",
   },
+  {
+    icon: "✅",
+    title: "Task Collaboration",
+    description:
+      "Keep campaign work organized with assignable tasks, team comments, progress updates, and checklist tracking in one place.",
+  },
 ];
 
 const Features: React.FC = () => {

@@ -7,6 +7,7 @@ const BADGES = [
   { icon: "🔒", label: "Secure Payments" },
   { icon: "🔗", label: "Shareable URL" },
   { icon: "🖼️", label: "Media Galleries" },
+  { icon: "✅", label: "Task + Comment Activity" },
 ];
 
 const Hero: React.FC = () => {
