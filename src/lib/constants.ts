@@ -79,6 +79,7 @@ export const API_ENDPOINTS = {
     update: (id: string) => `/api/orgs/${id}`,
     subdomain: (id: string) => `/api/orgs/${id}/subdomain`,
     members: (id: string) => `/api/orgs/${id}/members`,
+    tasks: (id: string) => `/api/orgs/${id}/tasks`,
     addMember: (id: string) => `/api/orgs/${id}/members`,
     createMember: (id: string) => `/api/orgs/${id}/members/create`,
     memberPermissions: (orgId: string, userId: string) =>

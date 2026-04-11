@@ -68,6 +68,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampai
 
       <button
         type="button"
+        className="sidebar-nav-item"
+        onClick={() => navigate("/dashboard/tasks")}
+      >
+        <span>✅</span> All Tasks
+      </button>
+
+      <button
+        type="button"
         className="btn btn-primary btn-block mb-lg"
         onClick={() => navigate("/campaign/new")}
       >

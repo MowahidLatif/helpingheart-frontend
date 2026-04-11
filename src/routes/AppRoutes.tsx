@@ -9,6 +9,7 @@ import About from "@/pages/About/About";
 import FAQ from "@/pages/FAQ/FAQ";
 import Contact from "@/pages/Contract/Contact";
 import Dashboard from "@/pages/Dashboard/DashboardPage";
+import AllTasksPage from "@/pages/Dashboard/AllTasksPage";
 import DashboardLayout from "@/ui/Dashboard/DashboardLayout";
 import OrgUsersPage from "@/pages/OrgUsers/OrgUsersPage";
 import ResetCredentials from "@/pages/ResetCredentials/ResetCredentials";
@@ -76,6 +77,14 @@ export const routes: RouteObject[] = [
         element: (
           <ProtectedRoute requiredRoles={["owner", "admin"]}>
             <OrgUsersPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "tasks",
+        element: (
+          <ProtectedRoute>
+            <AllTasksPage />
           </ProtectedRoute>
         ),
       },

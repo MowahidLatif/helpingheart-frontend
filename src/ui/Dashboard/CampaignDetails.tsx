@@ -1072,6 +1072,7 @@ function CampaignTasksSection({
   const [editAssignee, setEditAssignee] = useState("");
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
+  const [takingTaskId, setTakingTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     api.get<{ user_id: string; role?: string }>(API_ENDPOINTS.me.info).then((res) => {
@@ -1146,10 +1147,29 @@ function CampaignTasksSection({
     return currentUserRole === "owner" || currentUserRole === "admin";
   };
 
+  const canCreateTask = currentUserRole === "owner" || currentUserRole === "admin";
+
   const canEditTask = (task: TaskRow) => {
-    if (!currentUserId) return false;
-    if (currentUserRole === "owner" || currentUserRole === "admin") return true;
-    return task.assignee_user_id === currentUserId;
+    if (!task) return false;
+    return currentUserRole === "owner" || currentUserRole === "admin";
+  };
+
+  const canTakeTask = (task: TaskRow) =>
+    Boolean(currentUserId && !task.assignee_user_id);
+
+  const handleTakeTask = async (task: TaskRow) => {
+    if (!currentUserId) return;
+    setTakingTaskId(task.id);
+    try {
+      await api.patch(API_ENDPOINTS.campaigns.task(campaignId, task.id), {
+        assignee_user_id: currentUserId,
+      });
+      load();
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to take task");
+    } finally {
+      setTakingTaskId(null);
+    }
   };
 
   const openEditTask = (task: TaskRow) => {
@@ -1188,47 +1208,51 @@ function CampaignTasksSection({
         <p>Loading tasks...</p>
       ) : (
         <>
-          <button type="button" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: "0.5rem" }}>
-            {showCreate ? "Cancel" : "Add task"}
-          </button>
-          {showCreate && (
-            <form onSubmit={handleCreate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
-              <input
-                type="text"
-                value={newTitle}
-                onChange={(e) => setNewTitle(e.target.value)}
-                placeholder="Task title"
-                required
-                style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px" }}
-              />
-              <textarea
-                value={newDesc}
-                onChange={(e) => setNewDesc(e.target.value)}
-                placeholder="Description (optional)"
-                style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px", minHeight: "60px" }}
-              />
-              <select
-                value={newAssignee}
-                onChange={(e) => setNewAssignee(e.target.value)}
-                style={{ display: "block", marginBottom: "0.25rem" }}
-              >
-                <option value="">No assignee</option>
-                {members.map((m) => (
-                  <option key={m.id} value={m.id}>{m.name || m.email}</option>
-                ))}
-              </select>
-              <select
-                value={newStatusId}
-                onChange={(e) => setNewStatusId(e.target.value)}
-                style={{ display: "block", marginBottom: "0.25rem" }}
-              >
-                <option value="">No status</option>
-                {statuses.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-              <button type="submit" disabled={createLoading}>Create task</button>
-            </form>
+          {canCreateTask && (
+            <>
+              <button type="button" onClick={() => setShowCreate(!showCreate)} style={{ marginBottom: "0.5rem" }}>
+                {showCreate ? "Cancel" : "Add task"}
+              </button>
+              {showCreate && (
+                <form onSubmit={handleCreate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="Task title"
+                    required
+                    style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px" }}
+                  />
+                  <textarea
+                    value={newDesc}
+                    onChange={(e) => setNewDesc(e.target.value)}
+                    placeholder="Description (optional)"
+                    style={{ display: "block", marginBottom: "0.25rem", width: "100%", maxWidth: "300px", minHeight: "60px" }}
+                  />
+                  <select
+                    value={newAssignee}
+                    onChange={(e) => setNewAssignee(e.target.value)}
+                    style={{ display: "block", marginBottom: "0.25rem" }}
+                  >
+                    <option value="">No assignee</option>
+                    {members.map((m) => (
+                      <option key={m.id} value={m.id}>{m.name || m.email}</option>
+                    ))}
+                  </select>
+                  <select
+                    value={newStatusId}
+                    onChange={(e) => setNewStatusId(e.target.value)}
+                    style={{ display: "block", marginBottom: "0.25rem" }}
+                  >
+                    <option value="">No status</option>
+                    {statuses.map((s) => (
+                      <option key={s.id} value={s.id}>{s.name}</option>
+                    ))}
+                  </select>
+                  <button type="submit" disabled={createLoading}>Create task</button>
+                </form>
+              )}
+            </>
           )}
           <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "700px" }}>
             <thead>
@@ -1264,10 +1288,21 @@ function CampaignTasksSection({
                     )}
                   </td>
                   <td style={{ padding: "0.5rem" }}>
-                    {canEditTask(t) && (
+                    {canEditTask(t) ? (
                       <button type="button" onClick={() => openEditTask(t)} style={{ fontSize: "0.85rem" }}>
                         Edit
                       </button>
+                    ) : canTakeTask(t) ? (
+                      <button
+                        type="button"
+                        onClick={() => handleTakeTask(t)}
+                        disabled={takingTaskId === t.id}
+                        style={{ fontSize: "0.85rem" }}
+                      >
+                        {takingTaskId === t.id ? "Taking..." : "Take task"}
+                      </button>
+                    ) : (
+                      "—"
                     )}
                   </td>
                 </tr>
