@@ -37,6 +37,14 @@ export const API_ENDPOINTS = {
     giveawayLogs: (id: string) => `/api/campaigns/${id}/giveaway-logs`,
     tasks: (id: string) => `/api/campaigns/${id}/tasks`,
     task: (campaignId: string, taskId: string) => `/api/campaigns/${campaignId}/tasks/${taskId}`,
+    taskComments: (campaignId: string, taskId: string) =>
+      `/api/campaigns/${campaignId}/tasks/${taskId}/comments`,
+    taskCommentReactions: (campaignId: string, taskId: string, commentId: string) =>
+      `/api/campaigns/${campaignId}/tasks/${taskId}/comments/${commentId}/reactions`,
+    taskChecklist: (campaignId: string, taskId: string) =>
+      `/api/campaigns/${campaignId}/tasks/${taskId}/checklist`,
+    taskChecklistItem: (campaignId: string, taskId: string, checklistId: string) =>
+      `/api/campaigns/${campaignId}/tasks/${taskId}/checklist/${checklistId}`,
     donations: (id: string) => `/api/campaigns/${id}/donations`,
     donationsExportCsv: (id: string) => `/api/campaigns/${id}/donations/export.csv`,
     comments: (id: string) => `/api/campaigns/${id}/comments`,
@@ -100,6 +108,16 @@ export const ORG_PERMISSIONS = [
   'tasks:create',
   'tasks:assign',
   'tasks:edit_any',
+] as const;
+
+export const TASK_COMMENT_TYPES = [
+  "text",
+  "blocked",
+  "decision_needed",
+  "escalation",
+  "deadline_extension",
+  "time_log",
+  "reassignment",
 ] as const;
 
 export const TASK_TITLE_SUGGESTIONS = [

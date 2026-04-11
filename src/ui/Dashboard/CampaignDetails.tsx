@@ -1,8 +1,8 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { Fragment, useCallback, useEffect, useState } from "react";
 import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
-import { API_ENDPOINTS, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
+import { API_ENDPOINTS, TASK_COMMENT_TYPES, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
 
 type Campaign = {
@@ -1050,6 +1050,23 @@ type TaskRow = {
 
 type TaskStatusRow = { id: string; name: string };
 type MemberRow = { id: string; email: string; name: string | null };
+type TaskCommentRow = {
+  id: string;
+  comment_type: string;
+  body: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  author_name: string | null;
+  author_email: string | null;
+  mentions: { user_id: string; name: string | null; email: string | null }[];
+  reactions: { user_id: string; reaction: string }[];
+};
+type TaskChecklistItem = {
+  id: string;
+  title: string;
+  is_checked: boolean;
+  checked_by_user_id: string | null;
+};
 
 function normalizeTaskAssignees(task: TaskRow): TaskAssignee[] {
   if (Array.isArray(task.assignees) && task.assignees.length) return task.assignees;
@@ -1090,6 +1107,16 @@ function CampaignTasksSection({
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
   const [takingTaskId, setTakingTaskId] = useState<string | null>(null);
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [commentsByTask, setCommentsByTask] = useState<Record<string, TaskCommentRow[]>>({});
+  const [checklistByTask, setChecklistByTask] = useState<Record<string, TaskChecklistItem[]>>({});
+  const [commentType, setCommentType] = useState<string>("text");
+  const [commentText, setCommentText] = useState("");
+  const [commentHours, setCommentHours] = useState("");
+  const [commentMentions, setCommentMentions] = useState<string[]>([]);
+  const [commentAssignees, setCommentAssignees] = useState<string[]>([]);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [newChecklistTitle, setNewChecklistTitle] = useState("");
 
   const canCreateTask = currentUserRole === "owner" || currentUserRole === "admin";
 
@@ -1233,6 +1260,94 @@ function CampaignTasksSection({
     }
   };
 
+  const loadTaskActivity = async (taskId: string) => {
+    try {
+      const [commentsRes, checklistRes] = await Promise.all([
+        api.get<TaskCommentRow[]>(API_ENDPOINTS.campaigns.taskComments(campaignId, taskId)),
+        api.get<TaskChecklistItem[]>(API_ENDPOINTS.campaigns.taskChecklist(campaignId, taskId)),
+      ]);
+      setCommentsByTask((prev) => ({ ...prev, [taskId]: commentsRes.data || [] }));
+      setChecklistByTask((prev) => ({ ...prev, [taskId]: checklistRes.data || [] }));
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to load task activity");
+    }
+  };
+
+  const toggleTaskExpanded = async (taskId: string) => {
+    const next = expandedTaskId === taskId ? null : taskId;
+    setExpandedTaskId(next);
+    if (next) {
+      setCommentType("text");
+      setCommentText("");
+      setCommentHours("");
+      setCommentMentions([]);
+      setCommentAssignees([]);
+      await loadTaskActivity(next);
+    }
+  };
+
+  const submitTaskComment = async (taskId: string) => {
+    setCommentSubmitting(true);
+    try {
+      const payload: Record<string, unknown> = {
+        comment_type: commentType,
+        body: commentText.trim() || undefined,
+      };
+      if (commentMentions.length) payload.mention_user_ids = commentMentions;
+      if (commentType === "time_log") {
+        payload.metadata = { hours: Number(commentHours || "0") };
+      }
+      if (commentType === "reassignment") {
+        payload.assignee_user_ids = commentAssignees;
+      }
+      await api.post(API_ENDPOINTS.campaigns.taskComments(campaignId, taskId), payload);
+      setCommentText("");
+      setCommentHours("");
+      setCommentMentions([]);
+      setCommentAssignees([]);
+      await load();
+      await loadTaskActivity(taskId);
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to submit comment");
+    } finally {
+      setCommentSubmitting(false);
+    }
+  };
+
+  const addReaction = async (taskId: string, commentId: string, reaction: string) => {
+    try {
+      await api.post(API_ENDPOINTS.campaigns.taskCommentReactions(campaignId, taskId, commentId), {
+        reaction,
+      });
+      await loadTaskActivity(taskId);
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to add reaction");
+    }
+  };
+
+  const addChecklistItem = async (taskId: string) => {
+    const title = newChecklistTitle.trim();
+    if (!title) return;
+    try {
+      await api.post(API_ENDPOINTS.campaigns.taskChecklist(campaignId, taskId), { title });
+      setNewChecklistTitle("");
+      await loadTaskActivity(taskId);
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to add checklist item");
+    }
+  };
+
+  const toggleChecklistItem = async (taskId: string, item: TaskChecklistItem) => {
+    try {
+      await api.patch(API_ENDPOINTS.campaigns.taskChecklistItem(campaignId, taskId, item.id), {
+        is_checked: !item.is_checked,
+      });
+      await loadTaskActivity(taskId);
+    } catch (err) {
+      message.error(getErrorMessage(err) || "Failed to update checklist item");
+    }
+  };
+
   return (
     <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
       <h3>Tasks</h3>
@@ -1257,49 +1372,189 @@ function CampaignTasksSection({
             </thead>
             <tbody>
               {tasks.map((task) => (
-                <tr key={task.id} style={{ borderBottom: "1px solid #eee" }}>
-                  <td style={{ padding: "0.5rem" }}>
-                    <strong>{task.title}</strong>
-                    {task.description && <div style={{ fontSize: "0.9rem", color: "#666" }}>{task.description}</div>}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>
-                    {task.assignees.length ? task.assignees.map((a) => a.name || a.email).join(", ") : "Unassigned"}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>
-                    {canChangeStatus(task) ? (
-                      <select
-                        value={task.status_id || ""}
-                        onChange={(e) => handleStatusChange(task.id, e.target.value)}
-                        disabled={statusUpdating === task.id}
-                      >
-                        <option value="">—</option>
-                        {statuses.map((status) => (
-                          <option key={status.id} value={status.id}>{status.name}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      task.status_name || "—"
-                    )}
-                  </td>
-                  <td style={{ padding: "0.5rem" }}>
-                    {canEditTask() ? (
-                      <button type="button" onClick={() => openEditTask(task)} style={{ fontSize: "0.85rem" }}>
-                        Edit
-                      </button>
-                    ) : canTakeTask(task) ? (
+                <Fragment key={task.id}>
+                  <tr style={{ borderBottom: "1px solid #eee" }}>
+                    <td style={{ padding: "0.5rem" }}>
+                      <strong>{task.title}</strong>
+                      {task.description && <div style={{ fontSize: "0.9rem", color: "#666" }}>{task.description}</div>}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {task.assignees.length ? task.assignees.map((a) => a.name || a.email).join(", ") : "Unassigned"}
+                    </td>
+                    <td style={{ padding: "0.5rem" }}>
+                      {canChangeStatus(task) ? (
+                        <select
+                          value={task.status_id || ""}
+                          onChange={(e) => handleStatusChange(task.id, e.target.value)}
+                          disabled={statusUpdating === task.id}
+                        >
+                          <option value="">—</option>
+                          {statuses.map((status) => (
+                            <option key={status.id} value={status.id}>{status.name}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        task.status_name || "—"
+                      )}
+                    </td>
+                    <td style={{ padding: "0.5rem", display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
                       <button
                         type="button"
-                        onClick={() => handleTakeTask(task)}
-                        disabled={takingTaskId === task.id}
+                        onClick={() => toggleTaskExpanded(task.id)}
                         style={{ fontSize: "0.85rem" }}
                       >
-                        {takingTaskId === task.id ? "Taking..." : "Take task"}
+                        {expandedTaskId === task.id ? "Hide activity" : "Comments"}
                       </button>
-                    ) : (
-                      "—"
-                    )}
-                  </td>
-                </tr>
+                      {canEditTask() ? (
+                        <button type="button" onClick={() => openEditTask(task)} style={{ fontSize: "0.85rem" }}>
+                          Edit
+                        </button>
+                      ) : canTakeTask(task) ? (
+                        <button
+                          type="button"
+                          onClick={() => handleTakeTask(task)}
+                          disabled={takingTaskId === task.id}
+                          style={{ fontSize: "0.85rem" }}
+                        >
+                          {takingTaskId === task.id ? "Taking..." : "Take task"}
+                        </button>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                  </tr>
+                  {expandedTaskId === task.id && (
+                    <tr style={{ borderBottom: "1px solid #eee", background: "#fafafa" }}>
+                      <td colSpan={4} style={{ padding: "0.75rem" }}>
+                        <div style={{ marginBottom: "0.75rem" }}>
+                          <strong>Task activity</strong>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                          <div>
+                            <div style={{ marginBottom: "0.4rem" }}>
+                              <strong>Comments</strong>
+                            </div>
+                            <div style={{ maxHeight: "180px", overflowY: "auto", border: "1px solid #eee", background: "white", padding: "0.5rem", borderRadius: "6px" }}>
+                              {(commentsByTask[task.id] || []).length === 0 ? (
+                                <div style={{ color: "#666", fontSize: "0.9rem" }}>No comments yet.</div>
+                              ) : (
+                                (commentsByTask[task.id] || []).map((comment) => (
+                                  <div key={comment.id} style={{ borderBottom: "1px solid #f1f1f1", marginBottom: "0.45rem", paddingBottom: "0.45rem" }}>
+                                    <div style={{ fontSize: "0.8rem", color: "#666" }}>
+                                      {comment.comment_type} · {new Date(comment.created_at).toLocaleString()}
+                                    </div>
+                                    <div style={{ fontSize: "0.9rem" }}>{comment.body || "—"}</div>
+                                    <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.25rem" }}>
+                                      <button type="button" style={{ fontSize: "0.75rem" }} onClick={() => addReaction(task.id, comment.id, "thumbs_up")}>👍</button>
+                                      <button type="button" style={{ fontSize: "0.75rem" }} onClick={() => addReaction(task.id, comment.id, "seen")}>Seen</button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                          <div>
+                            <div style={{ marginBottom: "0.4rem" }}>
+                              <strong>Checklist</strong>
+                            </div>
+                            <div style={{ border: "1px solid #eee", background: "white", padding: "0.5rem", borderRadius: "6px" }}>
+                              {(checklistByTask[task.id] || []).map((item) => (
+                                <label key={item.id} style={{ display: "block", marginBottom: "0.25rem" }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={item.is_checked}
+                                    onChange={() => toggleChecklistItem(task.id, item)}
+                                    style={{ marginRight: "0.35rem" }}
+                                  />
+                                  {item.title}
+                                </label>
+                              ))}
+                              <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.45rem" }}>
+                                <input
+                                  value={newChecklistTitle}
+                                  onChange={(e) => setNewChecklistTitle(e.target.value)}
+                                  placeholder="Add checklist item"
+                                  style={{ flex: 1, padding: "0.25rem" }}
+                                />
+                                <button type="button" onClick={() => addChecklistItem(task.id)}>Add</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: "0.75rem", borderTop: "1px solid #eee", paddingTop: "0.65rem" }}>
+                          <div style={{ marginBottom: "0.4rem" }}>
+                            <strong>Add activity</strong>
+                          </div>
+                          <div style={{ display: "grid", gap: "0.35rem" }}>
+                            <select value={commentType} onChange={(e) => setCommentType(e.target.value)}>
+                              {TASK_COMMENT_TYPES.map((t) => (
+                                <option key={t} value={t}>{t}</option>
+                              ))}
+                            </select>
+                            <textarea
+                              value={commentText}
+                              onChange={(e) => setCommentText(e.target.value)}
+                              placeholder="Write a comment or note..."
+                              style={{ minHeight: "65px", padding: "0.35rem" }}
+                            />
+                            {commentType === "time_log" && (
+                              <input
+                                type="number"
+                                min="0.25"
+                                step="0.25"
+                                value={commentHours}
+                                onChange={(e) => setCommentHours(e.target.value)}
+                                placeholder="Hours spent"
+                              />
+                            )}
+                            {commentType === "reassignment" && (
+                              <div style={{ border: "1px solid #eee", borderRadius: "6px", padding: "0.4rem", maxHeight: "120px", overflowY: "auto" }}>
+                                {members.map((member) => (
+                                  <label key={member.id} style={{ display: "block", marginBottom: "0.2rem" }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={commentAssignees.includes(member.id)}
+                                      onChange={() => toggleId(member.id, setCommentAssignees)}
+                                      style={{ marginRight: "0.35rem" }}
+                                    />
+                                    {member.name || member.email}
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                            <div style={{ border: "1px dashed #ccc", borderRadius: "6px", padding: "0.5rem", color: "#777" }}>
+                              File & media attachments: Coming soon! (disabled)
+                            </div>
+                            <label style={{ fontSize: "0.85rem" }}>
+                              Mentions:
+                              <select
+                                multiple
+                                value={commentMentions}
+                                onChange={(e) =>
+                                  setCommentMentions(
+                                    Array.from(e.target.selectedOptions).map((o) => o.value)
+                                  )
+                                }
+                                style={{ width: "100%", marginTop: "0.25rem", minHeight: "70px" }}
+                              >
+                                {members.map((member) => (
+                                  <option key={member.id} value={member.id}>
+                                    {member.name || member.email}
+                                  </option>
+                                ))}
+                              </select>
+                            </label>
+                            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                              <button type="button" disabled={commentSubmitting} onClick={() => submitTaskComment(task.id)}>
+                                {commentSubmitting ? "Submitting..." : "Submit"}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               ))}
             </tbody>
           </table>
