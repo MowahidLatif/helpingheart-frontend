@@ -22,6 +22,7 @@ import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
 import AiSiteWizardPage from "@/pages/Campaign/AiSiteWizardPage";
 import TenantPublicHome from "@/pages/Campaign/TenantPublicHome";
 import ProgressEmbedPage from "@/pages/Embed/ProgressEmbedPage";
+import FullCampaignEmbedPage from "@/pages/Embed/FullCampaignEmbedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 /** Routes when the SPA is served on `{org}.{VITE_PUBLIC_SITE_HOST_SUFFIX}` (public sites only). */
@@ -105,6 +106,10 @@ export const routes: RouteObject[] = [
   {
     path: "/embed/progress/:campaignId",
     element: <ProgressEmbedPage />,
+  },
+  {
+    path: "/embed/full/:campaignId",
+    element: <FullCampaignEmbedPage />,
   },
   {
     path: "/donate/:campaignId/thank-you",

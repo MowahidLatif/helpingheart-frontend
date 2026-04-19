@@ -4,6 +4,7 @@ import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS, TASK_COMMENT_TYPES, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
+import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
 
 type Campaign = {
   id: string;
@@ -133,7 +134,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [exportCsvLoading, setExportCsvLoading] = useState(false);
-  const [embedCopied, setEmbedCopied] = useState(false);
 
   const orgId = campaign?.org_id;
   const showDonations = role === "admin" || role === "owner";
@@ -335,19 +335,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       setDonationsOrder("desc");
     }
     setDonationsPage(1);
-  };
-
-  const embedSnippet =
-    typeof window !== "undefined"
-      ? `<iframe src="${window.location.origin}/embed/progress/${campaign?.id ?? ""}" width="320" height="120" frameborder="0"></iframe>`
-      : "";
-
-  const copyEmbedCode = () => {
-    if (!embedSnippet) return;
-    navigator.clipboard.writeText(embedSnippet).then(() => {
-      setEmbedCopied(true);
-      setTimeout(() => setEmbedCopied(false), 2000);
-    });
   };
 
   const handleExportCsv = async () => {
@@ -986,42 +973,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       )}
 
       {showDonations && campaign.id && (
-        <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
-          <h3>Add to your website</h3>
-          <p style={{ color: "#666", marginBottom: "0.75rem", maxWidth: "560px" }}>
-            Show your campaign progress on your own site. Paste this code where you want the tracker to appear.
-          </p>
-          <div style={{ marginBottom: "0.5rem" }}>
-            <pre
-              style={{
-                margin: 0,
-                padding: "0.75rem",
-                background: "#f5f5f5",
-                borderRadius: "6px",
-                fontSize: "12px",
-                overflow: "auto",
-                maxWidth: "100%",
-              }}
-            >
-              {embedSnippet}
-            </pre>
-            <button
-              type="button"
-              onClick={copyEmbedCode}
-              style={{ marginTop: "0.5rem" }}
-            >
-              {embedCopied ? "Copied!" : "Copy"}
-            </button>
-          </div>
-          <p style={{ fontSize: "0.9rem", color: "#666", marginTop: "1rem", marginBottom: "0.5rem" }}>Preview:</p>
-          <iframe
-            src={`${typeof window !== "undefined" ? window.location.origin : ""}/embed/progress/${campaign.id}`}
-            title="Progress widget preview"
-            width={320}
-            height={120}
-            style={{ border: "1px solid #ddd", borderRadius: "4px" }}
-          />
-        </div>
+        <EmbedGenerator
+          campaign={{ id: campaign.id, slug: campaign.slug, title: campaign.title }}
+        />
       )}
 
       {campaign.id && orgId && (
@@ -1127,7 +1081,7 @@ function CampaignTasksSection({
         setCurrentUserId(res.data.user_id ?? null);
         setCurrentUserRole(res.data.role ?? null);
       })
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const load = useCallback(async () => {

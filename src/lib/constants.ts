@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
       `/api/campaigns/${campaignId}/tasks/${taskId}/checklist/${checklistId}`,
     donations: (id: string) => `/api/campaigns/${id}/donations`,
     donationsExportCsv: (id: string) => `/api/campaigns/${id}/donations/export.csv`,
+    donationsRecent: (id: string) => `/api/campaigns/${id}/donations/recent`,
     comments: (id: string) => `/api/campaigns/${id}/comments`,
     comment: (campaignId: string, commentId: string) =>
       `/api/campaigns/${campaignId}/comments/${commentId}`,
