@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
@@ -18,6 +18,7 @@ type SidebarProps = {
   orgId?: string | null;
   role?: string | null;
   refreshCampaignsTrigger?: number;
+  onClose?: () => void;
 };
 
 const STATUS_CLASS: Record<string, string> = {
@@ -28,11 +29,18 @@ const STATUS_CLASS: Record<string, string> = {
   archived: "status-badge--archived",
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampaignsTrigger = 0 }) => {
+const Sidebar: React.FC<SidebarProps> = ({
+  onSelectCampaign,
+  role,
+  refreshCampaignsTrigger = 0,
+  onClose,
+}) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
   const showUsers = role === "owner" || role === "admin";
 
   useEffect(() => {
@@ -46,38 +54,83 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampai
       const response = await api.get(API_ENDPOINTS.campaigns.list);
       setCampaigns(response.data);
     } catch (err) {
-      const errMsg = getErrorMessage(err);
-      console.error("Failed to load campaigns:", errMsg);
-      setError(errMsg);
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
   };
 
+  const go = (path: string) => {
+    onClose?.();
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+    navigate("/signin");
+  };
+
+  const isActive = (path: string) => location.pathname === path;
+
   return (
     <div className="sidebar-nav">
-      {showUsers && (
+      <nav className="sidebar-main-nav">
         <button
           type="button"
-          className="sidebar-nav-item"
-          onClick={() => navigate("/dashboard/users")}
+          className={`sidebar-nav-item${isActive("/dashboard") ? " active" : ""}`}
+          onClick={() => go("/dashboard")}
         >
-          <span>👥</span> Users
+          <span className="sidebar-nav-icon">🏠</span>
+          <span className="sidebar-nav-label">Dashboard</span>
         </button>
-      )}
 
-      <button
-        type="button"
-        className="sidebar-nav-item"
-        onClick={() => navigate("/dashboard/tasks")}
-      >
-        <span>✅</span> All Tasks
-      </button>
+        {showUsers && (
+          <button
+            type="button"
+            className={`sidebar-nav-item${isActive("/dashboard/users") ? " active" : ""}`}
+            onClick={() => go("/dashboard/users")}
+          >
+            <span className="sidebar-nav-icon">👥</span>
+            <span className="sidebar-nav-label">Users</span>
+          </button>
+        )}
+
+        <button
+          type="button"
+          className={`sidebar-nav-item${isActive("/dashboard/tasks") ? " active" : ""}`}
+          onClick={() => go("/dashboard/tasks")}
+        >
+          <span className="sidebar-nav-icon">✅</span>
+          <span className="sidebar-nav-label">Tasks</span>
+        </button>
+
+        <button
+          type="button"
+          className={`sidebar-nav-item${isActive("/settings") ? " active" : ""}`}
+          onClick={() => go("/settings")}
+        >
+          <span className="sidebar-nav-icon">⚙️</span>
+          <span className="sidebar-nav-label">Settings</span>
+        </button>
+
+        <button
+          type="button"
+          className="sidebar-nav-item sidebar-nav-item--logout"
+          onClick={handleLogout}
+        >
+          <span className="sidebar-nav-icon">↩</span>
+          <span className="sidebar-nav-label">Logout</span>
+        </button>
+      </nav>
+
+      <div className="sidebar-divider" />
 
       <button
         type="button"
         className="btn btn-primary btn-block mb-lg"
-        onClick={() => navigate("/campaign/new")}
+        onClick={() => go("/campaign/new")}
       >
         + Add Campaign
       </button>
@@ -98,7 +151,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onSelectCampaign, role, refreshCampai
             <div
               key={c.id}
               className="sidebar-campaign-card"
-              onClick={() => onSelectCampaign(c)}
+              onClick={() => { onClose?.(); onSelectCampaign(c); }}
             >
               <div className="sidebar-campaign-card__top">
                 <span className="sidebar-campaign-card__title">{c.title}</span>

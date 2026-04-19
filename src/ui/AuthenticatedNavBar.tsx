@@ -1,4 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import api from "@/lib/api";
+import { API_ENDPOINTS } from "@/lib/constants";
 
 function getInitials(name: string): string {
   return name
@@ -11,6 +14,8 @@ function getInitials(name: string): string {
 
 const AuthenticatedNavBar = () => {
   const navigate = useNavigate();
+  const [orgName, setOrgName] = useState<string>("");
+  const [orgLogoUrl, setOrgLogoUrl] = useState<string>("");
 
   const user = (() => {
     try {
@@ -23,6 +28,24 @@ const AuthenticatedNavBar = () => {
   const userName = user.name || user.email || "";
   const initials = getInitials(userName) || "U";
 
+  useEffect(() => {
+    api
+      .get<Array<{ id: string; name: string; role: string }>>(API_ENDPOINTS.orgs.list)
+      .then((res) => {
+        const first = res.data?.[0];
+        if (!first) return;
+        return api
+          .get<{ id: string; name: string; logo_url?: string }>(
+            API_ENDPOINTS.orgs.get(first.id)
+          )
+          .then((orgRes) => {
+            setOrgName(orgRes.data.name ?? "");
+            setOrgLogoUrl(orgRes.data.logo_url ?? "");
+          });
+      })
+      .catch(() => {});
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refreshToken");
@@ -33,14 +56,22 @@ const AuthenticatedNavBar = () => {
   return (
     <nav className="navbar navbar--auth">
       <Link to="/dashboard" className="navbar-brand">
-        <span className="navbar-logo">HH</span>
-        <span className="d-tablet-none">Helping Hands</span>
+        {orgLogoUrl ? (
+          <img
+            src={orgLogoUrl}
+            alt={orgName || "Logo"}
+            className="navbar-logo-img"
+          />
+        ) : (
+          <span className="navbar-logo">HH</span>
+        )}
+        <span className="d-tablet-none">{orgName || "Helping Hands"}</span>
       </Link>
       <div className="navbar-menu">
         <Link to="/dashboard" className="navbar-link">
           Campaigns
         </Link>
-        <Link to="/setting" className="navbar-link">
+        <Link to="/settings" className="navbar-link">
           Settings
         </Link>
         <div className="navbar-user">

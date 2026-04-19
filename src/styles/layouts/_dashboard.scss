@@ -6,27 +6,96 @@
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
-  
-  @include respond-below(tablet) {
-    flex-direction: column;
-  }
 }
 
 .dashboard-sidebar {
   width: $sidebar-width;
-  background-color: $color-background-light;
+  background-color: $color-background;
   border-right: 1px solid $color-border;
   overflow-y: auto;
   position: sticky;
   top: 0;
   height: 100vh;
-  
+  flex-shrink: 0;
+
   @include respond-below(tablet) {
+    width: 175px;
+  }
+
+  @include respond-below(mobile) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 280px;
+    z-index: $z-index-fixed;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    box-shadow: $shadow-xl;
+    border-right: 1px solid $color-border;
+  }
+
+  &--open {
+    @include respond-below(mobile) {
+      transform: translateX(0);
+    }
+  }
+}
+
+.dashboard-sidebar-overlay {
+  display: none;
+
+  @include respond-below(mobile) {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: $z-index-fixed - 1;
+  }
+}
+
+.dashboard-sidebar-close {
+  display: none;
+
+  @include respond-below(mobile) {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     width: 100%;
-    height: auto;
-    position: static;
-    border-right: none;
-    border-bottom: 1px solid $color-border;
+    padding: $spacing-md $spacing-md $spacing-xs;
+    background: transparent;
+    border: none;
+    font-size: $font-size-lg;
+    color: $color-text-secondary;
+    cursor: pointer;
+
+    &:hover {
+      color: $color-text-primary;
+    }
+  }
+}
+
+.dashboard-sidebar-toggle {
+  display: none;
+
+  @include respond-below(mobile) {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-sm;
+    margin-bottom: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+    background: $color-background;
+    border: 1px solid $color-border;
+    border-radius: $border-radius-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+    cursor: pointer;
+    transition: $transition-fast;
+
+    &:hover {
+      background: $color-background-light;
+    }
   }
 }
 
@@ -34,11 +103,12 @@
   flex: 1;
   padding: $spacing-xl;
   overflow-y: auto;
-  
+  min-width: 0;
+
   @include respond-below(tablet) {
     padding: $spacing-lg;
   }
-  
+
   @include respond-below(mobile) {
     padding: $spacing-md;
   }
@@ -99,7 +169,7 @@
 
   &__progress-fill {
     height: 100%;
-    background-color: $color-primary;
+    background-color: $color-text-primary;
     border-radius: $border-radius-full;
     transition: width 0.3s ease;
   }
@@ -112,4 +182,45 @@
   color: $color-text-secondary;
   margin-bottom: $spacing-sm;
   padding: 0 $spacing-xs;
+}
+
+// Sidebar main navigation section
+.sidebar-main-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-bottom: $spacing-xs;
+}
+
+.sidebar-nav-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.sidebar-nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  @include respond-below(tablet) {
+    font-size: $font-size-sm;
+  }
+}
+
+.sidebar-nav-item--logout {
+  color: $color-text-secondary;
+  margin-top: $spacing-xs;
+
+  &:hover {
+    background-color: rgba($color-danger, 0.06);
+    color: $color-danger;
+  }
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: $color-border-light;
+  margin: $spacing-md 0;
 }
