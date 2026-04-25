@@ -268,6 +268,7 @@ const PageLayoutBuilder = () => {
         <h3>Add Blocks</h3>
         {availableBlockTypes.map((type) => (
           <Button
+            type="default"
             key={type}
             onClick={() => addBlock(type)}
             style={{

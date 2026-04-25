@@ -78,7 +78,7 @@ const AuthenticatedNavBar = () => {
           <span className="navbar-avatar">{initials}</span>
           <span className="d-tablet-none">{userName}</span>
         </div>
-        <button type="button" className="btn btn-sm btn-outline" onClick={handleLogout}>
+        <button type="button" className="btn btn-sm btn-secondary" onClick={handleLogout}>
           Logout
         </button>
       </div>

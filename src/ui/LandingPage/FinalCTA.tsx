@@ -11,10 +11,10 @@ const FinalCTA: React.FC = () => {
           campaign and start accepting donations right away.
         </p>
         <div className="btn-group" style={{ justifyContent: "center" }}>
-          <Link to="/signup" className="btn btn-lg">
-            Get Started Free
+          <Link to="/signup" className="btn btn-primary btn-lg">
+            Get started for free
           </Link>
-          <Link to="/contact" className="btn btn-lg btn-outline" style={{ borderColor: "white", color: "white" }}>
+          <Link to="/contact" className="btn btn-secondary btn-lg">
             Contact Sales
           </Link>
         </div>

@@ -275,6 +275,7 @@ export default function AllTasksPage() {
             </label>
             <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
               <Button
+                type="primary"
                 onClick={() => setCreateStep("assign")}
                 disabled={!selectedCampaignId || !selectedTitle.trim()}
               >

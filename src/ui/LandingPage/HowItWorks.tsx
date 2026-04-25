@@ -50,7 +50,7 @@ const HowItWorks: React.FC = () => {
 
         <div className="text-center mt-xl">
           <Link to="/signup" className="btn btn-primary btn-lg">
-            Get Started Free
+            Get started for free
           </Link>
         </div>
       </div>

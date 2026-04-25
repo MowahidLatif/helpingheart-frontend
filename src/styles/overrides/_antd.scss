@@ -5,6 +5,35 @@
     border-radius: $border-radius-md;
     font-family: $font-family-primary;
     font-weight: $font-weight-medium;
+    border-width: 2px;
+  }
+
+  .ant-btn-variant-solid.ant-btn-color-primary,
+  .ant-btn-primary {
+    background-color: $color-primary;
+    color: #fff;
+    border-color: $color-primary;
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background-color: #fff;
+      color: $color-primary;
+      border-color: $color-primary;
+    }
+  }
+
+  .ant-btn-variant-outlined.ant-btn-color-default:not(.ant-btn-dangerous),
+  .ant-btn-default:not(.ant-btn-dangerous) {
+    background-color: #fff;
+    color: $color-primary;
+    border-color: $color-primary;
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background-color: $color-primary;
+      color: #fff;
+      border-color: $color-primary;
+    }
   }
 
   .ant-input,

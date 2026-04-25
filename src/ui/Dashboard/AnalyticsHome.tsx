@@ -191,7 +191,7 @@ export default function AnalyticsHome({ campaigns, orgId, role, onSelectCampaign
           <h2>Admin</h2>
           <button
             type="button"
-            className="btn btn-sm btn-outline"
+            className="btn btn-sm btn-secondary"
             onClick={openMetrics}
             disabled={metricsLoading}
           >

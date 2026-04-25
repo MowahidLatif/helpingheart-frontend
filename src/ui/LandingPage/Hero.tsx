@@ -26,10 +26,10 @@ const Hero: React.FC = () => {
 
           <div className="landing-hero__cta">
             <Link to="/signup" className="btn btn-primary btn-lg">
-              Get Started Free
+              Get started for free
             </Link>
-            <Link to="/how-it-works" className="btn btn-outline btn-lg">
-              See How It Works
+            <Link to="/how-it-works" className="btn btn-secondary btn-lg">
+              See how it works
             </Link>
           </div>
 

@@ -82,7 +82,7 @@ const Features: React.FC = () => {
         </div>
 
         <div className="text-center mt-xl">
-          <Link to="/signup" className="btn btn-outline btn-lg">
+          <Link to="/signup" className="btn btn-secondary btn-lg">
             Explore All Features
           </Link>
         </div>

@@ -539,7 +539,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           </Text>
           <Space style={{ marginBottom: 16 }}>
             <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*,video/*,.pdf">
-              <Button>Upload file</Button>
+              <Button type="default">Upload file</Button>
             </Upload>
             <Button onClick={loadMedia} loading={loadingMedia} type="link">
               Refresh list
@@ -561,9 +561,13 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           />
           <Space>
             {mode === "new" ? (
-              <Button onClick={() => setStep(STEP_DETAILS)}>Back</Button>
+              <Button type="default" onClick={() => setStep(STEP_DETAILS)}>
+                Back
+              </Button>
             ) : (
-              <Button onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+              <Button type="default" onClick={() => navigate("/dashboard")}>
+                Back to dashboard
+              </Button>
             )}
             <Button type="primary" onClick={() => setStep(STEP_DESCRIBE)}>
               Next
@@ -614,7 +618,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
             style={{ marginTop: 8, marginBottom: 16 }}
           />
           <Space>
-            <Button onClick={() => setStep(STEP_ASSETS)}>Back</Button>
+            <Button type="default" onClick={() => setStep(STEP_ASSETS)}>
+              Back
+            </Button>
             <Button
               type="primary"
               onClick={handleGenerate}
@@ -654,6 +660,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           )}
           <div style={{ marginTop: 24 }}>
             <Button
+              type="default"
               onClick={() => {
                 setStep(STEP_DESCRIBE);
                 setGenerateLoading(false);
@@ -669,8 +676,11 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       {step === STEP_PREVIEW && campaignId && (
         <div>
           <Space style={{ marginBottom: 16 }} wrap>
-            <Button onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+            <Button type="default" onClick={() => navigate("/dashboard")}>
+              Back to dashboard
+            </Button>
             <Button
+              type="default"
               onClick={() => {
                 setStep(STEP_DESCRIBE);
                 setJob(null);

@@ -459,12 +459,25 @@
     margin-bottom: $spacing-xl;
   }
   
-  .btn {
-    background-color: white;
+  .btn-primary {
+    background-color: $color-primary;
+    color: #fff;
+    border-color: #fff;
+
+    &:hover:not(:disabled) {
+      background-color: #fff;
+      color: $color-primary;
+    }
+  }
+
+  .btn-secondary {
+    background-color: #fff;
     color: $color-primary;
-    
-    &:hover {
-      background-color: $color-background-light;
+    border-color: #fff;
+
+    &:hover:not(:disabled) {
+      background-color: $color-primary;
+      color: #fff;
     }
   }
   
