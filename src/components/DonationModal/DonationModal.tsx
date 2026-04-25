@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { Button, Input } from "antd";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, useStripe, useElements, PaymentElement } from "@stripe/react-stripe-js";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError } from "@/lib/notifications";
 
 const stripePromise = (() => {
   const key = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
@@ -57,10 +59,14 @@ function PaymentForm({
         },
       });
       if (error) {
-        onError(error.message ?? "Payment failed");
+        const msg = error.message ?? "Payment failed";
+        onError(msg);
+        notifyError(msg);
       }
     } catch (err) {
-      onError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      onError(msg);
+      notifyError(msg);
     } finally {
       setLoading(false);
     }
@@ -78,9 +84,9 @@ function PaymentForm({
         <p>Total charge: ${chargeAmount.toFixed(2)}</p>
       </div>
       <PaymentElement />
-      <button type="submit" disabled={loading} className="donation-submit-btn">
+      <Button htmlType="submit" type="primary" loading={loading} className="donation-submit-btn">
         {loading ? "Processing…" : `Pay $${chargeAmount.toFixed(2)}`}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -145,7 +151,9 @@ export function DonationModal({
       });
       const data = res.data;
       if (data.error || !data.clientSecret) {
-        setError(data.error || "Checkout failed");
+        const msg = data.error || "Checkout failed";
+        setError(msg);
+        notifyError(msg);
         return;
       }
       setCheckoutData({
@@ -158,7 +166,9 @@ export function DonationModal({
           ((data.donor_cover_amount_cents ?? 0) as number) / 100,
       });
     } catch (err) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      notifyError(msg);
     } finally {
       setCreatingCheckout(false);
     }
@@ -183,14 +193,14 @@ export function DonationModal({
         onClick={(e) => e.stopPropagation()}
         aria-busy={creatingCheckout}
       >
-        <button
-          type="button"
+        <Button
+          type="text"
           className="donation-modal-close"
           onClick={onClose}
           aria-label="Close"
         >
           ×
-        </button>
+        </Button>
         <h2 id="donation-modal-title" className="donation-modal-title">
           {checkoutData ? "Complete your donation" : `Donate to ${campaignTitle}`}
         </h2>
@@ -214,13 +224,13 @@ export function DonationModal({
                 onError={setError}
               />
             </Elements>
-            <button
-              type="button"
+            <Button
+              type="default"
               onClick={handleBackToForm}
               className="donation-back-btn"
             >
               Change amount
-            </button>
+            </Button>
           </>
         ) : (
           <>
@@ -228,9 +238,9 @@ export function DonationModal({
             <div className="donation-form">
               <div className="amount-presets">
                 {presetAmounts.map((p) => (
-                  <button
+                  <Button
                     key={p}
-                    type="button"
+                    type="default"
                     className={`preset-btn ${amount === p ? "selected" : ""}`}
                     onClick={() => {
                       setAmount(p);
@@ -238,12 +248,12 @@ export function DonationModal({
                     }}
                   >
                     ${p}
-                  </button>
+                  </Button>
                 ))}
               </div>
               <div className="custom-amount">
                 <label htmlFor="modal-custom-amount">Or enter amount:</label>
-                <input
+                <Input
                   id="modal-custom-amount"
                   type="number"
                   min="1"
@@ -258,7 +268,7 @@ export function DonationModal({
               </div>
               <div className="form-field">
                 <label htmlFor="modal-donor-email">Email (optional, for receipt):</label>
-                <input
+                <Input
                   id="modal-donor-email"
                   type="email"
                   placeholder="you@example.com"
@@ -268,7 +278,7 @@ export function DonationModal({
               </div>
               <div className="form-field">
                 <label htmlFor="modal-message">Message (optional):</label>
-                <textarea
+                <Input.TextArea
                   id="modal-message"
                   placeholder="Add a message of support..."
                   rows={3}
@@ -276,16 +286,17 @@ export function DonationModal({
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
-              <button
-                type="button"
+              <Button
+                type="primary"
                 className="donation-submit-btn"
                 onClick={handleDonateClick}
-                disabled={!selectedAmount || selectedAmount <= 0 || creatingCheckout}
+                loading={creatingCheckout}
+                disabled={!selectedAmount || selectedAmount <= 0}
               >
                 {creatingCheckout
                   ? "Preparing checkout..."
                   : `Donate $${selectedAmount ? selectedAmount.toFixed(2) : "—"}`}
-              </button>
+              </Button>
             </div>
           </>
         )}

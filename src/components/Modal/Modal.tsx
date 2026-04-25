@@ -1,5 +1,5 @@
 import React from "react";
-import styles from "./Modal.module.scss";
+import { Modal as AntdModal } from "antd";
 
 type ModalProps = {
   isOpen: boolean;
@@ -8,17 +8,17 @@ type ModalProps = {
 };
 
 const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children }) => {
-  if (!isOpen) return null;
-
   return (
-    <div className={styles.overlay}>
-      <div className={styles.modal}>
-        <button className={styles.closeButton} onClick={onClose}>
-          &times;
-        </button>
-        {children}
-      </div>
-    </div>
+    <AntdModal
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      closable
+      destroyOnHidden
+      centered
+    >
+      {children}
+    </AntdModal>
   );
 };
 

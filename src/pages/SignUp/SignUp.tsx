@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { Button, Input } from "antd";
 import { useNavigate, Link } from "react-router-dom";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError } from "@/lib/notifications";
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -36,8 +38,22 @@ export default function SignUp() {
         org_subdomain: orgSubdomain || undefined,
       });
 
-      const { access_token, id, email: userEmail, name, org_id } = response.data;
-      // Tokens are stored as HttpOnly cookies by the server.
+      const {
+        access_token,
+        refresh_token,
+        id,
+        email: userEmail,
+        name,
+        org_id,
+      } = response.data;
+      // Keep local token fallback for environments where auth cookies are not sent
+      // (e.g. localhost <-> 127.0.0.1 host mismatch during local development).
+      localStorage.setItem("token", access_token);
+      if (refresh_token) {
+        localStorage.setItem("refreshToken", refresh_token);
+      } else {
+        localStorage.removeItem("refreshToken");
+      }
       // Decode claims to store role/permissions for local auth checks.
       const claims = decodeTokenClaims(access_token);
       localStorage.setItem(
@@ -54,7 +70,7 @@ export default function SignUp() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Sign up failed.");
     } finally {
       setLoading(false);
     }
@@ -72,8 +88,7 @@ export default function SignUp() {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">First Name</label>
-              <input
-                className="form-input"
+              <Input
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -83,8 +98,7 @@ export default function SignUp() {
             </div>
             <div className="form-group">
               <label className="form-label">Last Name</label>
-              <input
-                className="form-input"
+              <Input
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -95,8 +109,7 @@ export default function SignUp() {
           </div>
           <div className="form-group">
             <label className="form-label">Email</label>
-            <input
-              className="form-input"
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -106,9 +119,7 @@ export default function SignUp() {
           </div>
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input
-              className="form-input"
-              type="password"
+            <Input.Password
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -116,8 +127,7 @@ export default function SignUp() {
           </div>
           <div className="form-group">
             <label className="form-label">Organization Name</label>
-            <input
-              className="form-input"
+            <Input
               type="text"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
@@ -127,8 +137,7 @@ export default function SignUp() {
           </div>
           <div className="form-group">
             <label className="form-label">Organization Subdomain (optional)</label>
-            <input
-              className="form-input"
+            <Input
               type="text"
               value={orgSubdomain}
               onChange={(e) => setOrgSubdomain(e.target.value)}
@@ -139,9 +148,9 @@ export default function SignUp() {
             </span>
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+            <Button type="primary" htmlType="submit" loading={loading} block>
               {loading ? "Creating account..." : "Sign Up"}
-            </button>
+            </Button>
           </div>
         </form>
         <div className="auth-footer">

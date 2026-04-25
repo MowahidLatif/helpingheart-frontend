@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect, ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import React from "react";
-import { message } from "antd";
+import { Button } from "antd";
 import { getErrorMessage } from "@/lib/api";
 import { uploadMediaToS3, inferMediaType } from "@/lib/mediaUpload";
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { promptForText } from "@/lib/dialogs";
+import { notifyError } from "@/lib/notifications";
 
 /* ------------------------------------------------------ */
 /*  Types                                                 */
@@ -101,6 +103,17 @@ export default function LayoutBuilderPage() {
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [mediaLoading, setMediaLoading] = useState(true);
 
+  const requestDescription = useCallback(
+    (fileName: string) =>
+      promptForText({
+        title: `Description for ${fileName}`,
+        placeholder: "Optional description",
+        okText: "Use description",
+        cancelText: "Skip",
+      }),
+    []
+  );
+
   useEffect(() => {
     if (!campaignId) {
       setMediaLoading(false);
@@ -133,7 +146,7 @@ export default function LayoutBuilderPage() {
         setVideos(existingVideos);
         setDocs(existingDocs);
       } catch (err) {
-        message.error(getErrorMessage(err) || "Failed to load media");
+        notifyError(err, "Failed to load media");
       } finally {
         if (!cancelled) setMediaLoading(false);
       }
@@ -154,7 +167,7 @@ export default function LayoutBuilderPage() {
       setGlobalError(null);
 
       for (const file of files) {
-        const description = prompt(`Description for ${file.name}?`, "") ?? "";
+        const description = await requestDescription(file.name);
         const mtype = inferMediaType(file);
 
         const tempItem: MediaItem = {
@@ -185,7 +198,7 @@ export default function LayoutBuilderPage() {
           );
         } catch (err) {
           const msg = getErrorMessage(err);
-          message.error(msg || "Failed to upload");
+          notifyError(msg || "Failed to upload");
           setter((prev) =>
             prev.map((item) =>
               item.name === file.name && item.status === "uploading"
@@ -196,7 +209,7 @@ export default function LayoutBuilderPage() {
         }
       }
     },
-    [campaignId]
+    [campaignId, requestDescription]
   );
 
   const addImages = useCallback(
@@ -241,7 +254,7 @@ export default function LayoutBuilderPage() {
         );
       } catch (err) {
         const msg = getErrorMessage(err);
-        message.error(msg || "Failed to upload");
+        notifyError(msg || "Failed to upload");
         setter((prev) =>
           prev.map((i) =>
             i === item ? { ...i, status: "error" as const, error: msg } : i
@@ -305,33 +318,21 @@ export default function LayoutBuilderPage() {
         {item.status === "success" && item.id && (
           <>
             {" ✓ Uploaded "}
-            <button
-              type="button"
-              onClick={() => deleteMedia(item, setImages)}
-              style={{ marginLeft: 4 }}
-            >
+            <Button type="link" danger onClick={() => deleteMedia(item, setImages)}>
               Delete
-            </button>
+            </Button>
           </>
         )}
         {item.status === "success" && !item.id && " ✓ Uploaded"}
         {item.status === "error" && (
           <span style={{ color: "red", display: "block" }}>
             {item.error ?? `Upload failed: ${item.error}`}
-            <button
-              type="button"
-              onClick={() => retryUpload(item, setImages)}
-              style={{ marginLeft: 4 }}
-            >
+            <Button type="link" onClick={() => retryUpload(item, setImages)}>
               Retry
-            </button>
-            <button
-              type="button"
-              onClick={() => dismissError(item, setImages)}
-              style={{ marginLeft: 4 }}
-            >
+            </Button>
+            <Button type="link" danger onClick={() => dismissError(item, setImages)}>
               Dismiss
-            </button>
+            </Button>
           </span>
         )}
       </figcaption>
@@ -362,33 +363,21 @@ export default function LayoutBuilderPage() {
         {item.status === "success" && item.id && (
           <>
             {" ✓ Uploaded "}
-            <button
-              type="button"
-              onClick={() => deleteMedia(item, setVideos)}
-              style={{ marginLeft: 4 }}
-            >
+            <Button type="link" danger onClick={() => deleteMedia(item, setVideos)}>
               Delete
-            </button>
+            </Button>
           </>
         )}
         {item.status === "success" && !item.id && " ✓ Uploaded"}
         {item.status === "error" && (
           <span style={{ color: "red", display: "block" }}>
             {item.error ?? `Upload failed: ${item.error}`}
-            <button
-              type="button"
-              onClick={() => retryUpload(item, setVideos)}
-              style={{ marginLeft: 4 }}
-            >
+            <Button type="link" onClick={() => retryUpload(item, setVideos)}>
               Retry
-            </button>
-            <button
-              type="button"
-              onClick={() => dismissError(item, setVideos)}
-              style={{ marginLeft: 4 }}
-            >
+            </Button>
+            <Button type="link" danger onClick={() => dismissError(item, setVideos)}>
               Dismiss
-            </button>
+            </Button>
           </span>
         )}
       </figcaption>
@@ -407,33 +396,21 @@ export default function LayoutBuilderPage() {
       {item.status === "success" && item.id && (
         <small>
           ✓ Uploaded{" "}
-          <button
-            type="button"
-            onClick={() => deleteMedia(item, setDocs)}
-            style={{ marginLeft: 4 }}
-          >
+          <Button type="link" danger onClick={() => deleteMedia(item, setDocs)}>
             Delete
-          </button>
+          </Button>
         </small>
       )}
       {item.status === "success" && !item.id && <small>✓ Uploaded</small>}
       {item.status === "error" && (
         <span style={{ color: "red" }}>
           {item.error ?? `Upload failed: ${item.error}`}
-          <button
-            type="button"
-            onClick={() => retryUpload(item, setDocs)}
-            style={{ marginLeft: 4 }}
-          >
+          <Button type="link" onClick={() => retryUpload(item, setDocs)}>
             Retry
-          </button>
-          <button
-            type="button"
-            onClick={() => dismissError(item, setDocs)}
-            style={{ marginLeft: 4 }}
-          >
+          </Button>
+          <Button type="link" danger onClick={() => dismissError(item, setDocs)}>
             Dismiss
-          </button>
+          </Button>
         </span>
       )}
     </div>
@@ -487,17 +464,16 @@ export default function LayoutBuilderPage() {
           />
         </>
       )}
-      <button type="button" onClick={() => navigate(`/campaign/ai-site/${campaignId}`)}>
+      <Button type="primary" onClick={() => navigate(`/campaign/ai-site/${campaignId}`)}>
         Continue to AI site builder
-      </button>
+      </Button>
       {import.meta.env.VITE_ENABLE_CLASSIC_PAGE_BUILDER === "true" ? (
-        <button
-          type="button"
+        <Button
           style={{ marginLeft: "0.5rem" }}
           onClick={() => navigate(`/campaign/page-layout/${campaignId}`)}
         >
           Classic block editor
-        </button>
+        </Button>
       ) : null}
     </div>
   );

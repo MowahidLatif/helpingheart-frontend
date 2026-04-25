@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import { Button, Input } from "antd";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 export default function ResetCredentials() {
   const navigate = useNavigate();
@@ -30,8 +32,9 @@ export default function ResetCredentials() {
     try {
       await api.post(API_ENDPOINTS.auth.forgotPassword, { email: email.trim() });
       setRequestSent(true);
+      notifySuccess("If that email is registered, a reset link has been sent.");
     } catch (err) {
-      setRequestError(getErrorMessage(err));
+      notifyError(err, "Failed to send reset link.");
     } finally {
       setRequestLoading(false);
     }
@@ -55,9 +58,10 @@ export default function ResetCredentials() {
         new_password: newPassword,
       });
       setResetDone(true);
+      notifySuccess("Password reset successfully.");
       setTimeout(() => navigate("/signin"), 2500);
     } catch (err) {
-      setResetError(getErrorMessage(err));
+      notifyError(err, "Failed to reset password.");
     } finally {
       setResetLoading(false);
     }
@@ -91,9 +95,7 @@ export default function ResetCredentials() {
           <form onSubmit={handleResetSubmit} className="auth-form">
             <div className="form-group">
               <label className="form-label">New Password</label>
-              <input
-                className="form-input"
-                type="password"
+              <Input.Password
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -102,21 +104,19 @@ export default function ResetCredentials() {
             </div>
             <div className="form-group">
               <label className="form-label">Confirm Password</label>
-              <input
-                className="form-input"
-                type="password"
+              <Input.Password
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
             <div className="form-actions">
-              <button type="submit" disabled={resetLoading} className="btn btn-primary">
+              <Button type="primary" htmlType="submit" loading={resetLoading}>
                 {resetLoading ? "Resetting..." : "Reset Password"}
-              </button>
-              <button type="button" className="btn btn-outline" onClick={() => navigate("/signin")}>
+              </Button>
+              <Button type="default" onClick={() => navigate("/signin")}>
                 Back to Sign In
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -133,9 +133,9 @@ export default function ResetCredentials() {
             <p>If that email is registered, you will receive a reset link shortly.</p>
           </div>
           <div className="form-actions">
-            <button type="button" className="btn btn-outline btn-block" onClick={() => navigate("/signin")}>
+            <Button type="default" block onClick={() => navigate("/signin")}>
               Back to Sign In
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -153,8 +153,7 @@ export default function ResetCredentials() {
         <form onSubmit={handleRequestSubmit} className="auth-form">
           <div className="form-group">
             <label className="form-label">Email</label>
-            <input
-              className="form-input"
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -163,12 +162,12 @@ export default function ResetCredentials() {
             />
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={requestLoading} className="btn btn-primary">
+            <Button type="primary" htmlType="submit" loading={requestLoading}>
               {requestLoading ? "Sending..." : "Send Reset Link"}
-            </button>
-            <button type="button" className="btn btn-outline" onClick={() => navigate("/signin")}>
+            </Button>
+            <Button type="default" onClick={() => navigate("/signin")}>
               Back to Sign In
-            </button>
+            </Button>
           </div>
         </form>
       </div>

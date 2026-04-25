@@ -1,6 +1,7 @@
 import { useState } from "react";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +12,6 @@ const Contact = () => {
   });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -22,7 +22,7 @@ const Contact = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setSubmitted(false);
     setLoading(true);
     try {
       await api.post(API_ENDPOINTS.contact, {
@@ -32,9 +32,10 @@ const Contact = () => {
         message: formData.message.trim(),
       });
       setSubmitted(true);
+      notifySuccess("Message sent. We'll get back to you soon.");
       setFormData({ firstName: "", lastName: "", email: "", message: "" });
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to send message.");
     } finally {
       setLoading(false);
     }
@@ -48,7 +49,6 @@ const Contact = () => {
           <p>We'd love to hear from you. Please fill out the form below.</p>
         </div>
 
-        {error && <div className="form-error mb-md">{error}</div>}
         {submitted && (
           <div className="text-success mb-md font-medium">
             Message sent. We'll get back to you soon.

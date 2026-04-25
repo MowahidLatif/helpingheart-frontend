@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Button, Checkbox, Input, Select, Tabs } from "antd";
 import { useOutletContext } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS, ORG_PERMISSIONS } from "@/lib/constants";
+import { confirmAction } from "@/lib/dialogs";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 type Member = {
   id: string;
@@ -21,8 +24,6 @@ export default function OrgUsersPage() {
 
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   // Add existing user
   const [addEmail, setAddEmail] = useState("");
@@ -51,12 +52,11 @@ export default function OrgUsersPage() {
 
   const loadMembers = useCallback(async () => {
     if (!orgId) return;
-    setError("");
     try {
       const res = await api.get<Member[]>(API_ENDPOINTS.orgs.members(orgId));
       setMembers(res.data);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to load organization members.");
     } finally {
       setLoading(false);
     }
@@ -69,11 +69,9 @@ export default function OrgUsersPage() {
     }
   }, [orgId, loadMembers]);
 
-  // Clear global success/error when switching tabs
+  // Clear inline form errors when switching tabs
   const switchTab = (tab: Tab) => {
     setActiveTab(tab);
-    setSuccess("");
-    setError("");
     setAddError("");
     setCreateError("");
   };
@@ -92,12 +90,12 @@ export default function OrgUsersPage() {
         email: addEmail.trim().toLowerCase(),
         role: addRole,
       });
-      setSuccess(`${addEmail.trim()} has been added to the organization.`);
+      notifySuccess(`${addEmail.trim()} has been added to the organization.`);
       setAddEmail("");
       setAddRole("member");
       loadMembers();
     } catch (err) {
-      setAddError(getErrorMessage(err));
+      notifyError(err, "Failed to add user to organization.");
     } finally {
       setAddLoading(false);
     }
@@ -123,14 +121,14 @@ export default function OrgUsersPage() {
         name: createName.trim() || undefined,
         permissions: createPermissions,
       });
-      setSuccess("Account created and added to the organization.");
+      notifySuccess("Account created and added to the organization.");
       setCreateEmail("");
       setCreatePassword("");
       setCreateName("");
       setCreatePermissions([]);
       loadMembers();
     } catch (err) {
-      setCreateError(getErrorMessage(err));
+      notifyError(err, "Failed to create account.");
     } finally {
       setCreateLoading(false);
     }
@@ -151,11 +149,11 @@ export default function OrgUsersPage() {
       await api.put(API_ENDPOINTS.orgs.memberPermissions(orgId, editingPermissionsFor), {
         permissions: editPermissions,
       });
-      setSuccess("Permissions updated.");
+      notifySuccess("Permissions updated.");
       setEditingPermissionsFor(null);
       loadMembers();
     } catch (err) {
-      setEditError(getErrorMessage(err));
+      notifyError(err, "Failed to update permissions.");
     } finally {
       setEditLoading(false);
     }
@@ -163,20 +161,21 @@ export default function OrgUsersPage() {
 
   const removeMember = async (member: Member) => {
     if (!orgId) return;
-    if (
-      !window.confirm(
-        `Remove ${member.email} from the organization? Their task assignments will be cleared.`
-      )
-    )
-      return;
+    const shouldRemove = await confirmAction({
+      title: "Remove member?",
+      content: `Remove ${member.email} from the organization? Their task assignments will be cleared.`,
+      okText: "Remove",
+      cancelText: "Cancel",
+      danger: true,
+    });
+    if (!shouldRemove) return;
     setRemoveLoadingId(member.id);
-    setError("");
     try {
       await api.delete(API_ENDPOINTS.orgs.deleteMember(orgId, member.id));
-      setSuccess(`${member.email} has been removed.`);
+      notifySuccess(`${member.email} has been removed.`);
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to remove member.");
     } finally {
       setRemoveLoadingId(null);
     }
@@ -185,7 +184,6 @@ export default function OrgUsersPage() {
   const changeRole = async (member: Member, newRole: string) => {
     if (!orgId || newRole === member.role) return;
     setRoleLoadingId(member.id);
-    setError("");
     try {
       if (newRole === "admin") {
         const currentAdmin = members.find((m) => m.role === "admin" && m.id !== member.id);
@@ -196,29 +194,29 @@ export default function OrgUsersPage() {
         }
       }
       await api.patch(API_ENDPOINTS.orgs.memberRole(orgId, member.id), { role: newRole });
-      setSuccess(`${member.email}'s role updated to ${newRole}.`);
+      notifySuccess(`${member.email}'s role updated to ${newRole}.`);
       loadMembers();
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to update role.");
     } finally {
       setRoleLoadingId(null);
     }
   };
 
   const resetPassword = async (member: Member) => {
-    if (
-      !window.confirm(
-        `Send a password reset email to ${member.email}? They will receive a link to set a new password.`
-      )
-    )
-      return;
+    const shouldReset = await confirmAction({
+      title: "Send password reset email?",
+      content: `Send a password reset email to ${member.email}? They will receive a link to set a new password.`,
+      okText: "Send email",
+      cancelText: "Cancel",
+    });
+    if (!shouldReset) return;
     setResetLoadingId(member.id);
-    setError("");
     try {
       await api.post(API_ENDPOINTS.auth.forgotPassword, { email: member.email });
-      setSuccess(`Password reset email sent to ${member.email}.`);
+      notifySuccess(`Password reset email sent to ${member.email}.`);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to send password reset email.");
     } finally {
       setResetLoadingId(null);
     }
@@ -242,49 +240,14 @@ export default function OrgUsersPage() {
     <div style={{ padding: "1rem" }}>
       <h1>Organization Users</h1>
 
-      {/* Tab bar */}
-      <div
-        style={{
-          display: "flex",
-          borderBottom: "2px solid #ddd",
-          marginBottom: "1.5rem",
-          gap: "0",
-        }}
-      >
-        {(
-          [
-            { key: "members", label: "All Members" },
-            { key: "create", label: "Create Account" },
-          ] as { key: Tab; label: string }[]
-        ).map(({ key, label }) => (
-          <button
-            key={key}
-            type="button"
-            onClick={() => switchTab(key)}
-            style={{
-              padding: "0.5rem 1.25rem",
-              border: "none",
-              borderBottom: activeTab === key ? "2px solid #333" : "2px solid transparent",
-              background: "none",
-              cursor: "pointer",
-              fontWeight: activeTab === key ? 600 : 400,
-              color: activeTab === key ? "#111" : "#666",
-              marginBottom: "-2px",
-              fontSize: "0.95rem",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Global feedback */}
-      {success && (
-        <div style={{ color: "green", marginBottom: "1rem" }}>{success}</div>
-      )}
-      {error && (
-        <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-      )}
+      <Tabs
+        activeKey={activeTab}
+        onChange={(key) => switchTab(key as Tab)}
+        items={[
+          { key: "members", label: "All Members" },
+          { key: "create", label: "Create Account" },
+        ]}
+      />
 
       {/* ── All Members tab ── */}
       {activeTab === "members" && (
@@ -311,35 +274,36 @@ export default function OrgUsersPage() {
                 <span style={{ fontSize: "0.85rem", display: "block", marginBottom: "0.25rem" }}>
                   Email
                 </span>
-                <input
+                <Input
                   type="email"
                   value={addEmail}
                   onChange={(e) => setAddEmail(e.target.value)}
                   placeholder="user@example.com"
                   required
-                  style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem" }}
                 />
               </label>
               <label style={{ display: "block", flex: "0 0 auto" }}>
                 <span style={{ fontSize: "0.85rem", display: "block", marginBottom: "0.25rem" }}>
                   Role
                 </span>
-                <select
+                <Select
                   value={addRole}
-                  onChange={(e) => setAddRole(e.target.value)}
-                  style={{ padding: "0.35rem 0.5rem" }}
-                >
-                  <option value="member">member</option>
-                  <option value="admin">admin</option>
-                </select>
+                  onChange={setAddRole}
+                  style={{ minWidth: 120 }}
+                  options={[
+                    { value: "member", label: "member" },
+                    { value: "admin", label: "admin" },
+                  ]}
+                />
               </label>
-              <button
-                type="submit"
-                disabled={addLoading}
-                style={{ padding: "0.35rem 0.9rem", alignSelf: "flex-end" }}
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={addLoading}
+                style={{ alignSelf: "flex-end" }}
               >
                 {addLoading ? "Adding..." : "Add user"}
-              </button>
+              </Button>
             </form>
           </section>
 
@@ -382,35 +346,34 @@ export default function OrgUsersPage() {
                         {m.role !== "owner" ? (
                           <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
                             {viewerRole === "owner" && (
-                              <select
+                              <Select
                                 value={m.role}
-                                disabled={roleLoadingId === m.id}
-                                onChange={(e) => changeRole(m, e.target.value)}
-                              >
-                                <option value="admin">admin</option>
-                                <option value="member">member</option>
-                              </select>
+                                loading={roleLoadingId === m.id}
+                                onChange={(value) => changeRole(m, value)}
+                                style={{ minWidth: 120 }}
+                                options={[
+                                  { value: "admin", label: "admin" },
+                                  { value: "member", label: "member" },
+                                ]}
+                              />
                             )}
-                            <button
-                              type="button"
-                              onClick={() => openEditPermissions(m)}
-                            >
+                            <Button type="default" onClick={() => openEditPermissions(m)}>
                               Edit permissions
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              type="default"
                               onClick={() => resetPassword(m)}
-                              disabled={resetLoadingId === m.id}
+                              loading={resetLoadingId === m.id}
                             >
                               {resetLoadingId === m.id ? "Sending..." : "Reset password"}
-                            </button>
-                            <button
-                              type="button"
+                            </Button>
+                            <Button
+                              danger
                               onClick={() => removeMember(m)}
-                              disabled={removeLoadingId === m.id}
+                              loading={removeLoadingId === m.id}
                             >
                               {removeLoadingId === m.id ? "Removing..." : "Remove"}
-                            </button>
+                            </Button>
                           </div>
                         ) : (
                           <span style={{ color: "#aaa", fontSize: "0.85rem" }}>—</span>
@@ -438,39 +401,37 @@ export default function OrgUsersPage() {
           <form onSubmit={handleCreateSubmit}>
             <label style={{ display: "block", marginBottom: "0.75rem" }}>
               Email *
-              <input
+              <Input
                 type="email"
                 value={createEmail}
                 onChange={(e) => setCreateEmail(e.target.value)}
                 required
-                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+                style={{ marginTop: "0.25rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.75rem" }}>
               Temporary password * (min 8 characters)
-              <input
-                type="password"
+              <Input.Password
                 value={createPassword}
                 onChange={(e) => setCreatePassword(e.target.value)}
                 minLength={8}
                 required
-                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+                style={{ marginTop: "0.25rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.75rem" }}>
               Name
-              <input
+              <Input
                 type="text"
                 value={createName}
                 onChange={(e) => setCreateName(e.target.value)}
-                style={{ display: "block", width: "100%", padding: "0.35rem 0.5rem", marginTop: "0.25rem" }}
+                style={{ marginTop: "0.25rem" }}
               />
             </label>
             <div style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Permissions</div>
             {ORG_PERMISSIONS.map((perm) => (
               <label key={perm} style={{ display: "block", marginLeft: "0.25rem", marginBottom: "0.25rem" }}>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={createPermissions.includes(perm)}
                   onChange={() => toggleCreatePermission(perm)}
                   style={{ marginRight: "0.4rem" }}
@@ -478,13 +439,14 @@ export default function OrgUsersPage() {
                 {perm}
               </label>
             ))}
-            <button
-              type="submit"
-              disabled={createLoading}
-              style={{ marginTop: "1rem", padding: "0.4rem 1rem" }}
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={createLoading}
+              style={{ marginTop: "1rem" }}
             >
               {createLoading ? "Creating..." : "Create account"}
-            </button>
+            </Button>
           </form>
         </div>
       )}
@@ -520,8 +482,7 @@ export default function OrgUsersPage() {
             <form onSubmit={handleEditPermissionsSubmit}>
               {ORG_PERMISSIONS.map((perm) => (
                 <label key={perm} style={{ display: "block", marginBottom: "0.25rem" }}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={editPermissions.includes(perm)}
                     onChange={() => toggleEditPermission(perm)}
                     style={{ marginRight: "0.4rem" }}
@@ -530,12 +491,12 @@ export default function OrgUsersPage() {
                 </label>
               ))}
               <div style={{ marginTop: "1rem", display: "flex", gap: "0.5rem" }}>
-                <button type="submit" disabled={editLoading}>
+                <Button htmlType="submit" type="primary" loading={editLoading}>
                   {editLoading ? "Saving..." : "Save"}
-                </button>
-                <button type="button" onClick={() => setEditingPermissionsFor(null)}>
+                </Button>
+                <Button type="default" onClick={() => setEditingPermissionsFor(null)}>
                   Cancel
-                </button>
+                </Button>
               </div>
             </form>
           </div>
@@ -592,7 +553,14 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this status? It will fail if any task uses it.")) return;
+    const shouldDelete = await confirmAction({
+      title: "Delete status?",
+      content: "Delete this status? It will fail if any task uses it.",
+      okText: "Delete",
+      cancelText: "Cancel",
+      danger: true,
+    });
+    if (!shouldDelete) return;
     try {
       await api.delete(API_ENDPOINTS.orgs.taskStatus(orgId, id));
       loadStatuses();
@@ -658,23 +626,24 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
                     onSubmit={handleRename}
                     style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
                   >
-                    <input
-                      type="text"
+                    <Input
                       value={editingStatusName}
                       onChange={(e) => setEditingStatusName(e.target.value)}
-                      style={{ padding: "0.2rem 0.4rem", width: "180px" }}
+                      style={{ width: "180px" }}
                       autoFocus
                     />
-                    <button
-                      type="submit"
-                      disabled={renameLoading || !editingStatusName.trim()}
+                    <Button
+                      htmlType="submit"
+                      type="primary"
+                      loading={renameLoading}
+                      disabled={!editingStatusName.trim()}
                       style={{ fontSize: "0.85rem" }}
                     >
                       {renameLoading ? "Saving..." : "Save"}
-                    </button>
-                    <button type="button" onClick={cancelEdit} style={{ fontSize: "0.85rem" }}>
+                    </Button>
+                    <Button type="default" onClick={cancelEdit} style={{ fontSize: "0.85rem" }}>
                       Cancel
-                    </button>
+                    </Button>
                     {renameError && (
                       <span style={{ color: "red", fontSize: "0.85rem" }}>{renameError}</span>
                     )}
@@ -682,16 +651,17 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
                 ) : (
                   <>
                     <span>{s.name}</span>
-                    <button type="button" onClick={() => startEdit(s)} style={{ fontSize: "0.85rem" }}>
+                    <Button type="default" onClick={() => startEdit(s)} style={{ fontSize: "0.85rem" }}>
                       Edit
-                    </button>
-                    <button
-                      type="button"
+                    </Button>
+                    <Button
+                      type="default"
+                      danger
                       onClick={() => handleDelete(s.id)}
                       style={{ fontSize: "0.85rem" }}
                     >
                       Delete
-                    </button>
+                    </Button>
                   </>
                 )}
               </li>
@@ -706,16 +676,15 @@ function TaskStatusesSection({ orgId }: { orgId: string }) {
               alignItems: "center",
             }}
           >
-            <input
-              type="text"
+            <Input
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="New status name"
-              style={{ padding: "0.25rem", width: "200px" }}
+              style={{ width: "200px" }}
             />
-            <button type="submit" disabled={createLoading || !newName.trim()}>
+            <Button htmlType="submit" type="primary" loading={createLoading} disabled={!newName.trim()}>
               {createLoading ? "Adding..." : "Add status"}
-            </button>
+            </Button>
             {createError && <span style={{ color: "red" }}>{createError}</span>}
           </form>
         </>

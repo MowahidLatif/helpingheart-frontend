@@ -13,6 +13,7 @@ import {
   parseAiSiteRecipeFromDb,
 } from "@/lib/aiSiteRecipe";
 import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
+import { notifyError } from "@/lib/notifications";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
@@ -50,7 +51,10 @@ export default function DonatePage() {
           setCampaign(res.data);
           setError("");
         })
-        .catch((err) => setError(getErrorMessage(err)))
+        .catch((err) => {
+          setError(getErrorMessage(err));
+          notifyError(err, "Failed to load campaign.");
+        })
         .finally(() => setLoading(false));
     } else if (campaignId) {
       api
@@ -59,7 +63,10 @@ export default function DonatePage() {
           setCampaign(res.data);
           setError("");
         })
-        .catch((err) => setError(getErrorMessage(err)))
+        .catch((err) => {
+          setError(getErrorMessage(err));
+          notifyError(err, "Failed to load campaign.");
+        })
         .finally(() => setLoading(false));
     } else {
       setError("Missing campaign");

@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import CampaignDetails from "@/ui/Dashboard/CampaignDetails";
 import AnalyticsHome from "@/ui/Dashboard/AnalyticsHome";
+import { notifyError } from "@/lib/notifications";
 
 type Campaign = {
   id: string;
@@ -39,7 +40,6 @@ export default function DashboardPage() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(stateCampaign);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [campaignsLoading, setCampaignsLoading] = useState(true);
-  const [campaignsError, setCampaignsError] = useState("");
 
   useEffect(() => {
     setSelectedCampaign(stateCampaign);
@@ -47,11 +47,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setCampaignsLoading(true);
-    setCampaignsError("");
     api
       .get<Campaign[]>(API_ENDPOINTS.campaigns.list)
       .then((res) => setCampaigns(Array.isArray(res.data) ? res.data : []))
-      .catch((err) => setCampaignsError(getErrorMessage(err)))
+      .catch((err) => {
+        notifyError(err, "Failed to load campaigns.");
+        setCampaigns([]);
+      })
       .finally(() => setCampaignsLoading(false));
   }, []);
 
@@ -75,14 +77,6 @@ export default function DashboardPage() {
     return (
       <div className="dashboard-page">
         <p className="text-secondary">Loading...</p>
-      </div>
-    );
-  }
-
-  if (campaignsError) {
-    return (
-      <div className="dashboard-page">
-        <p className="text-danger">{campaignsError}</p>
       </div>
     );
   }

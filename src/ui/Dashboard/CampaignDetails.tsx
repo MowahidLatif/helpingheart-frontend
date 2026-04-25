@@ -1,10 +1,10 @@
 import { useNavigate, useOutletContext } from "react-router-dom";
 import { Fragment, useCallback, useEffect, useState } from "react";
-import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS, TASK_COMMENT_TYPES, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
 import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
+import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
 
 type Campaign = {
   id: string;
@@ -97,7 +97,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
 
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -239,7 +238,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       onCampaignUpdated?.(res.data);
       onRefreshCampaigns?.();
       setShowEditModal(false);
-      setSuccessMessage("Campaign updated.");
+      notifySuccess("Campaign updated.");
     } catch (err) {
       setEditError(getErrorMessage(err));
     } finally {
@@ -257,7 +256,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const r = await api.get<CommentRow[]>(API_ENDPOINTS.campaigns.comments(campaign.id), { params: { limit: 50 } });
       setComments(Array.isArray(r.data) ? r.data : []);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to add comment");
+      notifyError(getErrorMessage(err) || "Failed to add comment");
     } finally {
       setCommentSubmitLoading(false);
     }
@@ -269,7 +268,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       await api.delete(API_ENDPOINTS.campaigns.comment(campaign.id, commentId));
       setComments((prev) => prev.filter((c) => c.id !== commentId));
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to delete comment");
+      notifyError(getErrorMessage(err) || "Failed to delete comment");
     }
   };
 
@@ -284,7 +283,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const r = await api.get<UpdateRow[]>(API_ENDPOINTS.campaigns.updates(campaign.id), { params: { limit: 50 } });
       setUpdates(Array.isArray(r.data) ? r.data : []);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to add update");
+      notifyError(getErrorMessage(err) || "Failed to add update");
     } finally {
       setUpdateSubmitLoading(false);
     }
@@ -296,7 +295,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       await api.delete(API_ENDPOINTS.campaigns.update(campaign.id, updateId));
       setUpdates((prev) => prev.filter((u) => u.id !== updateId));
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to delete update");
+      notifyError(getErrorMessage(err) || "Failed to delete update");
     }
   };
 
@@ -305,9 +304,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     setResendLoading(receiptId);
     try {
       await api.post(API_ENDPOINTS.campaigns.receiptResend(campaign.id, receiptId));
-      setSuccessMessage("Receipt resent.");
+      notifySuccess("Receipt resent.");
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to resend receipt");
+      notifyError(getErrorMessage(err) || "Failed to resend receipt");
     } finally {
       setResendLoading(null);
     }
@@ -323,7 +322,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         w.document.close();
       }
     } catch (err) {
-      message.error(getErrorMessage(err) || "Could not open receipt preview");
+      notifyError(getErrorMessage(err) || "Could not open receipt preview");
     }
   };
 
@@ -365,7 +364,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.progress(campaign.id));
       setProgress(response.data);
     } catch (err) {
-      message.warning(getErrorMessage(err) || "Could not load progress");
+      notifyWarn(getErrorMessage(err) || "Could not load progress");
     }
   }, [campaign?.id]);
 
@@ -376,7 +375,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       const response = await api.get(API_ENDPOINTS.campaigns.giveawayLogs(campaign.id));
       setGiveawayLogs(response.data || []);
     } catch (err) {
-      message.warning(getErrorMessage(err) || "Could not load giveaway logs");
+      notifyWarn(getErrorMessage(err) || "Could not load giveaway logs");
       setGiveawayLogs([]);
     } finally {
       setLogsLoading(false);
@@ -418,12 +417,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
 
   const handleCloseDrawResult = () => setDrawResult(null);
 
-  useEffect(() => {
-    if (!successMessage) return;
-    const t = setTimeout(() => setSuccessMessage(""), 3000);
-    return () => clearTimeout(t);
-  }, [successMessage]);
-
   const handleConfirmDelete = async () => {
     if (!campaign?.id) return;
     setDeleteError("");
@@ -431,7 +424,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     try {
       await api.delete(API_ENDPOINTS.campaigns.delete(campaign.id));
       setShowDeleteConfirmModal(false);
-      setSuccessMessage("Campaign deleted.");
+      notifySuccess("Campaign deleted.");
       onRefreshCampaigns?.();
       onCampaignDeleted?.();
     } catch (err) {
@@ -477,19 +470,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
 
   return (
     <div style={{ padding: "2rem" }}>
-      {successMessage && (
-        <div
-          style={{
-            marginBottom: "1rem",
-            padding: "0.75rem 1rem",
-            backgroundColor: "#dcfce7",
-            color: "#166534",
-            borderRadius: "6px",
-          }}
-        >
-          {successMessage}
-        </div>
-      )}
       <h2>{campaign.title}</h2>
       <p>Slug: {campaign.slug}</p>
 
@@ -1139,7 +1119,7 @@ function CampaignTasksSection({
       setNewAssigneeIds([]);
       load();
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to create task");
+      notifyError(getErrorMessage(err) || "Failed to create task");
     } finally {
       setCreateLoading(false);
     }
@@ -1153,7 +1133,7 @@ function CampaignTasksSection({
       });
       load();
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to update task status");
+      notifyError(getErrorMessage(err) || "Failed to update task status");
     } finally {
       setStatusUpdating(null);
     }
@@ -1178,7 +1158,7 @@ function CampaignTasksSection({
       });
       load();
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to take task");
+      notifyError(getErrorMessage(err) || "Failed to take task");
     } finally {
       setTakingTaskId(null);
     }
@@ -1223,7 +1203,7 @@ function CampaignTasksSection({
       setCommentsByTask((prev) => ({ ...prev, [taskId]: commentsRes.data || [] }));
       setChecklistByTask((prev) => ({ ...prev, [taskId]: checklistRes.data || [] }));
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to load task activity");
+      notifyError(getErrorMessage(err) || "Failed to load task activity");
     }
   };
 
@@ -1262,7 +1242,7 @@ function CampaignTasksSection({
       await load();
       await loadTaskActivity(taskId);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to submit comment");
+      notifyError(getErrorMessage(err) || "Failed to submit comment");
     } finally {
       setCommentSubmitting(false);
     }
@@ -1275,7 +1255,7 @@ function CampaignTasksSection({
       });
       await loadTaskActivity(taskId);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to add reaction");
+      notifyError(getErrorMessage(err) || "Failed to add reaction");
     }
   };
 
@@ -1287,7 +1267,7 @@ function CampaignTasksSection({
       setNewChecklistTitle("");
       await loadTaskActivity(taskId);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to add checklist item");
+      notifyError(getErrorMessage(err) || "Failed to add checklist item");
     }
   };
 
@@ -1298,7 +1278,7 @@ function CampaignTasksSection({
       });
       await loadTaskActivity(taskId);
     } catch (err) {
-      message.error(getErrorMessage(err) || "Failed to update checklist item");
+      notifyError(getErrorMessage(err) || "Failed to update checklist item");
     }
   };
 

@@ -1,0 +1,23 @@
+@use '../abstracts/variables' as *;
+
+.hh-app {
+  .ant-btn {
+    border-radius: $border-radius-md;
+    font-family: $font-family-primary;
+    font-weight: $font-weight-medium;
+  }
+
+  .ant-input,
+  .ant-input-affix-wrapper,
+  .ant-select-selector,
+  .ant-input-number {
+    border-radius: $border-radius-md;
+    font-family: $font-family-primary;
+  }
+
+  .ant-modal-content,
+  .ant-card,
+  .ant-tabs-card > .ant-tabs-nav .ant-tabs-tab {
+    border-radius: $border-radius-md;
+  }
+}

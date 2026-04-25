@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError } from "@/lib/notifications";
 
 type MediaGalleryBlockProps = {
   block: { id: string; type: string; props?: Record<string, unknown> };
@@ -19,7 +20,10 @@ export function MediaGalleryBlock({ block, campaignId }: MediaGalleryBlockProps)
     api
       .get(API_ENDPOINTS.campaigns.media(campaignId))
       .then((res) => setMedia(Array.isArray(res.data) ? res.data : []))
-      .catch((err) => setError(getErrorMessage(err)));
+      .catch((err) => {
+        setError(getErrorMessage(err));
+        notifyError(err, "Failed to load campaign media.");
+      });
   }, [campaignId]);
 
   if (error) {

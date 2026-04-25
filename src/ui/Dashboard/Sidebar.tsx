@@ -1,7 +1,8 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError } from "@/lib/notifications";
 
 type Campaign = {
   id: string;
@@ -39,7 +40,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const location = useLocation();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
 
   const showUsers = role === "owner" || role === "admin";
 
@@ -49,12 +49,12 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   const loadCampaigns = async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await api.get(API_ENDPOINTS.campaigns.list);
       setCampaigns(response.data);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to load campaigns.");
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
@@ -138,7 +138,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className="sidebar-section-label">Campaigns</div>
 
       {loading && <p className="text-sm text-secondary">Loading...</p>}
-      {error && <p className="text-sm text-danger">{error}</p>}
 
       {!loading && campaigns.length === 0 ? (
         <p className="text-sm text-secondary">No campaigns yet.</p>

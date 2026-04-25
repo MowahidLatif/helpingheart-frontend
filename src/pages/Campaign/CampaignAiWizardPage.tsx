@@ -21,6 +21,7 @@ import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { BlockRenderer, type Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
+import { notifyError } from "@/lib/notifications";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -88,16 +89,22 @@ function PlatformPaymentForm({
         redirect: "if_required",
       });
       if (error) {
-        onError(error.message ?? "Payment failed");
+        const msg = error.message ?? "Payment failed";
+        onError(msg);
+        notifyError(msg);
         return;
       }
       if (paymentIntent?.status === "succeeded" && paymentIntent.id) {
         onSucceeded(paymentIntent.id);
       } else {
-        onError("Payment not completed");
+        const msg = "Payment not completed";
+        onError(msg);
+        notifyError(msg);
       }
     } catch (err) {
-      onError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      onError(msg);
+      notifyError(msg);
     } finally {
       setLoading(false);
     }
@@ -247,7 +254,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           setPlatformPiId(res.data.paymentIntentId);
         }
       } catch (e) {
-        setError(getErrorMessage(e));
+        const msg = getErrorMessage(e);
+        setError(msg);
+        notifyError(msg);
       }
     })();
   }, [campaignId, step]);
@@ -337,7 +346,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       }
       setStep(STEP_ASSETS);
     } catch (err) {
-      setError(getErrorMessage(err));
+      const msg = getErrorMessage(err);
+      setError(msg);
+      notifyError(msg);
     } finally {
       setCreateLoading(false);
     }
@@ -368,7 +379,9 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       );
       setMedia((m) => [...m, row]);
     } catch (e) {
-      setError(getErrorMessage(e));
+      const msg = getErrorMessage(e);
+      setError(msg);
+      notifyError(msg);
     }
     return false;
   };
@@ -398,11 +411,15 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         setJob(j);
         setStep(STEP_GENERATING);
       } else {
-        setError("Unexpected response from server");
+        const msg = "Unexpected response from server";
+        setError(msg);
+        notifyError(msg);
         setGenerateLoading(false);
       }
     } catch (e) {
-      setError(getErrorMessage(e));
+      const msg = getErrorMessage(e);
+      setError(msg);
+      notifyError(msg);
       setGenerateLoading(false);
     }
   };

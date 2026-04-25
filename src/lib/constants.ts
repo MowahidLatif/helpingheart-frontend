@@ -48,6 +48,8 @@ export const API_ENDPOINTS = {
     donations: (id: string) => `/api/campaigns/${id}/donations`,
     donationsExportCsv: (id: string) => `/api/campaigns/${id}/donations/export.csv`,
     donationsRecent: (id: string) => `/api/campaigns/${id}/donations/recent`,
+    designExtractTokens: (id: string) => `/api/campaigns/${id}/design/extract-tokens`,
+    aiSiteRecipePut: (id: string) => `/api/campaigns/${id}/ai-site/recipe`,
     comments: (id: string) => `/api/campaigns/${id}/comments`,
     comment: (campaignId: string, commentId: string) =>
       `/api/campaigns/${campaignId}/comments/${commentId}`,

@@ -11,6 +11,9 @@ type ExportFormat = "html" | "wordpress" | "react";
 
 type Props = {
   campaign: { id: string; slug?: string; title?: string };
+  initialType?: EmbedType;
+  initialColor?: string;
+  initialFont?: string;
 };
 
 function buildSnippets(
@@ -30,10 +33,19 @@ function buildSnippets(
   };
 }
 
-export default function EmbedGenerator({ campaign }: Props) {
-  const [type, setType] = useState<EmbedType>("widget");
-  const [color, setColor] = useState(DEFAULT_ACCENT);
-  const [font, setFont] = useState("Inter");
+export default function EmbedGenerator({
+  campaign,
+  initialType = "widget",
+  initialColor = DEFAULT_ACCENT,
+  initialFont = "Inter",
+}: Props) {
+  const normalizedColor = initialColor.replace(/[^0-9a-fA-F]/g, "").slice(0, 6);
+  const resolvedColor = normalizedColor.length === 6 ? normalizedColor : DEFAULT_ACCENT;
+  const resolvedFont = FONTS.includes(initialFont) ? initialFont : "Inter";
+
+  const [type, setType] = useState<EmbedType>(initialType);
+  const [color, setColor] = useState(resolvedColor);
+  const [font, setFont] = useState(resolvedFont);
   const [format, setFormat] = useState<ExportFormat>("html");
   const [copied, setCopied] = useState(false);
 

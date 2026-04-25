@@ -6,6 +6,7 @@ import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
+import { notifyError } from "@/lib/notifications";
 
 const ALLOWED_FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
 const DEFAULT_FONT = "Inter";
@@ -35,7 +36,10 @@ export default function FullCampaignEmbedPage() {
         setCampaign(res.data);
         setError("");
       })
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((err) => {
+        setError(getErrorMessage(err));
+        notifyError(err, "Failed to load embed campaign.");
+      })
       .finally(() => setLoading(false));
   }, [campaignId]);
 

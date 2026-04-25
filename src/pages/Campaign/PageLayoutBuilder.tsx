@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
+import { Button } from "antd";
 import { useParams, useNavigate } from "react-router-dom";
-import { message } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { validateLayout, setBlockTypes } from "@/lib/pageLayoutValidation";
+import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
@@ -93,7 +94,7 @@ const PageLayoutBuilder = () => {
         setBlockTypes(types);
       }
     } catch (err) {
-      message.warning(getErrorMessage(err) || "Could not load block schema; using default blocks.");
+      notifyWarn(getErrorMessage(err) || "Could not load block schema; using default blocks.");
     }
   }, []);
 
@@ -179,11 +180,11 @@ const PageLayoutBuilder = () => {
       await api.put(API_ENDPOINTS.pageLayout.put(campaignId!), {
         page_layout: { blocks },
       });
-      alert("Layout saved successfully!");
+      notifySuccess("Layout saved successfully!");
     } catch (err) {
       const msg = getErrorMessage(err);
       setError(msg);
-      message.error(msg || "Failed to save layout");
+      notifyError(msg || "Failed to save layout");
     } finally {
       setSaving(false);
     }
@@ -227,9 +228,9 @@ const PageLayoutBuilder = () => {
             gap: "0.5rem",
           }}
         >
-          <button type="button" onClick={handlePreviewToggle}>
+          <Button type="default" onClick={handlePreviewToggle}>
             Back to Edit
-          </button>
+          </Button>
           <span style={{ color: "#666", fontSize: "0.9rem" }}>
             Preview: how donors will see this campaign
           </span>
@@ -265,18 +266,17 @@ const PageLayoutBuilder = () => {
       <div style={{ width: "250px", borderRight: "1px solid #ddd", padding: "1rem", overflowY: "auto" }}>
         <h3>Add Blocks</h3>
         {availableBlockTypes.map((type) => (
-          <button
+          <Button
             key={type}
             onClick={() => addBlock(type)}
             style={{
               display: "block",
               width: "100%",
               marginBottom: "0.5rem",
-              padding: "0.5rem",
             }}
           >
             + {type}
-          </button>
+          </Button>
         ))}
       </div>
 
@@ -286,20 +286,20 @@ const PageLayoutBuilder = () => {
           <h2>Page Layout Builder</h2>
           <p>Campaign ID: {campaignId}</p>
           {error && <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>}
-          <button onClick={saveLayout} disabled={saving} style={{ marginRight: "0.5rem" }}>
+          <Button type="primary" onClick={saveLayout} loading={saving} style={{ marginRight: "0.5rem" }}>
             {saving ? "Saving..." : "Save Layout"}
-          </button>
-          <button type="button" onClick={handlePreviewToggle} style={{ marginRight: "0.5rem" }}>
+          </Button>
+          <Button type="default" onClick={handlePreviewToggle} style={{ marginRight: "0.5rem" }}>
             Preview
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            type="default"
             onClick={() => navigate(`/campaign/layout-builder/${campaignId}`)}
             style={{ marginRight: "0.5rem" }}
           >
             Upload Media
-          </button>
-          <button onClick={() => navigate("/dashboard")}>Back to Dashboard</button>
+          </Button>
+          <Button type="default" onClick={() => navigate("/dashboard")}>Back to Dashboard</Button>
         </div>
 
         {blocks.length === 0 ? (
@@ -320,9 +320,13 @@ const PageLayoutBuilder = () => {
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <strong>{block.type}</strong>
-                  <button onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}>
+                  <Button
+                    type="default"
+                    danger
+                    onClick={(e) => { e.stopPropagation(); removeBlock(block.id); }}
+                  >
                     Remove
-                  </button>
+                  </Button>
                 </div>
                 <pre style={{ fontSize: "0.8rem", marginTop: "0.5rem" }}>
                   {JSON.stringify(block.props, null, 2)}

@@ -6,6 +6,7 @@ import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
+import { notifyError } from "@/lib/notifications";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
@@ -43,7 +44,10 @@ export default function PreviewPage() {
         setCampaign(res.data);
         setError("");
       })
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((err) => {
+        setError(getErrorMessage(err));
+        notifyError(err, "Failed to load campaign preview.");
+      })
       .finally(() => setLoading(false));
   }, [campaignId]);
 

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useSearchParams, Link } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
 
 type Donation = {
   id: string;
@@ -66,6 +67,7 @@ export default function ThankYouPage() {
         return false;
       } catch (err) {
         setError(getErrorMessage(err));
+        notifyError(err, "Failed to confirm donation status.");
         return true;
       }
     };
@@ -101,8 +103,10 @@ export default function ThankYouPage() {
     try {
       await navigator.clipboard.writeText(shareUrl);
       setCopyStatus("Campaign link copied.");
+      notifySuccess("Campaign link copied.");
     } catch {
       setCopyStatus("Unable to copy link. Please copy it manually.");
+      notifyWarn("Unable to copy link. Please copy it manually.");
     }
   };
 

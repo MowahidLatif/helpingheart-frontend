@@ -1,8 +1,10 @@
 import React, { useState } from "react";
+import { Button, Input } from "antd";
 import { useNavigate, Link } from "react-router-dom";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { notifyError } from "@/lib/notifications";
 
 export default function SignIn() {
   const navigate = useNavigate();
@@ -21,8 +23,15 @@ export default function SignIn() {
     email: string;
     name?: string;
   }) => {
+    // Keep local token fallback for environments where auth cookies are not sent
+    // (e.g. localhost <-> 127.0.0.1 host mismatch during local development).
+    localStorage.setItem("token", data.access_token);
+    if (data.refresh_token) {
+      localStorage.setItem("refreshToken", data.refresh_token);
+    } else {
+      localStorage.removeItem("refreshToken");
+    }
     // Decode the access token to extract role/permissions for local auth checks.
-    // Tokens themselves are stored as HttpOnly cookies by the server.
     const claims = decodeTokenClaims(data.access_token);
     localStorage.setItem(
       "user",
@@ -68,7 +77,7 @@ export default function SignIn() {
         setError("Invalid response from server.");
       }
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Sign in failed.");
     } finally {
       setLoading(false);
     }
@@ -100,7 +109,7 @@ export default function SignIn() {
         setError("Invalid response from server.");
       }
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "2FA verification failed.");
     } finally {
       setLoading(false);
     }
@@ -118,8 +127,7 @@ export default function SignIn() {
           <form onSubmit={handle2FaSubmit} className="auth-form">
             <div className="form-group">
               <label className="form-label">Code</label>
-              <input
-                className="form-input"
+              <Input
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
@@ -130,12 +138,12 @@ export default function SignIn() {
               />
             </div>
             <div className="form-actions">
-              <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+              <Button type="primary" htmlType="submit" loading={loading} block>
                 {loading ? "Verifying..." : "Verify"}
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline btn-block"
+              </Button>
+              <Button
+                type="default"
+                block
                 onClick={() => {
                   setRequires2Fa(false);
                   setTempToken("");
@@ -144,7 +152,7 @@ export default function SignIn() {
                 }}
               >
                 Back
-              </button>
+              </Button>
             </div>
           </form>
         </div>
@@ -163,8 +171,7 @@ export default function SignIn() {
         <form onSubmit={handleLoginSubmit} className="auth-form">
           <div className="form-group">
             <label className="form-label">Email</label>
-            <input
-              className="form-input"
+            <Input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -174,8 +181,7 @@ export default function SignIn() {
           </div>
           <div className="form-group">
             <label className="form-label">Password</label>
-            <input
-              className="form-input"
+            <Input.Password
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -183,9 +189,9 @@ export default function SignIn() {
             />
           </div>
           <div className="form-actions">
-            <button type="submit" disabled={loading} className="btn btn-primary btn-block">
+            <Button type="primary" htmlType="submit" loading={loading} block>
               {loading ? "Signing in..." : "Sign In"}
-            </button>
+            </Button>
           </div>
         </form>
         <div className="auth-footer">

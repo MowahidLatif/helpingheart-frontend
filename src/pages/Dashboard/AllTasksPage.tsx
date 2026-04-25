@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import { Button, Checkbox, Input, Select } from "antd";
 import { useOutletContext } from "react-router-dom";
-import api, { getErrorMessage } from "@/lib/api";
+import api from "@/lib/api";
 import { API_ENDPOINTS, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 type OutletContext = { orgId?: string | null };
 
@@ -30,7 +32,6 @@ export default function AllTasksPage() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [filterCampaignId, setFilterCampaignId] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
@@ -59,7 +60,6 @@ export default function AllTasksPage() {
 
   const loadTasks = useCallback(async () => {
     if (!orgId) return;
-    setError("");
     setLoading(true);
     try {
       const res = await api.get<TaskRow[]>(API_ENDPOINTS.orgs.tasks(orgId), {
@@ -67,7 +67,7 @@ export default function AllTasksPage() {
       });
       setTasks(res.data || []);
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to load tasks.");
     } finally {
       setLoading(false);
     }
@@ -99,14 +99,14 @@ export default function AllTasksPage() {
   const handleTakeTask = async (task: TaskRow) => {
     if (!currentUserId) return;
     setClaimingTaskId(task.id);
-    setError("");
     try {
       await api.patch(API_ENDPOINTS.campaigns.task(task.campaign_id, task.id), {
         assignee_user_ids: [currentUserId],
       });
       await loadTasks();
+      notifySuccess("Task assigned to you.");
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to take task.");
     } finally {
       setClaimingTaskId(null);
     }
@@ -122,7 +122,6 @@ export default function AllTasksPage() {
     e.preventDefault();
     if (!selectedCampaignId || !selectedTitle.trim()) return;
     setCreateLoading(true);
-    setError("");
     try {
       await api.post(API_ENDPOINTS.campaigns.tasks(selectedCampaignId), {
         title: selectedTitle.trim(),
@@ -137,8 +136,9 @@ export default function AllTasksPage() {
       setDetails("");
       setSelectedAssigneeIds([]);
       await loadTasks();
+      notifySuccess("Task created.");
     } catch (err) {
-      setError(getErrorMessage(err));
+      notifyError(err, "Failed to create task.");
     } finally {
       setCreateLoading(false);
     }
@@ -150,27 +150,23 @@ export default function AllTasksPage() {
     <div style={{ padding: "1rem" }}>
       <h1>All Tasks</h1>
       {isOwnerOrAdmin && (
-        <button type="button" onClick={() => setShowCreateModal(true)} style={{ marginBottom: "0.75rem" }}>
+        <Button type="primary" onClick={() => setShowCreateModal(true)} style={{ marginBottom: "0.75rem" }}>
           Create Task
-        </button>
+        </Button>
       )}
       <div style={{ marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <label htmlFor="task-campaign-filter">Campaign:</label>
-        <select
-          id="task-campaign-filter"
+        <Select
           value={filterCampaignId}
-          onChange={(e) => setFilterCampaignId(e.target.value)}
-        >
-          <option value="">All campaigns</option>
-          {campaigns.map((campaign) => (
-            <option key={campaign.id} value={campaign.id}>
-              {campaign.title}
-            </option>
-          ))}
-        </select>
+          onChange={setFilterCampaignId}
+          style={{ minWidth: 220 }}
+          options={[
+            { value: "", label: "All campaigns" },
+            ...campaigns.map((campaign) => ({ value: campaign.id, label: campaign.title })),
+          ]}
+        />
       </div>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
       {loading ? (
         <p>Loading tasks...</p>
       ) : tasks.length === 0 ? (
@@ -204,13 +200,13 @@ export default function AllTasksPage() {
                 <td style={{ padding: "0.5rem" }}>{task.status_name || "—"}</td>
                 <td style={{ padding: "0.5rem" }}>
                   {!task.assignees.length && currentUserId ? (
-                    <button
-                      type="button"
+                    <Button
+                      type="default"
                       onClick={() => handleTakeTask(task)}
-                      disabled={claimingTaskId === task.id}
+                      loading={claimingTaskId === task.id}
                     >
                       {claimingTaskId === task.id ? "Taking..." : "Take task"}
-                    </button>
+                    </Button>
                   ) : (
                     "—"
                   )}
@@ -226,18 +222,18 @@ export default function AllTasksPage() {
           <>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Campaign *
-              <select
+              <Select
                 value={selectedCampaignId}
-                onChange={(e) => setSelectedCampaignId(e.target.value)}
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
-              >
-                <option value="">Select campaign</option>
-                {campaigns.map((campaign) => (
-                  <option key={campaign.id} value={campaign.id}>
-                    {campaign.title}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedCampaignId}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+                options={[
+                  { value: "", label: "Select campaign" },
+                  ...campaigns.map((campaign) => ({
+                    value: campaign.id,
+                    label: campaign.title,
+                  })),
+                ]}
+              />
             </label>
             <div style={{ maxHeight: "200px", overflowY: "auto", border: "1px solid #eee", borderRadius: "6px", padding: "0.5rem" }}>
               {TASK_TITLE_SUGGESTIONS.map((group) => (
@@ -246,13 +242,13 @@ export default function AllTasksPage() {
                   <ul style={{ margin: "0.35rem 0 0.2rem 1.2rem" }}>
                     {group.items.map((item) => (
                       <li key={item}>
-                        <button
-                          type="button"
+                        <Button
                           onClick={() => setSelectedSuggestionTitle(item)}
-                          style={{ border: "none", background: "none", padding: 0, textAlign: "left", cursor: "pointer" }}
+                          type="link"
+                          style={{ padding: 0, textAlign: "left" }}
                         >
                           {item}
-                        </button>
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -261,31 +257,29 @@ export default function AllTasksPage() {
             </div>
             <label style={{ display: "block", marginTop: "0.5rem" }}>
               Title
-              <input
-                type="text"
+              <Input
                 value={customTitle}
                 onChange={(e) => setCustomTitle(e.target.value)}
                 placeholder={selectedSuggestionTitle || "Add your own task title"}
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
               />
             </label>
             <label style={{ display: "block", marginTop: "0.5rem" }}>
               Details
-              <textarea
+              <Input.TextArea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 placeholder="Further details or paste URL link"
-                style={{ display: "block", width: "100%", minHeight: "80px", marginTop: "0.25rem", padding: "0.35rem" }}
+                style={{ display: "block", width: "100%", minHeight: "80px", marginTop: "0.25rem" }}
               />
             </label>
             <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
-              <button
-                type="button"
+              <Button
                 onClick={() => setCreateStep("assign")}
                 disabled={!selectedCampaignId || !selectedTitle.trim()}
               >
                 Assign Task Next
-              </button>
+              </Button>
             </div>
           </>
         ) : (
@@ -293,8 +287,7 @@ export default function AllTasksPage() {
             <div style={{ maxHeight: "220px", overflowY: "auto", border: "1px solid #eee", borderRadius: "6px", padding: "0.5rem" }}>
               {members.map((member) => (
                 <label key={member.id} style={{ display: "block", marginBottom: "0.2rem" }}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={selectedAssigneeIds.includes(member.id)}
                     onChange={() => toggleAssignee(member.id)}
                     style={{ marginRight: "0.35rem" }}
@@ -304,12 +297,12 @@ export default function AllTasksPage() {
               ))}
             </div>
             <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "space-between" }}>
-              <button type="button" onClick={() => setCreateStep("details")} disabled={createLoading}>
+              <Button type="default" onClick={() => setCreateStep("details")} disabled={createLoading}>
                 Back
-              </button>
-              <button type="submit" disabled={createLoading}>
+              </Button>
+              <Button htmlType="submit" type="primary" loading={createLoading}>
                 {createLoading ? "Saving..." : "Complete"}
-              </button>
+              </Button>
             </div>
           </form>
         )}

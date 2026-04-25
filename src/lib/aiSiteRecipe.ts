@@ -33,10 +33,22 @@ export type AiNode = {
   props: Record<string, unknown>;
 };
 
+export type RecipeTheme = {
+  primary_color?: string;
+  secondary_color?: string;
+  font_family?: string;
+  border_radius?: string;
+};
+
 export type AiSiteRecipeV1 = {
   version: "1";
   nodes: AiNode[];
+  theme?: RecipeTheme;
 };
+
+export function getRecipeTheme(recipe: AiSiteRecipeV1): RecipeTheme | null {
+  return recipe.theme ?? null;
+}
 
 const ALLOWED: Set<string> = new Set([
   "hero",

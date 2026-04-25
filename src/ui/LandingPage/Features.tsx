@@ -44,6 +44,18 @@ const FEATURES = [
     description:
       "Keep campaign work organized with assignable tasks, team comments, progress updates, and checklist tracking in one place.",
   },
+  {
+    icon: "🤖",
+    title: "Smart-Brand AI Scraper",
+    description:
+      "Design your platform in seconds with AI. Paste your website link to auto-match your colors, fonts, and visual style, or describe your vision in plain text to generate a polished draft with zero coding.",
+  },
+  {
+    icon: "🪟",
+    title: "Seamless Iframe Donation Widgets",
+    description:
+      "Embed your mission directly into your website with simple copy-paste code. Add live progress bars, real-time donation activity, and full campaign embeds that feel like a native part of your brand.",
+  },
 ];
 
 const Features: React.FC = () => {

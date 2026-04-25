@@ -16,6 +16,10 @@ api.interceptors.request.use((config) => {
   if (config.data instanceof FormData) {
     delete config.headers['Content-Type'];
   }
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
@@ -45,12 +49,21 @@ api.interceptors.response.use(
     originalRequest._retry = true;
     refreshing = true;
     try {
-      // Refresh token is in an HttpOnly cookie — no Authorization header needed
-      await axios.post(
+      // Prefer cookie refresh, but support Authorization fallback in local dev.
+      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshResp = await axios.post(
         `${API_BASE_URL}${API_ENDPOINTS.auth.refresh}`,
         {},
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: refreshToken
+            ? { Authorization: `Bearer ${refreshToken}` }
+            : undefined,
+        }
       );
+      if (refreshResp.data?.access_token) {
+        localStorage.setItem("token", refreshResp.data.access_token);
+      }
       queue.forEach((resolve) => resolve());
       queue = [];
       return api(originalRequest);

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
+import { notifyError } from "@/lib/notifications";
 
 const ALLOWED_FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
 const DEFAULT_ACCENT = "#1D9E75";
@@ -80,7 +81,10 @@ export default function ProgressEmbedPage() {
         setProgress(progRes.data);
         setCampaign(campRes?.data ?? null);
       })
-      .catch((err) => setError(getErrorMessage(err)))
+      .catch((err) => {
+        setError(getErrorMessage(err));
+        notifyError(err, "Failed to load embed progress.");
+      })
       .finally(() => setLoading(false));
     fetchFeed();
   }, [campaignId]);
