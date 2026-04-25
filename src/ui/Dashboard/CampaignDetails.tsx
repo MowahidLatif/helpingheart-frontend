@@ -5,6 +5,7 @@ import { API_ENDPOINTS, TASK_COMMENT_TYPES, TASK_TITLE_SUGGESTIONS } from "@/lib
 import Modal from "@/components/Modal";
 import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
 import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 type Campaign = {
   id: string;
@@ -602,11 +603,28 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         <form onSubmit={handleSaveEdit}>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Title:
-            <input type="text" value={editTitle} onChange={(e) => setEditTitle(e.target.value)} required style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+            <GenericTextInput
+              value={editTitle}
+              setValue={(value) => setEditTitle(String(value ?? ""))}
+              required
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
           </label>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Goal ($):
-            <input type="number" min="0" step="1" value={editGoal} onChange={(e) => setEditGoal(e.target.value)} required style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+            <GenericTextInput
+              valueType="number"
+              value={editGoal}
+              setValue={(value) => setEditGoal(String(value ?? ""))}
+              min="0"
+              step="1"
+              required
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
           </label>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Status:
@@ -618,7 +636,13 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
             Slug:
-            <input type="text" value={editSlug} onChange={(e) => setEditSlug(e.target.value)} style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }} />
+            <GenericTextInput
+              value={editSlug}
+              setValue={(value) => setEditSlug(String(value ?? ""))}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
             Payment model:
@@ -757,12 +781,13 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           <div style={{ marginBottom: "0.75rem", display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
             <label>
               Search by donor or message:{" "}
-              <input
-                type="text"
+              <GenericTextInput
                 value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
+                setValue={(value) => setSearchInput(String(value ?? ""))}
                 placeholder="Filter..."
-                style={{ padding: "0.25rem 0.5rem", width: "200px" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
+                inputStyle={{ padding: "0.25rem 0.5rem", width: "200px" }}
               />
             </label>
             <button
@@ -896,7 +921,15 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           ) : (
             <>
               <form onSubmit={handleAddUpdate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
-                <input type="text" value={newUpdateTitle} onChange={(e) => setNewUpdateTitle(e.target.value)} placeholder="Update title" required style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
+                <GenericTextInput
+                  value={newUpdateTitle}
+                  setValue={(value) => setNewUpdateTitle(String(value ?? ""))}
+                  placeholder="Update title"
+                  required
+                  hideLabel
+                  wrapperStyle={{ marginBottom: "0.5rem" }}
+                  inputStyle={{ display: "block", width: "100%", maxWidth: "400px", padding: "0.5rem" }}
+                />
                 <textarea value={newUpdateBody} onChange={(e) => setNewUpdateBody(e.target.value)} placeholder="Update body" required rows={3} style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
                 <button type="submit" disabled={updateSubmitLoading}>Post update</button>
               </form>
@@ -1394,21 +1427,24 @@ function CampaignTasksSection({
                             <div style={{ border: "1px solid #eee", background: "white", padding: "0.5rem", borderRadius: "6px" }}>
                               {(checklistByTask[task.id] || []).map((item) => (
                                 <label key={item.id} style={{ display: "block", marginBottom: "0.25rem" }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={item.is_checked}
-                                    onChange={() => toggleChecklistItem(task.id, item)}
-                                    style={{ marginRight: "0.35rem" }}
+                                  <GenericTextInput
+                                    valueType="checkbox"
+                                    value={item.is_checked}
+                                    setValue={() => toggleChecklistItem(task.id, item)}
+                                    hideLabel
+                                    wrapperStyle={{ marginBottom: 0, marginRight: "0.35rem", display: "inline-block" }}
                                   />
                                   {item.title}
                                 </label>
                               ))}
                               <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.45rem" }}>
-                                <input
+                                <GenericTextInput
                                   value={newChecklistTitle}
-                                  onChange={(e) => setNewChecklistTitle(e.target.value)}
+                                  setValue={(value) => setNewChecklistTitle(String(value ?? ""))}
                                   placeholder="Add checklist item"
-                                  style={{ flex: 1, padding: "0.25rem" }}
+                                  hideLabel
+                                  wrapperStyle={{ marginBottom: 0, flex: 1 }}
+                                  inputStyle={{ width: "100%", padding: "0.25rem" }}
                                 />
                                 <button type="button" onClick={() => addChecklistItem(task.id)}>Add</button>
                               </div>
@@ -1432,24 +1468,27 @@ function CampaignTasksSection({
                               style={{ minHeight: "65px", padding: "0.35rem" }}
                             />
                             {commentType === "time_log" && (
-                              <input
-                                type="number"
+                              <GenericTextInput
+                                valueType="number"
                                 min="0.25"
                                 step="0.25"
                                 value={commentHours}
-                                onChange={(e) => setCommentHours(e.target.value)}
+                                setValue={(value) => setCommentHours(String(value ?? ""))}
                                 placeholder="Hours spent"
+                                hideLabel
+                                wrapperStyle={{ marginBottom: 0 }}
                               />
                             )}
                             {commentType === "reassignment" && (
                               <div style={{ border: "1px solid #eee", borderRadius: "6px", padding: "0.4rem", maxHeight: "120px", overflowY: "auto" }}>
                                 {members.map((member) => (
                                   <label key={member.id} style={{ display: "block", marginBottom: "0.2rem" }}>
-                                    <input
-                                      type="checkbox"
-                                      checked={commentAssignees.includes(member.id)}
-                                      onChange={() => toggleId(member.id, setCommentAssignees)}
-                                      style={{ marginRight: "0.35rem" }}
+                                    <GenericTextInput
+                                      valueType="checkbox"
+                                      value={commentAssignees.includes(member.id)}
+                                      setValue={() => toggleId(member.id, setCommentAssignees)}
+                                      hideLabel
+                                      wrapperStyle={{ marginBottom: 0, marginRight: "0.35rem", display: "inline-block" }}
                                     />
                                     {member.name || member.email}
                                   </label>
@@ -1523,12 +1562,13 @@ function CampaignTasksSection({
                 </div>
                 <label style={{ display: "block", marginTop: "0.75rem" }}>
                   Title
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={customTitle}
-                    onChange={(e) => setCustomTitle(e.target.value)}
+                    setValue={(value) => setCustomTitle(String(value ?? ""))}
                     placeholder={selectedSuggestionTitle || "Add your own task title"}
-                    style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0 }}
+                    inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.35rem" }}
                   />
                 </label>
                 <label style={{ display: "block", marginTop: "0.5rem" }}>
@@ -1571,11 +1611,12 @@ function CampaignTasksSection({
                 <div style={{ maxHeight: "220px", overflowY: "auto", border: "1px solid #eee", padding: "0.5rem", borderRadius: "6px" }}>
                   {members.map((member) => (
                     <label key={member.id} style={{ display: "block", marginBottom: "0.25rem" }}>
-                      <input
-                        type="checkbox"
-                        checked={newAssigneeIds.includes(member.id)}
-                        onChange={() => toggleId(member.id, setNewAssigneeIds)}
-                        style={{ marginRight: "0.35rem" }}
+                      <GenericTextInput
+                        valueType="checkbox"
+                        value={newAssigneeIds.includes(member.id)}
+                        setValue={() => toggleId(member.id, setNewAssigneeIds)}
+                        hideLabel
+                        wrapperStyle={{ marginBottom: 0, marginRight: "0.35rem", display: "inline-block" }}
                       />
                       {member.name || member.email}
                     </label>
@@ -1599,12 +1640,13 @@ function CampaignTasksSection({
             <form onSubmit={handleEditTaskSubmit}>
               <label style={{ display: "block", marginBottom: "0.5rem" }}>
                 Title *
-                <input
-                  type="text"
+                <GenericTextInput
                   value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
+                  setValue={(value) => setEditTitle(String(value ?? ""))}
                   required
-                  style={{ display: "block", width: "100%", padding: "0.35rem", marginTop: "0.2rem" }}
+                  hideLabel
+                  wrapperStyle={{ marginBottom: 0 }}
+                  inputStyle={{ display: "block", width: "100%", padding: "0.35rem", marginTop: "0.2rem" }}
                 />
               </label>
               <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -1631,11 +1673,12 @@ function CampaignTasksSection({
               <div style={{ marginBottom: "0.75rem", border: "1px solid #eee", borderRadius: "6px", padding: "0.5rem" }}>
                 {members.map((member) => (
                   <label key={member.id} style={{ display: "block", marginBottom: "0.2rem" }}>
-                    <input
-                      type="checkbox"
-                      checked={editAssigneeIds.includes(member.id)}
-                      onChange={() => toggleId(member.id, setEditAssigneeIds)}
-                      style={{ marginRight: "0.35rem" }}
+                    <GenericTextInput
+                      valueType="checkbox"
+                      value={editAssigneeIds.includes(member.id)}
+                      setValue={() => toggleId(member.id, setEditAssigneeIds)}
+                      hideLabel
+                      wrapperStyle={{ marginBottom: 0, marginRight: "0.35rem", display: "inline-block" }}
                     />
                     {member.name || member.email}
                   </label>

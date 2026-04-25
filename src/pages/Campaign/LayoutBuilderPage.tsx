@@ -8,6 +8,7 @@ import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { promptForText } from "@/lib/dialogs";
 import { notifyError } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 /* ------------------------------------------------------ */
 /*  Types                                                 */
@@ -57,12 +58,14 @@ function SectionUploader({
     <section style={{ marginBottom: "2rem" }}>
       <h2>{title}</h2>
 
-      <input
-        type="file"
+      <GenericTextInput
+        valueType="file"
         multiple
         accept={accept}
         onChange={handleChange}
         disabled={isUploading}
+        hideLabel
+        wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
       />
       {isUploading && (
         <span style={{ marginLeft: "0.5rem", color: "#666" }}>

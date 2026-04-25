@@ -5,6 +5,7 @@ import { API_ENDPOINTS } from "@/lib/constants";
 import { getUser } from "@/lib/auth";
 import Modal from "@/components/Modal";
 import { notifyError, notifySuccess } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 import {
   validateEmail,
   validateName,
@@ -378,22 +379,25 @@ const SettingsPage = () => {
             {accountError && <div style={{ color: "red", marginBottom: "1rem" }}>{accountError}</div>}
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Name:
-              <input
-                type="text"
+              <GenericTextInput
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                setValue={(value) => setName(String(value ?? ""))}
                 placeholder="Your name"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "1rem" }}>
               Email:
-              <input
-                type="email"
+              <GenericTextInput
+                valueType="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                setValue={(value) => setEmail(String(value ?? ""))}
                 placeholder="you@example.com"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             {org && (
@@ -415,21 +419,23 @@ const SettingsPage = () => {
             {orgError && <div style={{ color: "red", marginBottom: "1rem" }}>{orgError}</div>}
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Organization name:
-              <input
-                type="text"
+              <GenericTextInput
                 value={orgName}
-                onChange={(e) => setOrgName(e.target.value)}
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                setValue={(value) => setOrgName(String(value ?? ""))}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "1rem" }}>
               Subdomain (letters, numbers, hyphens):
-              <input
-                type="text"
+              <GenericTextInput
                 value={orgSubdomain}
-                onChange={(e) => setOrgSubdomain(e.target.value)}
+                setValue={(value) => setOrgSubdomain(String(value ?? ""))}
                 placeholder="yourorg"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <Button type="primary" htmlType="submit" loading={orgLoading}>
@@ -451,52 +457,60 @@ const SettingsPage = () => {
             <h3 style={{ marginBottom: "0.5rem" }}>Sender</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               From name:
-              <input
-                type="text"
+              <GenericTextInput
                 value={fromName}
-                onChange={(e) => setFromName(e.target.value)}
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                setValue={(value) => setFromName(String(value ?? ""))}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               From email:
-              <input
-                type="email"
+              <GenericTextInput
+                valueType="email"
                 value={fromEmail}
-                onChange={(e) => setFromEmail(e.target.value)}
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                setValue={(value) => setFromEmail(String(value ?? ""))}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Reply-To:
-              <input
-                type="email"
+              <GenericTextInput
+                valueType="email"
                 value={replyTo}
-                onChange={(e) => setReplyTo(e.target.value)}
+                setValue={(value) => setReplyTo(String(value ?? ""))}
                 placeholder="Leave blank to use From email"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "1rem" }}>
               BCC:
-              <input
-                type="email"
+              <GenericTextInput
+                valueType="email"
                 value={bccTo}
-                onChange={(e) => setBccTo(e.target.value)}
+                setValue={(value) => setBccTo(String(value ?? ""))}
                 placeholder="Leave blank to disable BCC"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
 
             <h3 style={{ marginBottom: "0.5rem" }}>Receipt email template</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Subject:
-              <input
-                type="text"
+              <GenericTextInput
                 value={receiptSubject}
-                onChange={(e) => setReceiptSubject(e.target.value)}
+                setValue={(value) => setReceiptSubject(String(value ?? ""))}
                 placeholder="Thanks for your donation to {{ campaign.title }}!"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -521,12 +535,13 @@ const SettingsPage = () => {
             <h3 style={{ marginBottom: "0.5rem" }}>Thank-you email template</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Subject:
-              <input
-                type="text"
+              <GenericTextInput
                 value={thankYouSubject}
-                onChange={(e) => setThankYouSubject(e.target.value)}
+                setValue={(value) => setThankYouSubject(String(value ?? ""))}
                 placeholder="Thank you for supporting {{ campaign.title }}!"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -551,12 +566,13 @@ const SettingsPage = () => {
             <h3 style={{ marginBottom: "0.5rem" }}>Winner notification email template</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Subject:
-              <input
-                type="text"
+              <GenericTextInput
                 value={winnerSubject}
-                onChange={(e) => setWinnerSubject(e.target.value)}
+                setValue={(value) => setWinnerSubject(String(value ?? ""))}
                 placeholder="Congratulations! You won the {{ campaign.title }} giveaway!"
-                style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
+                inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
               />
             </label>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -592,34 +608,40 @@ const SettingsPage = () => {
           {passwordError && <div style={{ color: "red", marginBottom: "1rem" }}>{passwordError}</div>}
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Current password:
-            <input
-              type="password"
+            <GenericTextInput
+              valueType="password"
               value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
+              setValue={(value) => setCurrentPassword(String(value ?? ""))}
               autoComplete="current-password"
-              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
             />
           </label>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             New password:
-            <input
-              type="password"
+            <GenericTextInput
+              valueType="password"
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              setValue={(value) => setNewPassword(String(value ?? ""))}
               autoComplete="new-password"
               minLength={8}
-              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
             />
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
             Confirm new password:
-            <input
-              type="password"
+            <GenericTextInput
+              valueType="password"
               value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              setValue={(value) => setConfirmPassword(String(value ?? ""))}
               autoComplete="new-password"
               minLength={8}
-              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
             />
           </label>
           <Button type="primary" htmlType="submit" loading={passwordLoading}>
@@ -637,14 +659,17 @@ const SettingsPage = () => {
             <p>Scan the QR code with your authenticator app, then enter the 6-digit code below.</p>
             <img src={twoFaSetup.qr_data_url} alt="QR code" style={{ display: "block", margin: "1rem 0", maxWidth: "200px" }} />
             <form onSubmit={handle2FaVerify}>
-              <input
-                type="text"
-                inputMode="numeric"
+              <GenericTextInput
                 value={twoFaCode}
-                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                setValue={(value) =>
+                  setTwoFaCode(String(value ?? "").replace(/\D/g, "").slice(0, 6))
+                }
+                inputMode="numeric"
                 placeholder="000000"
                 maxLength={6}
-                style={{ padding: "0.5rem", marginRight: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: 0, marginRight: "0.5rem", display: "inline-block" }}
+                inputStyle={{ padding: "0.5rem" }}
               />
               <Button htmlType="submit" type="primary" loading={twoFaLoading}>Verify and enable</Button>
               <Button type="default" onClick={() => { setTwoFaSetup(null); setTwoFaCode(""); setTwoFaError(""); }}>Cancel</Button>
@@ -658,21 +683,26 @@ const SettingsPage = () => {
             </Button>
             <form onSubmit={handle2FaDisable} style={{ display: "inline-block", marginTop: "1rem" }}>
               <p>To disable 2FA, enter your password and current 6-digit code:</p>
-              <input
-                type="password"
+              <GenericTextInput
+                valueType="password"
                 value={twoFaDisablePassword}
-                onChange={(e) => setTwoFaDisablePassword(e.target.value)}
+                setValue={(value) => setTwoFaDisablePassword(String(value ?? ""))}
                 placeholder="Password"
-                style={{ display: "block", marginBottom: "0.5rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: "0.5rem", display: "block" }}
+                inputStyle={{ padding: "0.5rem" }}
               />
-              <input
-                type="text"
-                inputMode="numeric"
+              <GenericTextInput
                 value={twoFaDisableCode}
-                onChange={(e) => setTwoFaDisableCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                setValue={(value) =>
+                  setTwoFaDisableCode(String(value ?? "").replace(/\D/g, "").slice(0, 6))
+                }
+                inputMode="numeric"
                 placeholder="6-digit code"
                 maxLength={6}
-                style={{ display: "block", marginBottom: "0.5rem", padding: "0.5rem" }}
+                hideLabel
+                wrapperStyle={{ marginBottom: "0.5rem", display: "block" }}
+                inputStyle={{ padding: "0.5rem" }}
               />
               <Button htmlType="submit" danger loading={twoFaDisableLoading}>Disable 2FA</Button>
             </form>
@@ -696,23 +726,28 @@ const SettingsPage = () => {
         <form onSubmit={handleDeleteAccount}>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Password:
-            <input
-              type="password"
+            <GenericTextInput
+              valueType="password"
               value={deletePassword}
-              onChange={(e) => setDeletePassword(e.target.value)}
-              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              setValue={(value) => setDeletePassword(String(value ?? ""))}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
             />
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
             2FA code (if enabled):
-            <input
-              type="text"
-              inputMode="numeric"
+            <GenericTextInput
               value={deleteCode}
-              onChange={(e) => setDeleteCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+              setValue={(value) =>
+                setDeleteCode(String(value ?? "").replace(/\D/g, "").slice(0, 6))
+              }
+              inputMode="numeric"
               placeholder="000000"
               maxLength={6}
-              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
             />
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>

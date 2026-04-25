@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { Select, Tabs, Button } from "antd";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 const FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
 const WIDGET_HEIGHT = 400;
@@ -119,11 +120,13 @@ export default function EmbedGenerator({
             Accent color
           </label>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <input
-              type="color"
+            <GenericTextInput
+              valueType="color"
               value={accentHex}
               onChange={handleColorPicker}
-              style={{
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{
                 width: 32,
                 height: 32,
                 border: "1px solid #ddd",
@@ -133,13 +136,14 @@ export default function EmbedGenerator({
                 background: "none",
               }}
             />
-            <input
-              type="text"
+            <GenericTextInput
               value={color}
               onChange={handleColorText}
               maxLength={6}
               placeholder={DEFAULT_ACCENT}
-              style={{
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
+              inputStyle={{
                 width: 90,
                 padding: "4px 8px",
                 border: "1px solid #ddd",

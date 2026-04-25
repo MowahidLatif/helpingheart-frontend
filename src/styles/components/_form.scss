@@ -11,6 +11,59 @@
   }
 }
 
+.generic-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xl;
+  width: 100%;
+
+  .form-label {
+    margin-bottom: 0;
+    flex: 0 0 32%;
+    max-width: 32%;
+    text-align: left;
+    word-break: break-word;
+  }
+
+  .generic-input-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 68%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.generic-input-row.is-label-hidden {
+  .generic-input-control {
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .generic-input-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-xs;
+
+    .form-label {
+      flex: none;
+      max-width: 100%;
+      width: 100%;
+      margin-bottom: 0;
+      text-align: left;
+    }
+
+    .generic-input-control {
+      max-width: 100%;
+      width: 100%;
+    }
+  }
+}
+
 .form-label {
   display: block;
   margin-bottom: $spacing-sm;

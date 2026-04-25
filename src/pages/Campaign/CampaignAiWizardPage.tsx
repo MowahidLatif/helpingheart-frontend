@@ -22,6 +22,7 @@ import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { BlockRenderer, type Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
 import { notifyError } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -457,41 +458,37 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         <div>
           <p>Start with the basics for your fundraiser.</p>
           <form onSubmit={handleCreateNext}>
-            <label style={{ display: "block", marginBottom: 12 }}>
-              Campaign title
-              <input
-                type="text"
-                placeholder="e.g. Save the Rainforest"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-                style={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
-              />
-            </label>
-            <label style={{ display: "block", marginBottom: 12 }}>
-              Goal amount ($)
-              <input
-                type="number"
-                placeholder="e.g. 5000"
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                min="0"
-                step="0.01"
-                style={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
-              />
-            </label>
-            <label style={{ display: "block", marginBottom: 12 }}>
-              Giveaway prize (optional, $)
-              <input
-                type="number"
-                placeholder="e.g. 1000"
-                value={giveawayPrize}
-                onChange={(e) => setGiveawayPrize(e.target.value)}
-                min="0"
-                step="0.01"
-                style={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
-              />
-            </label>
+            <GenericTextInput
+              labelTitle="Campaign title"
+              value={title}
+              setValue={(value) => setTitle(String(value ?? ""))}
+              placeholder="e.g. Save the Rainforest"
+              required
+              wrapperStyle={{ display: "block", marginBottom: 12 }}
+              inputStyle={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
+            />
+            <GenericTextInput
+              labelTitle="Goal amount ($)"
+              valueType="number"
+              value={goal}
+              setValue={(value) => setGoal(String(value ?? ""))}
+              placeholder="e.g. 5000"
+              min="0"
+              step="0.01"
+              wrapperStyle={{ display: "block", marginBottom: 12 }}
+              inputStyle={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
+            />
+            <GenericTextInput
+              labelTitle="Giveaway prize (optional, $)"
+              valueType="number"
+              value={giveawayPrize}
+              setValue={(value) => setGiveawayPrize(String(value ?? ""))}
+              placeholder="e.g. 1000"
+              min="0"
+              step="0.01"
+              wrapperStyle={{ display: "block", marginBottom: 12 }}
+              inputStyle={{ display: "block", width: "100%", maxWidth: 400, marginTop: 4 }}
+            />
             <label style={{ display: "block", marginBottom: 16 }}>
               Status
               <select

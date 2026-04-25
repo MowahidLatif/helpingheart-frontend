@@ -8,6 +8,7 @@ import type { AiSiteRecipeV1, RecipeTheme } from "@/lib/aiSiteRecipe";
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 type Step = "type" | "source" | "extracting" | "tokens" | "generating" | "edit" | "embed";
 type ProductType = "full" | "widget";
@@ -409,11 +410,22 @@ export default function DesignStudioPage() {
             <div>
               <label style={{ fontSize: 12, color: "#666", display: "block", marginBottom: 4 }}>Primary color</label>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="color"
+                <GenericTextInput
+                  valueType="color"
                   value={tokens.primary_color.startsWith("#") ? tokens.primary_color : "#" + tokens.primary_color}
-                  onChange={(e) => setTokens((t) => ({ ...t, primary_color: e.target.value }))}
-                  style={{ width: 32, height: 32, border: "1px solid #ddd", borderRadius: 4, padding: 2, cursor: "pointer" }}
+                  setValue={(value) =>
+                    setTokens((t) => ({ ...t, primary_color: String(value ?? "") }))
+                  }
+                  hideLabel
+                  wrapperStyle={{ marginBottom: 0 }}
+                  inputStyle={{
+                    width: 32,
+                    height: 32,
+                    border: "1px solid #ddd",
+                    borderRadius: 4,
+                    padding: 2,
+                    cursor: "pointer",
+                  }}
                 />
                 <Input
                   value={tokens.primary_color}
@@ -425,11 +437,22 @@ export default function DesignStudioPage() {
             <div>
               <label style={{ fontSize: 12, color: "#666", display: "block", marginBottom: 4 }}>Secondary color</label>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="color"
+                <GenericTextInput
+                  valueType="color"
                   value={tokens.secondary_color.startsWith("#") ? tokens.secondary_color : "#" + tokens.secondary_color}
-                  onChange={(e) => setTokens((t) => ({ ...t, secondary_color: e.target.value }))}
-                  style={{ width: 32, height: 32, border: "1px solid #ddd", borderRadius: 4, padding: 2, cursor: "pointer" }}
+                  setValue={(value) =>
+                    setTokens((t) => ({ ...t, secondary_color: String(value ?? "") }))
+                  }
+                  hideLabel
+                  wrapperStyle={{ marginBottom: 0 }}
+                  inputStyle={{
+                    width: 32,
+                    height: 32,
+                    border: "1px solid #ddd",
+                    borderRadius: 4,
+                    padding: 2,
+                    cursor: "pointer",
+                  }}
                 />
                 <Input
                   value={tokens.secondary_color}

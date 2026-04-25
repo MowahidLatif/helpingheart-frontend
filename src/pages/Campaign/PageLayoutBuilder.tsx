@@ -7,6 +7,7 @@ import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { validateLayout, setBlockTypes } from "@/lib/pageLayoutValidation";
 import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
@@ -349,38 +350,44 @@ const PageLayoutBuilder = () => {
               <>
                 <label>
                   Title:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.title)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "title", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "title", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
                   Subtitle:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.subtitle)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "subtitle", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "subtitle", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
                   Image URL:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.image_url)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "image_url", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "image_url", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
                   Background Color:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.background_color)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "background_color", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) =>
+                      updateBlockProp(selectedBlock.id, "background_color", String(value ?? ""))
+                    }
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
               </>
@@ -414,20 +421,26 @@ const PageLayoutBuilder = () => {
               <>
                 <label>
                   URL:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.url)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "url", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "url", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
                   Height (px):
-                  <input
-                    type="number"
+                  <GenericTextInput
+                    valueType="number"
                     value={propAsNumber(selectedBlock.props.height, 400)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "height", parseInt(e.target.value))}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    transformValue={(raw) => parseInt(raw, 10)}
+                    setValue={(value) =>
+                      updateBlockProp(selectedBlock.id, "height", Number(value))
+                    }
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
               </>
@@ -436,20 +449,26 @@ const PageLayoutBuilder = () => {
               <>
                 <label>
                   Label:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.label, "Donate Now")}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "label", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "label", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
                   Min Amount:
-                  <input
-                    type="number"
+                  <GenericTextInput
+                    valueType="number"
                     value={propAsNumber(selectedBlock.props.min_amount, 1)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "min_amount", parseInt(e.target.value))}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    transformValue={(raw) => parseInt(raw, 10)}
+                    setValue={(value) =>
+                      updateBlockProp(selectedBlock.id, "min_amount", Number(value))
+                    }
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
               </>
@@ -458,18 +477,21 @@ const PageLayoutBuilder = () => {
               <>
                 <label>
                   Text:
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.text)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "text", e.target.value)}
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "text", String(value ?? ""))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={propAsBoolean(selectedBlock.props.show_org_name, false)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_org_name", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={propAsBoolean(selectedBlock.props.show_org_name, false)}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "show_org_name", Boolean(value))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   Show Organization Name
                 </label>
@@ -478,34 +500,46 @@ const PageLayoutBuilder = () => {
             {selectedBlock.type === "campaign_info" && (
               <>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBlock.props.show_goal !== false}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_goal", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={selectedBlock.props.show_goal !== false}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "show_goal", Boolean(value))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   Show Goal
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBlock.props.show_progress_bar !== false}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_progress_bar", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={selectedBlock.props.show_progress_bar !== false}
+                    setValue={(value) =>
+                      updateBlockProp(selectedBlock.id, "show_progress_bar", Boolean(value))
+                    }
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   Show Progress Bar
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBlock.props.show_donations_count !== false}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_donations_count", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={selectedBlock.props.show_donations_count !== false}
+                    setValue={(value) =>
+                      updateBlockProp(selectedBlock.id, "show_donations_count", Boolean(value))
+                    }
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   Show Donations Count
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBlock.props.show_winner === true}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_winner", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={selectedBlock.props.show_winner === true}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "show_winner", Boolean(value))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   Show Giveaway Winner
                 </label>
@@ -545,19 +579,22 @@ const PageLayoutBuilder = () => {
               <>
                 <label>
                   Label (optional heading):
-                  <input
-                    type="text"
+                  <GenericTextInput
                     value={propAsString(selectedBlock.props.label)}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "label", e.target.value)}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "label", String(value ?? ""))}
                     placeholder="e.g. Our Progress"
-                    style={{ width: "100%", marginBottom: "0.5rem" }}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ width: "100%" }}
                   />
                 </label>
                 <label>
-                  <input
-                    type="checkbox"
-                    checked={selectedBlock.props.show_percent === true}
-                    onChange={(e) => updateBlockProp(selectedBlock.id, "show_percent", e.target.checked)}
+                  <GenericTextInput
+                    valueType="checkbox"
+                    value={selectedBlock.props.show_percent === true}
+                    setValue={(value) => updateBlockProp(selectedBlock.id, "show_percent", Boolean(value))}
+                    hideLabel
+                    wrapperStyle={{ marginBottom: 0, display: "inline-block" }}
                   />
                   {" "}Show Percentage
                 </label>

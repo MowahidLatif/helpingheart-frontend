@@ -2,6 +2,7 @@ import { useState } from "react";
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { notifyError, notifySuccess } from "@/lib/notifications";
+import GenericTextInput from "@/components/Form/GenericTextInput";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -59,39 +60,40 @@ const Contact = () => {
           <div className="form-row">
             <div className="form-group">
               <label className="form-label">First Name</label>
-              <input
-                className="form-input"
-                type="text"
+              <GenericTextInput
+                value={formData.firstName}
                 name="firstName"
                 placeholder="First Name"
-                value={formData.firstName}
                 onChange={handleChange}
                 required
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
               />
             </div>
             <div className="form-group">
               <label className="form-label">Last Name</label>
-              <input
-                className="form-input"
-                type="text"
+              <GenericTextInput
+                value={formData.lastName}
                 name="lastName"
                 placeholder="Last Name"
-                value={formData.lastName}
                 onChange={handleChange}
                 required
+                hideLabel
+                wrapperStyle={{ marginBottom: 0 }}
               />
             </div>
           </div>
           <div className="form-group">
             <label className="form-label">Email Address</label>
-            <input
-              className="form-input"
-              type="email"
+            <GenericTextInput
+              valueType="email"
+              value={formData.email}
               name="email"
               placeholder="you@example.com"
-              value={formData.email}
               onChange={handleChange}
               required
+              hideLabel
+              wrapperStyle={{ marginBottom: 0 }}
             />
           </div>
           <div className="form-group">
