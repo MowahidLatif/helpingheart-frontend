@@ -7,7 +7,7 @@ type FeeOption = {
 
 const feeOptions: FeeOption[] = [
   {
-    title: "Option 1 - Donor Pays Fees (Default)",
+    title: "Donor Pays Fees",
     subtitle: "Predictable, safe, and recommended as the default for all campaigns.",
     details: [
       "Who chooses: Default for all campaigns",
@@ -22,7 +22,7 @@ const feeOptions: FeeOption[] = [
     ],
   },
   {
-    title: "Option 2 - Platform Absorbs Fees (Optional)",
+    title: "Platform Absorbs Fees",
     subtitle:
       "Optional toggle for campaign managers who want to offer a donor-first payment experience.",
     details: [
@@ -52,7 +52,7 @@ const uxPositioning = [
 
 const Pricing = () => {
   return (
-    <div className="info-page">
+    <div className="info-page pricing-page">
       <h1>Pricing</h1>
       <p className="mb-2xl">
         Helping Hands supports two clear fee models so organizations can choose
@@ -60,53 +60,41 @@ const Pricing = () => {
         transparent for donors.
       </p>
 
-      {feeOptions.map((option) => (
-        <section key={option.title} className="card mb-2xl" style={{ padding: "2rem" }}>
-          <div style={{ marginBottom: "1rem" }}>
-            <h2 className="m-0">{option.title}</h2>
-            <p className="text-secondary mt-xs m-0">{option.subtitle}</p>
-          </div>
-
-          <ul
-            style={{
-              listStyle: "none",
-              padding: 0,
-              margin: 0,
-              display: "flex",
-              flexDirection: "column",
-              gap: "0.55rem",
-            }}
+      <div className="pricing-options-grid mb-2xl">
+        {feeOptions.map((option, index) => (
+          <section
+            key={option.title}
+            className={`card pricing-option pricing-option--${
+              index === 0 ? "primary" : "secondary"
+            }`}
           >
-            {option.details.map((item) => (
-              <li key={item} className="d-flex" style={{ alignItems: "flex-start", gap: "0.6rem" }}>
-                <span className="text-success font-bold">-</span>
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
+            <div className="pricing-option__header">
+              <h2 className="m-0">{option.title}</h2>
+              <p className="pricing-option__subtitle">{option.subtitle}</p>
+            </div>
 
-          <div className="info-callout" style={{ marginTop: "1.5rem" }}>
-            <h3 className="m-0 mb-sm">Pros</h3>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                margin: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: "0.5rem",
-              }}
-            >
-              {option.pros.map((pro) => (
-                <li key={pro} className="d-flex" style={{ alignItems: "flex-start", gap: "0.6rem" }}>
-                  <span className="text-success font-bold">✓</span>
-                  <span>{pro}</span>
+            <ul className="pricing-option__details">
+              {option.details.map((item) => (
+                <li key={item} className="pricing-option__item">
+                  <span className="pricing-option__item-marker">-</span>
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
-          </div>
-        </section>
-      ))}
+
+            <div className="info-callout pricing-option__pros">
+              <ul className="pricing-option__pros-list">
+                {option.pros.map((pro) => (
+                  <li key={pro} className="pricing-option__item">
+                    <span className="text-success font-bold">✓</span>
+                    <span>{pro}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </section>
+        ))}
+      </div>
 
       <section className="card mb-2xl" style={{ padding: "2rem" }}>
         <h2 className="m-0">UX &amp; Positioning</h2>
