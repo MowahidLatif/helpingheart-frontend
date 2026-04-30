@@ -108,13 +108,24 @@ export default function GenericTextInput({
     id ??
     (typeof labelTitle === "string" && labelTitle.length
       ? `${labelTitle.replace(/\s+/g, "-").toLowerCase()}-generic-input`
-      : undefined);
+      : typeof name === "string" && name.length
+        ? `${name.replace(/\s+/g, "-").toLowerCase()}-generic-input`
+        : undefined);
   const inputType = toInputType(valueType);
   const useFormInputClass =
     inputType !== "checkbox" && inputType !== "file" && inputType !== "color";
-  const resolvedInputClassName = [useFormInputClass ? "form-input" : "", inputClassName, className]
+  const hasError = Boolean(errorText);
+  const resolvedInputClassName = [
+    useFormInputClass ? "form-input" : "",
+    hasError ? "error" : "",
+    inputClassName,
+    className,
+  ]
     .filter(Boolean)
     .join(" ");
+  const helperId = helperText && generatedId ? `${generatedId}-help` : undefined;
+  const errorId = errorText && generatedId ? `${generatedId}-error` : undefined;
+  const describedBy = [helperId, errorId].filter(Boolean).join(" ") || undefined;
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
     onChange?.(event);
@@ -187,11 +198,13 @@ export default function GenericTextInput({
             readOnly={readOnly}
             accept={accept}
             multiple={multiple}
+            aria-invalid={hasError || undefined}
+            aria-describedby={describedBy}
             style={inputStyle}
           />
 
-          {helperText ? <span className="form-help-text">{helperText}</span> : null}
-          {errorText ? <span className="form-error">{errorText}</span> : null}
+          {helperText ? <span id={helperId} className="form-help-text">{helperText}</span> : null}
+          {errorText ? <span id={errorId} className="form-error">{errorText}</span> : null}
         </div>
       </div>
     </div>

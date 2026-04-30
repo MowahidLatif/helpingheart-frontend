@@ -94,8 +94,11 @@ export default function ResetCredentials() {
           )}
           <form onSubmit={handleResetSubmit} className="auth-form">
             <div className="form-group">
-              <label className="form-label">New Password</label>
+              <label className="form-label required" htmlFor="reset-new-password">
+                New Password
+              </label>
               <Input.Password
+                id="reset-new-password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
@@ -103,8 +106,11 @@ export default function ResetCredentials() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Confirm Password</label>
+              <label className="form-label required" htmlFor="reset-confirm-password">
+                Confirm Password
+              </label>
               <Input.Password
+                id="reset-confirm-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -152,8 +158,11 @@ export default function ResetCredentials() {
         {requestError && <div className="form-error mb-md">{requestError}</div>}
         <form onSubmit={handleRequestSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label required" htmlFor="reset-email">
+              Email
+            </label>
             <Input
+              id="reset-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

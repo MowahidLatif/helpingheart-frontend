@@ -59,11 +59,11 @@ const About = () => {
       </p>
 
       <h2>What we have built</h2>
-      <div className="mb-2xl" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div className="about-features-list mb-2xl">
         {features.map((f) => (
-          <div key={f.title} className="card" style={{ padding: "1.25rem" }}>
-            <h3 className="m-0 mb-xs" style={{ fontSize: "1rem" }}>{f.title}</h3>
-            <p className="text-secondary m-0" style={{ lineHeight: 1.6 }}>{f.description}</p>
+          <div key={f.title} className="card about-feature-card">
+            <h3 className="m-0 mb-xs about-feature-title">{f.title}</h3>
+            <p className="text-secondary m-0 about-feature-description">{f.description}</p>
           </div>
         ))}
       </div>

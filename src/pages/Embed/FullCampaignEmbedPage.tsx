@@ -9,6 +9,7 @@ import { parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
 import { notifyError } from "@/lib/notifications";
 
 const ALLOWED_FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
+const DEFAULT_ACCENT = "#1D9E75";
 const DEFAULT_FONT = "Inter";
 
 export default function FullCampaignEmbedPage() {
@@ -17,7 +18,7 @@ export default function FullCampaignEmbedPage() {
 
   const colorParam = searchParams.get("color") ?? "";
   const fontParam = searchParams.get("font") ?? DEFAULT_FONT;
-  const accent = colorParam ? `#${colorParam.replace(/^#/, "")}` : null;
+  const accent = colorParam ? `#${colorParam.replace(/^#/, "")}` : DEFAULT_ACCENT;
   const font = ALLOWED_FONTS.includes(fontParam) ? fontParam : DEFAULT_FONT;
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
@@ -55,31 +56,25 @@ export default function FullCampaignEmbedPage() {
     window.open(url, "_blank", "noopener,noreferrer");
   };
 
-  const rootStyle = [
-    accent ? `--accent: ${accent};` : "",
-    `font-family: '${font}', sans-serif;`,
-  ]
-    .filter(Boolean)
-    .join(" ");
+  const rootStyle = [`--hhf-accent: ${accent};`, `font-family: '${font}', sans-serif;`].join(" ");
+  const containerStyle: React.CSSProperties = {
+    minWidth: 320,
+    boxSizing: "border-box",
+    padding: "1rem",
+    fontFamily: `'${font}', sans-serif`,
+    fontSize: 14,
+  };
 
   if (loading) {
-    return (
-      <div style={{ padding: "2rem", fontFamily: `'${font}', sans-serif`, fontSize: 14 }}>
-        Loading campaign…
-      </div>
-    );
+    return <div style={containerStyle}>Loading…</div>;
   }
 
   if (error || !campaign) {
-    return (
-      <div style={{ padding: "2rem", fontFamily: `'${font}', sans-serif`, fontSize: 14, color: "#666" }}>
-        {error || "Campaign not found."}
-      </div>
-    );
+    return <div style={{ ...containerStyle, color: "#666" }}>{error || "Campaign not found."}</div>;
   }
 
   return (
-    <div style={{ minWidth: 320, boxSizing: "border-box" }}>
+    <div style={containerStyle}>
       {rootStyle ? <style>{`:root { ${rootStyle} }`}</style> : null}
       {aiRecipe ? (
         <AiSiteRenderer campaign={campaign} recipe={aiRecipe} onDonateClick={onDonateClick} />

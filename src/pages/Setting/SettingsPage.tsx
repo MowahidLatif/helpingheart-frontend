@@ -376,7 +376,7 @@ const SettingsPage = () => {
           <p>Loading...</p>
         ) : (
           <form onSubmit={handleAccountSubmit}>
-            {accountError && <div style={{ color: "red", marginBottom: "1rem" }}>{accountError}</div>}
+            {accountError && <div className="form-error mb-md">{accountError}</div>}
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Name:
               <GenericTextInput
@@ -416,7 +416,7 @@ const SettingsPage = () => {
         <section style={{ marginBottom: "2rem" }}>
           <h2>Organization</h2>
           <form onSubmit={handleOrgSubmit}>
-            {orgError && <div style={{ color: "red", marginBottom: "1rem" }}>{orgError}</div>}
+            {orgError && <div className="form-error mb-md">{orgError}</div>}
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
               Organization name:
               <GenericTextInput
@@ -452,7 +452,7 @@ const SettingsPage = () => {
             Sender name and email for receipts and notifications. Leave template fields blank to use system defaults.
           </p>
           <form onSubmit={handleEmailSettingsSubmit}>
-            {emailSettingsError && <div style={{ color: "red", marginBottom: "1rem" }}>{emailSettingsError}</div>}
+            {emailSettingsError && <div className="form-error mb-md">{emailSettingsError}</div>}
 
             <h3 style={{ marginBottom: "0.5rem" }}>Sender</h3>
             <label style={{ display: "block", marginBottom: "0.5rem" }}>
@@ -605,7 +605,7 @@ const SettingsPage = () => {
       <section style={{ marginBottom: "2rem" }}>
         <h2>Change password</h2>
         <form onSubmit={handlePasswordSubmit}>
-          {passwordError && <div style={{ color: "red", marginBottom: "1rem" }}>{passwordError}</div>}
+          {passwordError && <div className="form-error mb-md">{passwordError}</div>}
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Current password:
             <GenericTextInput
@@ -653,7 +653,7 @@ const SettingsPage = () => {
       {/* 2FA */}
       <section style={{ marginBottom: "2rem" }}>
         <h2>Two-Factor Authentication</h2>
-        {twoFaError && <div style={{ color: "red", marginBottom: "1rem" }}>{twoFaError}</div>}
+        {twoFaError && <div className="form-error mb-md">{twoFaError}</div>}
         {twoFaSetup ? (
           <div>
             <p>Scan the QR code with your authenticator app, then enter the 6-digit code below.</p>
@@ -712,7 +712,7 @@ const SettingsPage = () => {
 
       {/* Delete Account */}
       <section style={{ marginTop: "3rem", borderTop: "1px solid #ccc", paddingTop: "2rem" }}>
-        <h2 style={{ color: "red" }}>Delete account</h2>
+        <h2 className="text-danger">Delete account</h2>
         <p>Your account will be anonymized. This cannot be undone.</p>
         <Button danger onClick={() => { setShowDeleteModal(true); setDeleteError(""); setDeletePassword(""); setDeleteCode(""); }}>
           Delete my account
@@ -722,7 +722,7 @@ const SettingsPage = () => {
       <Modal isOpen={showDeleteModal} onClose={() => !deleteLoading && setShowDeleteModal(false)}>
         <h3 style={{ marginTop: 0 }}>Delete account?</h3>
         <p>Enter your password to confirm. If you have 2FA enabled, also enter your 6-digit code.</p>
-        {deleteError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{deleteError}</p>}
+        {deleteError && <p className="form-error mb-sm">{deleteError}</p>}
         <form onSubmit={handleDeleteAccount}>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Password:

@@ -126,8 +126,11 @@ export default function SignIn() {
           {error && <div className="form-error mb-md">{error}</div>}
           <form onSubmit={handle2FaSubmit} className="auth-form">
             <div className="form-group">
-              <label className="form-label">Code</label>
+              <label className="form-label required" htmlFor="signin-2fa-code">
+                Code
+              </label>
               <Input
+                id="signin-2fa-code"
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
@@ -170,8 +173,11 @@ export default function SignIn() {
         {error && <div className="form-error mb-md">{error}</div>}
         <form onSubmit={handleLoginSubmit} className="auth-form">
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label required" htmlFor="signin-email">
+              Email
+            </label>
             <Input
+              id="signin-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -180,8 +186,11 @@ export default function SignIn() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label required" htmlFor="signin-password">
+              Password
+            </label>
             <Input.Password
+              id="signin-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

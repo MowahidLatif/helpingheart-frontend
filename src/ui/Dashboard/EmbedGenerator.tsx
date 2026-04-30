@@ -222,7 +222,7 @@ export default function EmbedGenerator({
         src={previewUrl}
         title="Embed preview"
         width="100%"
-        height={type === "widget" ? 160 : 500}
+        height={type === "widget" ? WIDGET_HEIGHT : FULL_HEIGHT}
         frameBorder={0}
         style={{ border: "1px solid #ddd", borderRadius: 8, display: "block" }}
       />

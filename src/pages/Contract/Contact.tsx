@@ -59,8 +59,11 @@ const Contact = () => {
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">First Name</label>
+              <label className="form-label required" htmlFor="contact-first-name">
+                First Name
+              </label>
               <GenericTextInput
+                id="contact-first-name"
                 value={formData.firstName}
                 name="firstName"
                 placeholder="First Name"
@@ -71,8 +74,11 @@ const Contact = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Last Name</label>
+              <label className="form-label required" htmlFor="contact-last-name">
+                Last Name
+              </label>
               <GenericTextInput
+                id="contact-last-name"
                 value={formData.lastName}
                 name="lastName"
                 placeholder="Last Name"
@@ -84,8 +90,11 @@ const Contact = () => {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Email Address</label>
+            <label className="form-label required" htmlFor="contact-email">
+              Email Address
+            </label>
             <GenericTextInput
+              id="contact-email"
               valueType="email"
               value={formData.email}
               name="email"
@@ -97,8 +106,11 @@ const Contact = () => {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Your Message</label>
+            <label className="form-label required" htmlFor="contact-message">
+              Your Message
+            </label>
             <textarea
+              id="contact-message"
               className="form-textarea"
               name="message"
               placeholder="How can we help?"

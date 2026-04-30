@@ -96,24 +96,15 @@ const Pricing = () => {
         ))}
       </div>
 
-      <section className="card mb-2xl" style={{ padding: "2rem" }}>
+      <section className="card pricing-info-card mb-2xl">
         <h2 className="m-0">UX &amp; Positioning</h2>
         <p className="text-secondary mt-xs">
           Product messaging and dashboard clarity should make fee selection
           obvious at every step.
         </p>
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: "0.55rem",
-          }}
-        >
+        <ul className="pricing-checklist">
           {uxPositioning.map((point) => (
-            <li key={point} className="d-flex" style={{ alignItems: "flex-start", gap: "0.6rem" }}>
+            <li key={point} className="pricing-checklist__item">
               <span className="text-success font-bold">✓</span>
               <span>{point}</span>
             </li>
@@ -130,8 +121,8 @@ const Pricing = () => {
         </p>
       </div>
 
-      <div className="card" style={{ padding: "2rem" }}>
-        <div className="d-flex" style={{ justifyContent: "space-between", alignItems: "flex-start", gap: "1rem" }}>
+      <div className="card pricing-info-card">
+        <div className="d-flex pricing-summary-row">
           <div>
             <h3 className="m-0">No monthly subscription</h3>
             <p className="text-secondary mt-xs m-0">
@@ -139,7 +130,7 @@ const Pricing = () => {
             </p>
           </div>
           <div className="text-right">
-            <span className="font-bold" style={{ fontSize: "2rem" }}>$0</span>
+            <span className="font-bold pricing-zero-price">$0</span>
             <span className="text-secondary">/month</span>
           </div>
         </div>

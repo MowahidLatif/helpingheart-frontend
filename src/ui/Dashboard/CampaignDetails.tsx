@@ -533,37 +533,39 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       </div>
 
       <div style={{ marginBottom: "1rem" }}>
-        <button onClick={handlePublish} style={{ marginRight: "0.5rem" }}>Preview & Publish</button>
+        <button className="btn btn-primary btn-sm mr-sm mb-sm" onClick={handlePublish}>
+          Preview & Publish
+        </button>
         <a
           href={`${typeof window !== "undefined" ? window.location.origin : ""}/donate/${campaign.id}`}
           target="_blank"
           rel="noopener noreferrer"
-          style={{ marginRight: "0.5rem", display: "inline-block", padding: "0.4rem 0.75rem", border: "1px solid #333", borderRadius: "4px", color: "inherit", textDecoration: "none", fontSize: "inherit" }}
+          className="btn btn-secondary btn-sm mr-sm mb-sm d-inline-block"
         >
           View Live Page
         </a>
-        <button onClick={handleOpenEdit} style={{ marginRight: "0.5rem" }}>Edit campaign</button>
-        <button onClick={handleEditMedia} style={{ marginRight: "0.5rem" }}>Edit Media</button>
-        <button onClick={handleAiSite} style={{ marginRight: "0.5rem" }}>AI site builder</button>
+        <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleOpenEdit}>Edit campaign</button>
+        <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleEditMedia}>Edit Media</button>
+        <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleAiSite}>AI site builder</button>
         {import.meta.env.VITE_ENABLE_CLASSIC_PAGE_BUILDER === "true" ? (
-          <button onClick={handleEditLayout} style={{ marginRight: "0.5rem" }}>
+          <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleEditLayout}>
             Classic page layout
           </button>
         ) : null}
         {isGiveaway && (
           <button
+            className="btn btn-secondary btn-sm mr-sm mb-sm"
             onClick={() => setShowConfirmModal(true)}
-            style={{ marginRight: "0.5rem" }}
           >
             🎲 Draw Winner
           </button>
         )}
         <button
+          className="btn btn-danger btn-sm mr-sm mb-sm"
           onClick={() => {
             setShowDeleteConfirmModal(true);
             setDeleteError("");
           }}
-          style={{ marginRight: "0.5rem", color: "#b91c1c", borderColor: "#b91c1c" }}
         >
           Delete campaign
         </button>
@@ -577,18 +579,17 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         <p style={{ color: "#666" }}>
           This action is permanent and cannot be undone. The campaign and its data will be removed.
         </p>
-        {deleteError && (
-          <p style={{ color: "#b91c1c", marginBottom: "0.5rem" }}>{deleteError}</p>
-        )}
+        {deleteError && <p className="form-error mb-sm">{deleteError}</p>}
         <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
           <button
+            className="btn btn-danger btn-sm"
             onClick={handleConfirmDelete}
             disabled={deleteLoading}
-            style={{ backgroundColor: "#b91c1c", color: "white", border: "none", padding: "0.5rem 1rem", borderRadius: "4px", cursor: deleteLoading ? "not-allowed" : "pointer" }}
           >
             {deleteLoading ? "Deleting…" : "Delete"}
           </button>
           <button
+            className="btn btn-secondary btn-sm"
             onClick={() => setShowDeleteConfirmModal(false)}
             disabled={deleteLoading}
           >
@@ -599,7 +600,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
 
       <Modal isOpen={showEditModal} onClose={() => !editLoading && setShowEditModal(false)}>
         <h3 style={{ marginTop: 0 }}>Edit campaign</h3>
-        {editError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</p>}
+        {editError && <p className="form-error mb-sm">{editError}</p>}
         <form onSubmit={handleSaveEdit}>
           <label style={{ display: "block", marginBottom: "0.5rem" }}>
             Title:
@@ -757,17 +758,17 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
               Draw a random winner from eligible donations? This will select one donor and send them a notification email.
             </p>
             {drawError && (
-              <p style={{ color: "red", marginBottom: "0.5rem" }}>
+              <p className="form-error mb-sm">
                 {drawError === "no eligible donations"
                   ? "No eligible donations to draw from. Make sure you have at least one successful donation."
                   : drawError}
               </p>
             )}
             <div style={{ display: "flex", gap: "0.5rem", marginTop: "1rem" }}>
-              <button onClick={() => handleDrawWinner()} disabled={drawLoading}>
+              <button className="btn btn-primary btn-sm" onClick={() => handleDrawWinner()} disabled={drawLoading}>
                 {drawLoading ? "Drawing…" : "Draw"}
               </button>
-              <button onClick={() => setShowConfirmModal(false)} disabled={drawLoading}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setShowConfirmModal(false)} disabled={drawLoading}>
                 Cancel
               </button>
             </div>
@@ -798,7 +799,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
               {exportCsvLoading ? "Exporting…" : "Export CSV"}
             </button>
           </div>
-          {donationsError && <p style={{ color: "red", marginBottom: "0.5rem" }}>{donationsError}</p>}
+          {donationsError && <p className="form-error mb-sm">{donationsError}</p>}
           {donationsLoading ? (
             <p>Loading donations…</p>
           ) : (
@@ -1318,7 +1319,7 @@ function CampaignTasksSection({
   return (
     <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
       <h3>Tasks</h3>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="form-error">{error}</p>}
       {loading ? (
         <p>Loading tasks...</p>
       ) : (
@@ -1636,7 +1637,7 @@ function CampaignTasksSection({
 
           <Modal isOpen={Boolean(editingTask)} onClose={() => !editLoading && setEditingTask(null)}>
             <h3 style={{ marginTop: 0 }}>Edit task</h3>
-            {editError && <div style={{ color: "red", marginBottom: "0.5rem" }}>{editError}</div>}
+            {editError && <div className="form-error mb-sm">{editError}</div>}
             <form onSubmit={handleEditTaskSubmit}>
               <label style={{ display: "block", marginBottom: "0.5rem" }}>
                 Title *

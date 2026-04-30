@@ -628,6 +628,53 @@
   }
 }
 
+.pricing-info-card {
+  padding: $spacing-xl;
+}
+
+.pricing-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.pricing-checklist__item {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-sm;
+}
+
+.pricing-summary-row {
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-md;
+}
+
+.pricing-zero-price {
+  font-size: $font-size-h2;
+}
+
+.about-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.about-feature-card {
+  padding: $spacing-lg;
+}
+
+.about-feature-title {
+  font-size: $font-size-base;
+}
+
+.about-feature-description {
+  line-height: $line-height-relaxed;
+}
+
 @media (max-width: 768px) {
   .pricing-options-grid {
     grid-template-columns: 1fr;

@@ -87,8 +87,11 @@ export default function SignUp() {
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-row">
             <div className="form-group">
-              <label className="form-label">First Name</label>
+              <label className="form-label required" htmlFor="signup-first-name">
+                First Name
+              </label>
               <Input
+                id="signup-first-name"
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -97,8 +100,11 @@ export default function SignUp() {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Last Name</label>
+              <label className="form-label required" htmlFor="signup-last-name">
+                Last Name
+              </label>
               <Input
+                id="signup-last-name"
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -108,8 +114,11 @@ export default function SignUp() {
             </div>
           </div>
           <div className="form-group">
-            <label className="form-label">Email</label>
+            <label className="form-label required" htmlFor="signup-email">
+              Email
+            </label>
             <Input
+              id="signup-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -118,16 +127,22 @@ export default function SignUp() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Password</label>
+            <label className="form-label required" htmlFor="signup-password">
+              Password
+            </label>
             <Input.Password
+              id="signup-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Organization Name</label>
+            <label className="form-label required" htmlFor="signup-org-name">
+              Organization Name
+            </label>
             <Input
+              id="signup-org-name"
               type="text"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
@@ -136,8 +151,11 @@ export default function SignUp() {
             />
           </div>
           <div className="form-group">
-            <label className="form-label">Organization Subdomain (optional)</label>
+            <label className="form-label" htmlFor="signup-org-subdomain">
+              Organization Subdomain (optional)
+            </label>
             <Input
+              id="signup-org-subdomain"
               type="text"
               value={orgSubdomain}
               onChange={(e) => setOrgSubdomain(e.target.value)}

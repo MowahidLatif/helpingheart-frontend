@@ -324,14 +324,15 @@
 .donate-block-donate-cta {
   padding: $spacing-md $spacing-xl;
   font-size: $font-size-lg;
-  background-color: $color-primary;
+  background-color: var(--hhf-accent, #{$color-primary});
   color: white;
   border: none;
   border-radius: $border-radius-md;
   cursor: pointer;
+  transition: filter 0.2s ease;
 
   &:hover {
-    background-color: $color-primary-dark;
+    filter: brightness(0.92);
   }
 }
 
