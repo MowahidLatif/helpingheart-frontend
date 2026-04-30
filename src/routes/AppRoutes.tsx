@@ -20,6 +20,7 @@ import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
 import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
 import AiSiteWizardPage from "@/pages/Campaign/AiSiteWizardPage";
+import DesignStudioPage from "@/pages/Campaign/DesignStudioPage";
 import TenantPublicHome from "@/pages/Campaign/TenantPublicHome";
 import ProgressEmbedPage from "@/pages/Embed/ProgressEmbedPage";
 import FullCampaignEmbedPage from "@/pages/Embed/FullCampaignEmbedPage";
@@ -160,6 +161,14 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute requiredPermissions={["campaign:edit"]}>
         <AiSiteWizardPage />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/campaign/design-studio/:campaignId",
+    element: (
+      <ProtectedRoute requiredPermissions={["campaign:edit"]}>
+        <DesignStudioPage />
       </ProtectedRoute>
     ),
   },

@@ -3,10 +3,19 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button, Spin, Progress, Input, Select } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
-import { parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
-import type { AiSiteRecipeV1, RecipeTheme } from "@/lib/aiSiteRecipe";
+import {
+  getIframeBundleContent,
+  parseAiSiteRenderModelFromDb,
+} from "@/lib/aiSiteRecipe";
+import type {
+  AiIframeContentMap,
+  AiSiteIframeBundleV1,
+  AiSiteRecipeV1,
+  RecipeTheme,
+} from "@/lib/aiSiteRecipe";
 import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
+import { AiSiteIframeRenderer } from "@/ui/AiSite/AiSiteIframeRenderer";
 import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
 import GenericTextInput from "@/components/Form/GenericTextInput";
 
@@ -121,8 +130,11 @@ export default function DesignStudioPage() {
   const [genError, setGenError] = useState("");
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [localRecipe, setLocalRecipe] = useState<AiSiteRecipeV1 | null>(null);
+  const [localBundle, setLocalBundle] = useState<AiSiteIframeBundleV1 | null>(null);
   const [saveLoading, setSaveLoading] = useState(false);
   const [saveError, setSaveError] = useState("");
+  const [publishLoading, setPublishLoading] = useState(false);
+  const [publishError, setPublishError] = useState("");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Cleanup polling on unmount
@@ -202,8 +214,17 @@ export default function DesignStudioPage() {
       const res = await api.get<Campaign>(API_ENDPOINTS.campaigns.public(campaignId));
       const camp = res.data;
       setCampaign(camp);
-      const parsed = parseAiSiteRecipeFromDb(camp.ai_site_recipe);
-      setLocalRecipe(parsed);
+      const parsed = parseAiSiteRenderModelFromDb(camp.ai_site_recipe);
+      if (parsed?.type === "dsl") {
+        setLocalRecipe(parsed.recipe);
+        setLocalBundle(null);
+      } else if (parsed?.type === "iframeBundle") {
+        setLocalBundle(parsed.bundle);
+        setLocalRecipe(null);
+      } else {
+        setLocalRecipe(null);
+        setLocalBundle(null);
+      }
       setStep("edit");
     } catch {
       setStep("embed");
@@ -222,19 +243,58 @@ export default function DesignStudioPage() {
     });
   };
 
+  const handleBundleContentEdit = (key: string, value: string) => {
+    setLocalBundle((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        content: {
+          ...prev.content,
+          [key]: value,
+        },
+      };
+    });
+  };
+
   const handleSaveEdits = async () => {
-    if (!campaignId || !localRecipe) return;
+    if (!campaignId || (!localRecipe && !localBundle)) return;
     setSaveLoading(true);
     setSaveError("");
     try {
       await api.put(API_ENDPOINTS.campaigns.aiSiteRecipePut(campaignId), {
-        recipe: localRecipe,
+        recipe: localBundle ?? localRecipe,
       });
       setStep("embed");
     } catch (err) {
       setSaveError(getErrorMessage(err));
     } finally {
       setSaveLoading(false);
+    }
+  };
+
+  const handleSaveAndPublish = async () => {
+    if (!campaignId || (!localRecipe && !localBundle)) return;
+    setPublishLoading(true);
+    setPublishError("");
+    try {
+      const recipePayload =
+        localBundle
+          ? {
+              ...localBundle,
+              publishedContent: { ...localBundle.content },
+            }
+          : localRecipe;
+      await api.put(API_ENDPOINTS.campaigns.aiSiteRecipePut(campaignId), {
+        recipe: recipePayload,
+      });
+      await api.patch(API_ENDPOINTS.campaigns.patch(campaignId), {
+        status: "active",
+      });
+      setStep("embed");
+    } catch (err) {
+      setPublishError(getErrorMessage(err));
+    } finally {
+      setPublishLoading(false);
     }
   };
 
@@ -574,6 +634,7 @@ export default function DesignStudioPage() {
             ✏ Edit Mode ON — click any text to edit
           </span>
           {saveError && <span style={{ color: "#dc2626", fontSize: 12 }}>{saveError}</span>}
+          {publishError && <span style={{ color: "#dc2626", fontSize: 12 }}>{publishError}</span>}
           <div style={{ marginLeft: "auto", display: "flex", gap: "0.5rem" }}>
             <Button
               type="primary"
@@ -581,13 +642,46 @@ export default function DesignStudioPage() {
               style={{ background: "#1D9E75", borderColor: "#1D9E75" }}
               onClick={handleSaveEdits}
             >
-              Save Changes
+              Save Draft
+            </Button>
+            <Button
+              type="primary"
+              loading={publishLoading}
+              onClick={handleSaveAndPublish}
+            >
+              Save & Publish
             </Button>
             <Button type="text" onClick={() => setStep("embed")}>
               Skip →
             </Button>
           </div>
         </div>
+        {localBundle ? (
+          <div style={{ ...cardStyle, maxWidth: 800, margin: "1rem auto" }}>
+            <h3 style={{ marginTop: 0 }}>Website copy</h3>
+            <p style={{ color: "#666", marginBottom: "1rem" }}>
+              Update text-only content fields below. These values are injected into your template.
+            </p>
+            {Object.entries(localBundle.content).length === 0 ? (
+              <p style={{ color: "#666" }}>
+                No editable text tokens were found in this template.
+              </p>
+            ) : (
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                {Object.entries(localBundle.content).map(([key, value]) => (
+                  <label key={key} style={{ display: "block" }}>
+                    <span style={{ display: "block", fontSize: 12, color: "#555", marginBottom: 4 }}>{key}</span>
+                    <Input.TextArea
+                      autoSize={{ minRows: 2, maxRows: 6 }}
+                      value={value}
+                      onChange={(event) => handleBundleContentEdit(key, event.target.value)}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
         {localRecipe && campaign ? (
           <div style={{ maxWidth: 800, margin: "0 auto" }}>
             <AiSiteRenderer
@@ -597,6 +691,15 @@ export default function DesignStudioPage() {
               stickyDonate={false}
               editMode={true}
               onTextEdit={handleTextEdit}
+            />
+          </div>
+        ) : localBundle && campaign ? (
+          <div style={{ maxWidth: 800, margin: "0 auto" }}>
+            <AiSiteIframeRenderer
+              bundle={localBundle}
+              content={getIframeBundleContent(localBundle, { publicView: false }) as AiIframeContentMap}
+              onDonateClick={() => {}}
+              title={`${campaign.title || "Campaign"} draft preview`}
             />
           </div>
         ) : (

@@ -7,6 +7,12 @@ import {
   AI_MAX_GALLERY_ITEMS,
   AI_MAX_HERO_SUBTITLE_LEN,
   AI_MAX_HERO_TITLE_LEN,
+  AI_MAX_IFRAME_CONTENT_FIELDS,
+  AI_MAX_IFRAME_CONTENT_KEY_LEN,
+  AI_MAX_IFRAME_CONTENT_VALUE_LEN,
+  AI_MAX_IFRAME_CSS_BYTES,
+  AI_MAX_IFRAME_HTML_BYTES,
+  AI_MAX_IFRAME_JS_BYTES,
   AI_MAX_NODES,
   AI_MAX_PROP_URL_LEN,
   AI_MAX_RECIPE_JSON_BYTES,
@@ -45,6 +51,24 @@ export type AiSiteRecipeV1 = {
   nodes: AiNode[];
   theme?: RecipeTheme;
 };
+
+export type AiIframeContentMap = Record<string, string>;
+
+export type AiSiteIframeBundleV1 = {
+  type: "iframeBundle";
+  version: "1";
+  template: {
+    html: string;
+    css?: string;
+    js?: string;
+  };
+  content: AiIframeContentMap;
+  publishedContent?: AiIframeContentMap;
+};
+
+export type AiSiteRenderModel =
+  | { type: "dsl"; recipe: AiSiteRecipeV1 }
+  | { type: "iframeBundle"; bundle: AiSiteIframeBundleV1 };
 
 export function getRecipeTheme(recipe: AiSiteRecipeV1): RecipeTheme | null {
   return recipe.theme ?? null;
@@ -187,6 +211,90 @@ export function parseAiSiteRecipeFromDb(raw: unknown): AiSiteRecipeV1 | null {
   return parseAiSiteRecipe(normalizeAiRecipe(raw));
 }
 
+function parseIframeContentMap(raw: unknown): AiIframeContentMap | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const out: AiIframeContentMap = {};
+  const entries = Object.entries(raw as Record<string, unknown>);
+  if (entries.length > AI_MAX_IFRAME_CONTENT_FIELDS) return null;
+  for (const [keyRaw, valueRaw] of entries) {
+    const key = keyRaw.trim();
+    if (!key || key.length > AI_MAX_IFRAME_CONTENT_KEY_LEN) return null;
+    if (typeof valueRaw !== "string") return null;
+    if (valueRaw.length > AI_MAX_IFRAME_CONTENT_VALUE_LEN) return null;
+    out[key] = valueRaw;
+  }
+  return out;
+}
+
+function parseAiSiteIframeBundle(raw: unknown): AiSiteIframeBundleV1 | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const type = o.type;
+  if (type !== "iframeBundle" && type !== "iframe_bundle") return null;
+  const version = o.version;
+  if (version !== "1" && version !== 1) return null;
+  const templateRaw =
+    o.template && typeof o.template === "object" && !Array.isArray(o.template)
+      ? (o.template as Record<string, unknown>)
+      : null;
+  if (!templateRaw) return null;
+  const html = typeof templateRaw.html === "string" ? templateRaw.html : "";
+  if (!html.trim()) return null;
+  if (new TextEncoder().encode(html).length > AI_MAX_IFRAME_HTML_BYTES) return null;
+  const css = typeof templateRaw.css === "string" ? templateRaw.css : undefined;
+  const js = typeof templateRaw.js === "string" ? templateRaw.js : undefined;
+  if (css && new TextEncoder().encode(css).length > AI_MAX_IFRAME_CSS_BYTES) return null;
+  if (js && new TextEncoder().encode(js).length > AI_MAX_IFRAME_JS_BYTES) return null;
+
+  const content = parseIframeContentMap(o.content);
+  if (!content) return null;
+  const publishedContent =
+    o.publishedContent == null ? undefined : parseIframeContentMap(o.publishedContent);
+  if (o.publishedContent != null && !publishedContent) return null;
+
+  const candidate: AiSiteIframeBundleV1 = {
+    type: "iframeBundle",
+    version: "1",
+    template: { html, ...(css ? { css } : {}), ...(js ? { js } : {}) },
+    content,
+    ...(publishedContent ? { publishedContent } : {}),
+  };
+  try {
+    const encoded = JSON.stringify(candidate);
+    if (new TextEncoder().encode(encoded).length > AI_MAX_RECIPE_JSON_BYTES) return null;
+  } catch {
+    return null;
+  }
+  return candidate;
+}
+
+export function parseAiSiteRenderModelFromDb(raw: unknown): AiSiteRenderModel | null {
+  const iframe = parseAiSiteIframeBundle(raw);
+  if (iframe) return { type: "iframeBundle", bundle: iframe };
+
+  if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+    const o = raw as Record<string, unknown>;
+    if (o.type === "dsl" && o.recipe != null) {
+      const recipe = parseAiSiteRecipeFromDb(o.recipe);
+      if (recipe) return { type: "dsl", recipe };
+      return null;
+    }
+  }
+  const recipe = parseAiSiteRecipeFromDb(raw);
+  if (!recipe) return null;
+  return { type: "dsl", recipe };
+}
+
+export function getIframeBundleContent(
+  bundle: AiSiteIframeBundleV1,
+  opts: { publicView: boolean; allowDraftFallback?: boolean },
+): AiIframeContentMap | null {
+  if (!opts.publicView) return bundle.content;
+  if (bundle.publishedContent) return bundle.publishedContent;
+  if (opts.allowDraftFallback) return bundle.content;
+  return null;
+}
+
 export function getDonatePresetsFromRecipe(recipe: AiSiteRecipeV1 | null): number[] {
   const fallback = [5, 10, 25, 50, 100];
   if (!recipe) return fallback;
@@ -231,6 +339,28 @@ export function getSeoDescriptionFromRecipe(recipe: AiSiteRecipeV1 | null): stri
         const oneLine = body.replace(/\s+/g, " ").trim();
         return oneLine.slice(0, SEO_DESC_MAX);
       }
+    }
+  }
+  return "";
+}
+
+export function getSeoDescriptionFromRenderModel(
+  model: AiSiteRenderModel | null,
+): string {
+  if (!model) return "";
+  if (model.type === "dsl") return getSeoDescriptionFromRecipe(model.recipe);
+  const published = model.bundle.publishedContent;
+  const content = published ?? model.bundle.content;
+  const preferredKeys = ["description", "subtitle", "summary", "body", "about"];
+  for (const key of preferredKeys) {
+    const val = content[key];
+    if (typeof val === "string" && val.trim()) {
+      return val.replace(/\s+/g, " ").trim().slice(0, SEO_DESC_MAX);
+    }
+  }
+  for (const val of Object.values(content)) {
+    if (typeof val === "string" && val.trim()) {
+      return val.replace(/\s+/g, " ").trim().slice(0, SEO_DESC_MAX);
     }
   }
   return "";

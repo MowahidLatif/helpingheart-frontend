@@ -5,7 +5,8 @@ import { API_ENDPOINTS } from "@/lib/constants";
 import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
-import { parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
+import { AiSiteIframeRenderer } from "@/ui/AiSite/AiSiteIframeRenderer";
+import { getIframeBundleContent, parseAiSiteRenderModelFromDb } from "@/lib/aiSiteRecipe";
 import { notifyError } from "@/lib/notifications";
 
 const ALLOWED_FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
@@ -48,7 +49,9 @@ export default function FullCampaignEmbedPage() {
     setCampaign((prev) => (prev ? { ...prev, total_raised: patch.total_raised } : prev));
   });
 
-  const aiRecipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
+  const renderModel = parseAiSiteRenderModelFromDb(campaign?.ai_site_recipe);
+  const status = (campaign?.status ?? "").toLowerCase();
+  const isPubliclyVisible = status === "active" || status === "completed";
 
   const onDonateClick = () => {
     if (!campaignId) return;
@@ -73,11 +76,31 @@ export default function FullCampaignEmbedPage() {
     return <div style={{ ...containerStyle, color: "#666" }}>{error || "Campaign not found."}</div>;
   }
 
+  if (!isPubliclyVisible) {
+    return <div style={{ ...containerStyle, color: "#666" }}>Campaign is not published yet.</div>;
+  }
+
   return (
     <div style={containerStyle}>
       {rootStyle ? <style>{`:root { ${rootStyle} }`}</style> : null}
-      {aiRecipe ? (
-        <AiSiteRenderer campaign={campaign} recipe={aiRecipe} onDonateClick={onDonateClick} />
+      {renderModel?.type === "dsl" ? (
+        <AiSiteRenderer campaign={campaign} recipe={renderModel.recipe} onDonateClick={onDonateClick} />
+      ) : renderModel?.type === "iframeBundle" ? (
+        (() => {
+          const content = getIframeBundleContent(renderModel.bundle, {
+            publicView: true,
+            allowDraftFallback: false,
+          });
+          if (!content) return <div style={{ color: "#666" }}>Campaign website is not published yet.</div>;
+          return (
+            <AiSiteIframeRenderer
+              bundle={renderModel.bundle}
+              content={content}
+              onDonateClick={onDonateClick}
+              title={`${campaign.title || "Campaign"} embed`}
+            />
+          );
+        })()
       ) : (
         <BlockRenderer campaign={campaign} onDonateClick={onDonateClick} />
       )}

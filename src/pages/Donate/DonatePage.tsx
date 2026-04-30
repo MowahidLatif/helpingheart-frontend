@@ -7,10 +7,12 @@ import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
 import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
+import { AiSiteIframeRenderer } from "@/ui/AiSite/AiSiteIframeRenderer";
 import {
+  getIframeBundleContent,
   getDonatePresetsFromRecipe,
-  getSeoDescriptionFromRecipe,
-  parseAiSiteRecipeFromDb,
+  getSeoDescriptionFromRenderModel,
+  parseAiSiteRenderModelFromDb,
 } from "@/lib/aiSiteRecipe";
 import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
 import { notifyError } from "@/lib/notifications";
@@ -18,8 +20,8 @@ import { notifyError } from "@/lib/notifications";
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
 function getPresetAmounts(campaign: Campaign | null): number[] {
-  const recipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
-  if (recipe) return getDonatePresetsFromRecipe(recipe);
+  const model = parseAiSiteRenderModelFromDb(campaign?.ai_site_recipe);
+  if (model?.type === "dsl") return getDonatePresetsFromRecipe(model.recipe);
   if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
   const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
   const presets = donateBlock?.props?.preset_amounts;
@@ -81,22 +83,24 @@ export default function DonatePage() {
   });
 
   const presets = getPresetAmounts(campaign);
-  const aiRecipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
+  const renderModel = parseAiSiteRenderModelFromDb(campaign?.ai_site_recipe);
   const stripeKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
   const stripeConfigured = stripeKey && stripeKey.startsWith("pk_");
 
   const seo = useMemo(() => {
     if (!campaign) return null;
-    const recipe = parseAiSiteRecipeFromDb(campaign.ai_site_recipe);
     const titleBase = campaign.title?.trim() || "Campaign";
     const title = `${titleBase} · Donate`;
-    const fromRecipe = getSeoDescriptionFromRecipe(recipe);
+    const fromRecipe = getSeoDescriptionFromRenderModel(renderModel);
     const description =
       fromRecipe || `Support ${titleBase}. Make a secure donation.`;
     const canonical =
       typeof window !== "undefined" ? window.location.href.split("#")[0] : "";
     return { title, description, canonical };
-  }, [campaign]);
+  }, [campaign, renderModel]);
+
+  const status = (campaign?.status ?? "").toLowerCase();
+  const isPubliclyVisible = status === "active" || status === "completed";
 
   if (loading) {
     return (
@@ -124,6 +128,16 @@ export default function DonatePage() {
     );
   }
 
+  if (!isPubliclyVisible) {
+    return (
+      <div className="donate-page">
+        <p className="donation-error">
+          This campaign is not published yet.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="donate-page donate-page-blocks">
       {seo ? (
@@ -138,12 +152,34 @@ export default function DonatePage() {
         </Helmet>
       ) : null}
       {/* Missing, corrupt, or invalid ai_site_recipe parses as null → classic blocks (defaultBlocks if no page_layout). */}
-      {aiRecipe ? (
+      {renderModel?.type === "dsl" ? (
         <AiSiteRenderer
           campaign={campaign}
-          recipe={aiRecipe}
+          recipe={renderModel.recipe}
           onDonateClick={() => setModalOpen(true)}
         />
+      ) : renderModel?.type === "iframeBundle" ? (
+        (() => {
+          const content = getIframeBundleContent(renderModel.bundle, {
+            publicView: true,
+            allowDraftFallback: false,
+          });
+          if (!content) {
+            return (
+              <p className="donation-error">
+                This campaign website is not published yet.
+              </p>
+            );
+          }
+          return (
+            <AiSiteIframeRenderer
+              bundle={renderModel.bundle}
+              content={content}
+              onDonateClick={() => setModalOpen(true)}
+              title={`${campaign.title || "Campaign"} AI site`}
+            />
+          );
+        })()
       ) : (
         <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />
       )}

@@ -17,6 +17,7 @@ export type Campaign = {
   id: string;
   title?: string;
   slug?: string;
+  status?: string;
   goal?: number;
   total_raised?: number;
   giveaway_prize_cents?: number;
