@@ -48,6 +48,7 @@ type OutletContext = {
   role?: string | null;
   onRefreshCampaigns?: () => void;
   onCampaignDeleted?: () => void;
+  orgTierInfo?: import("@/lib/tierFeatures").OrgTierInfo | null;
 };
 
 type DonationRow = {
@@ -87,7 +88,8 @@ type CampaignProgress = {
 const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignUpdated }) => {
   const navigate = useNavigate();
   const outletContext = useOutletContext<OutletContext>();
-  const { onRefreshCampaigns, onCampaignDeleted, role } = outletContext || {};
+  const { onRefreshCampaigns, onCampaignDeleted, role, orgTierInfo } = outletContext || {};
+  const orgTier = orgTierInfo?.tier ?? 1;
   const [progress, setProgress] = useState<CampaignProgress | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [drawLoading, setDrawLoading] = useState(false);
@@ -552,13 +554,18 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
             Classic page layout
           </button>
         ) : null}
-        {isGiveaway && (
+        {isGiveaway && orgTier >= 3 && (
           <button
             className="btn btn-secondary btn-sm mr-sm mb-sm"
             onClick={() => setShowConfirmModal(true)}
           >
             🎲 Draw Winner
           </button>
+        )}
+        {isGiveaway && orgTier < 3 && (
+          <span className="tier-gate-inline" title="Upgrade to Scale to run giveaways">
+            🔒 Giveaway (Scale plan)
+          </span>
         )}
         <button
           className="btn btn-danger btn-sm mr-sm mb-sm"
@@ -987,9 +994,16 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       )}
 
       {showDonations && campaign.id && (
-        <EmbedGenerator
-          campaign={{ id: campaign.id, slug: campaign.slug, title: campaign.title }}
-        />
+        orgTier >= 2 ? (
+          <EmbedGenerator
+            campaign={{ id: campaign.id, slug: campaign.slug, title: campaign.title }}
+          />
+        ) : (
+          <div className="tier-gate-banner">
+            <strong>iFrame Embedding</strong> is available on the Grow plan and above.{" "}
+            <a href="/pricing">See pricing</a>
+          </div>
+        )
       )}
 
       {campaign.id && orgId && (

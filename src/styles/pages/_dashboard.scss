@@ -218,3 +218,35 @@
     font-size: $font-size-base;
   }
 }
+
+// ─── Tier gate UI ─────────────────────────────────────────────────────────
+
+.tier-gate-banner {
+  background-color: $color-background-light;
+  border: 1px solid $color-border;
+  border-left: 4px solid $color-secondary;
+  border-radius: $border-radius-md;
+  padding: $spacing-lg;
+  color: $color-text-secondary;
+  line-height: $line-height-relaxed;
+
+  strong {
+    color: $color-text-primary;
+  }
+
+  a {
+    color: $color-primary;
+    font-weight: $font-weight-medium;
+  }
+}
+
+.tier-gate-inline {
+  display: inline-block;
+  font-size: $font-size-sm;
+  color: $color-text-secondary;
+  background-color: $color-background-light;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-sm;
+  padding: 2px $spacing-sm;
+  cursor: not-allowed;
+}

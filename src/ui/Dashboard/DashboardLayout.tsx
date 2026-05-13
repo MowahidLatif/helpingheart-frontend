@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import Sidebar from "./Sidebar";
+import type { OrgTierInfo } from "@/lib/tierFeatures";
 
 type Campaign = {
   id: string;
@@ -29,6 +30,7 @@ export default function DashboardLayout() {
   const [meError, setMeError] = useState("");
   const [refreshCampaignsTrigger, setRefreshCampaignsTrigger] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [orgTierInfo, setOrgTierInfo] = useState<OrgTierInfo | null>(null);
 
   const onRefreshCampaigns = () => setRefreshCampaignsTrigger((t) => t + 1);
   const onCampaignDeleted = () => navigate("/dashboard", { replace: true });
@@ -37,8 +39,15 @@ export default function DashboardLayout() {
     api
       .get<MeInfo>(API_ENDPOINTS.me.info)
       .then((res) => {
-        setOrgId(res.data.org_id ?? null);
+        const oid = res.data.org_id ?? null;
+        setOrgId(oid);
         setRole(res.data.role ?? null);
+        if (oid) {
+          api
+            .get<OrgTierInfo>(API_ENDPOINTS.orgs.tierInfo(oid))
+            .then((r) => setOrgTierInfo(r.data))
+            .catch(() => null);
+        }
       })
       .catch((err) => {
         setMeError(getErrorMessage(err));
@@ -88,7 +97,7 @@ export default function DashboardLayout() {
         </button>
 
         {meError && <div className="form-error mb-md">{meError}</div>}
-        <Outlet context={{ orgId, role, onRefreshCampaigns, onCampaignDeleted }} />
+        <Outlet context={{ orgId, role, onRefreshCampaigns, onCampaignDeleted, orgTierInfo }} />
       </main>
     </div>
   );

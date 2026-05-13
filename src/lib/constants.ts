@@ -100,6 +100,8 @@ export const API_ENDPOINTS = {
     taskStatuses: (id: string) => `/api/orgs/${id}/task-statuses`,
     taskStatus: (orgId: string, statusId: string) => `/api/orgs/${orgId}/task-statuses/${statusId}`,
     emailSettings: (id: string) => `/api/orgs/${id}/email-settings`,
+    tierInfo: (id: string) => `/api/orgs/${id}/tier-info`,
+    tier: (id: string) => `/api/orgs/${id}/tier`,
   },
 };
 

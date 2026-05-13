@@ -511,7 +511,165 @@
 }
 
 .pricing-page {
-  max-width: 920px;
+  max-width: 1000px;
+}
+
+// ─── New 3-tier pricing grid ───────────────────────────────────────────────
+
+.pricing-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-lg;
+  align-items: stretch;
+}
+
+.pricing-tier {
+  padding: $spacing-xl;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border: 2px solid $color-border;
+  transition: border-color 0.15s;
+
+  &--popular {
+    border-color: $color-primary;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  &__badge {
+    position: absolute;
+    top: -1px;
+    right: $spacing-lg;
+    background-color: $color-primary;
+    color: #fff;
+    font-size: 11px;
+    font-weight: $font-weight-semibold;
+    padding: 2px $spacing-sm;
+    border-radius: 0 0 $border-radius-sm $border-radius-sm;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__header {
+    margin-bottom: $spacing-lg;
+  }
+
+  &__name {
+    font-size: $font-size-h3;
+    font-weight: $font-weight-semibold;
+  }
+
+  &__fee {
+    margin-top: $spacing-xs;
+    line-height: 1;
+  }
+
+  &__pct {
+    font-size: $font-size-h2;
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+  }
+
+  &__fee-label {
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+  }
+
+  &__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 $spacing-xl;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    flex: 1;
+  }
+
+  &__feat {
+    display: flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: $font-size-sm;
+    line-height: $line-height-relaxed;
+
+    &--muted {
+      color: $color-text-secondary;
+    }
+  }
+
+  &__cta {
+    display: block;
+    text-align: center;
+    margin-top: auto;
+  }
+}
+
+.tier-check {
+  color: $color-success;
+  font-weight: $font-weight-bold;
+  flex-shrink: 0;
+}
+
+.tier-dash {
+  color: $color-text-secondary;
+  flex-shrink: 0;
+}
+
+.tier-val-text {
+  font-weight: $font-weight-semibold;
+}
+
+// ─── Full feature comparison table ────────────────────────────────────────
+
+.pricing-compare-card {
+  padding: $spacing-xl;
+  overflow: hidden;
+}
+
+.pricing-compare-table-wrap {
+  overflow-x: auto;
+}
+
+.pricing-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: $font-size-sm;
+
+  th {
+    text-align: center;
+    padding: $spacing-sm $spacing-md;
+    font-weight: $font-weight-semibold;
+    border-bottom: 2px solid $color-border;
+    background-color: $color-background-light;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: $spacing-sm $spacing-md;
+    border-bottom: 1px solid $color-border;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  &__feature-col {
+    text-align: left !important;
+    color: $color-text-primary;
+    width: 50%;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background-color: $color-background-light;
+  }
+}
+
+@media (max-width: 768px) {
+  .pricing-tiers-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .info-callout {

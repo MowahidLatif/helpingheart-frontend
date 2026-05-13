@@ -65,9 +65,94 @@
   padding-top: $spacing-lg;
   border-top: 1px solid $color-border;
   color: $color-text-secondary;
-  
+
   a {
     color: $color-primary;
     font-weight: $font-weight-medium;
+  }
+}
+
+.auth-card--wide {
+  max-width: 780px;
+}
+
+// ─── Signup tier selection step ────────────────────────────────────────────
+
+.signup-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+
+  @include respond-below(mobile) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.signup-tier-card {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid $color-border;
+  border-radius: $border-radius-md;
+  padding: $spacing-md;
+  text-align: left;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:hover {
+    border-color: $color-primary;
+  }
+
+  &--selected {
+    border-color: $color-primary;
+    box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.12);
+  }
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: $spacing-sm;
+  }
+
+  &__name {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-base;
+  }
+
+  &__fee {
+    font-weight: $font-weight-bold;
+    color: $color-primary;
+    font-size: $font-size-lg;
+  }
+
+  &__fee-label {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-normal;
+    color: $color-text-secondary;
+  }
+
+  &__features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: $font-size-sm;
+    color: $color-text-secondary;
+    line-height: $line-height-relaxed;
+  }
+}
+
+.link-btn {
+  all: unset;
+  cursor: pointer;
+  color: $color-primary;
+  font-weight: $font-weight-medium;
+
+  &:hover {
+    text-decoration: underline;
   }
 }

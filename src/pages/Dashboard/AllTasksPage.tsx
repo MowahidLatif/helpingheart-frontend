@@ -6,7 +6,10 @@ import { API_ENDPOINTS, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
-type OutletContext = { orgId?: string | null };
+type OutletContext = {
+  orgId?: string | null;
+  orgTierInfo?: import("@/lib/tierFeatures").OrgTierInfo | null;
+};
 
 type Campaign = {
   id: string;
@@ -28,7 +31,8 @@ type TaskRow = {
 };
 
 export default function AllTasksPage() {
-  const { orgId = null } = useOutletContext<OutletContext>();
+  const { orgId = null, orgTierInfo } = useOutletContext<OutletContext>();
+  const orgTier = orgTierInfo?.tier ?? 1;
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,6 +149,19 @@ export default function AllTasksPage() {
   };
 
   if (!orgId) return <p>Loading organization...</p>;
+
+  if (orgTier < 2) {
+    return (
+      <div style={{ padding: "1rem" }}>
+        <h1>All Tasks</h1>
+        <div className="tier-gate-banner">
+          <strong>Task Management</strong> is available on the Grow plan and above.{" "}
+          Upgrade to collaborate with your team and track campaign work.{" "}
+          <a href="/pricing">See pricing →</a>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: "1rem" }}>

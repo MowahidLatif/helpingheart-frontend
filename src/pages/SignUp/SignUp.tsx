@@ -1,13 +1,66 @@
 import React, { useState } from "react";
 import { Button, Input } from "antd";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import api from "@/lib/api";
 import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { notifyError } from "@/lib/notifications";
+import { TIER_LIMITS, getAiGenLabel } from "@/lib/tierFeatures";
+import type { TierKey } from "@/lib/tierFeatures";
+
+type StepTierCardProps = {
+  tierKey: TierKey;
+  selected: boolean;
+  onSelect: () => void;
+};
+
+function TierCard({ tierKey, selected, onSelect }: StepTierCardProps) {
+  const limits = TIER_LIMITS[tierKey];
+  const highlights: string[] = [];
+  if (tierKey === 1) {
+    highlights.push(`Up to ${limits.max_active_campaigns} active campaigns`);
+    highlights.push(`${getAiGenLabel(1)} AI site generations`);
+    highlights.push("Stripe payouts, custom subdomain");
+  } else if (tierKey === 2) {
+    highlights.push(`Up to ${limits.max_active_campaigns} active campaigns`);
+    highlights.push(`${getAiGenLabel(2)} AI generations`);
+    highlights.push("Team management (up to 5 members)");
+    highlights.push("iFrame embedding, campaign updates");
+  } else {
+    highlights.push("Unlimited campaigns & members");
+    highlights.push(`${getAiGenLabel(3)} AI generations`);
+    highlights.push("Full task suite, email marketing");
+    highlights.push("Giveaway / lottery, advanced analytics");
+  }
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={`signup-tier-card${selected ? " signup-tier-card--selected" : ""}`}
+    >
+      <div className="signup-tier-card__header">
+        <span className="signup-tier-card__name">{limits.name}</span>
+        <span className="signup-tier-card__fee">
+          {limits.platform_fee_percent}%<span className="signup-tier-card__fee-label"> of raised</span>
+        </span>
+      </div>
+      <ul className="signup-tier-card__features">
+        {highlights.map((h) => (
+          <li key={h}>{h}</li>
+        ))}
+      </ul>
+    </button>
+  );
+}
 
 export default function SignUp() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialTier = (parseInt(searchParams.get("tier") || "0") as TierKey) || 2;
+  const validInitial: TierKey = [1, 2, 3].includes(initialTier) ? initialTier : 2;
+
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedTier, setSelectedTier] = useState<TierKey>(validInitial);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -15,19 +68,11 @@ export default function SignUp() {
   const [orgName, setOrgName] = useState("");
   const [orgSubdomain, setOrgSubdomain] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!email || !firstName || !lastName || !password || !orgName) {
-      setError("Please fill in all required fields.");
-      return;
-    }
-
+    if (!email || !firstName || !lastName || !password || !orgName) return;
     setLoading(true);
-    setError("");
-
     try {
       const response = await api.post(API_ENDPOINTS.auth.register, {
         email,
@@ -36,25 +81,15 @@ export default function SignUp() {
         last_name: lastName,
         org_name: orgName,
         org_subdomain: orgSubdomain || undefined,
+        org_tier: selectedTier,
       });
-
-      const {
-        access_token,
-        refresh_token,
-        id,
-        email: userEmail,
-        name,
-        org_id,
-      } = response.data;
-      // Keep local token fallback for environments where auth cookies are not sent
-      // (e.g. localhost <-> 127.0.0.1 host mismatch during local development).
+      const { access_token, refresh_token, id, email: userEmail, name, org_id } = response.data;
       localStorage.setItem("token", access_token);
       if (refresh_token) {
         localStorage.setItem("refreshToken", refresh_token);
       } else {
         localStorage.removeItem("refreshToken");
       }
-      // Decode claims to store role/permissions for local auth checks.
       const claims = decodeTokenClaims(access_token);
       localStorage.setItem(
         "user",
@@ -67,7 +102,6 @@ export default function SignUp() {
           permissions: claims?.permissions ?? [],
         })
       );
-
       navigate("/dashboard");
     } catch (err) {
       notifyError(err, "Sign up failed.");
@@ -78,99 +112,139 @@ export default function SignUp() {
 
   return (
     <div className="auth-page">
-      <div className="auth-card">
+      <div className={`auth-card${step === 1 ? " auth-card--wide" : ""}`}>
         <div className="auth-header">
           <h1>Sign Up</h1>
-          <p>Create your account and start fundraising.</p>
+          {step === 1 ? (
+            <p>Choose a plan to get started. You can upgrade at any time.</p>
+          ) : (
+            <p>
+              <button
+                type="button"
+                className="link-btn"
+                onClick={() => setStep(1)}
+              >
+                ← Change plan
+              </button>{" "}
+              <strong>{TIER_LIMITS[selectedTier].name}</strong> —{" "}
+              {TIER_LIMITS[selectedTier].platform_fee_percent}% of raised
+            </p>
+          )}
         </div>
-        {error && <div className="form-error mb-md">{error}</div>}
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-row">
-            <div className="form-group">
-              <label className="form-label required" htmlFor="signup-first-name">
-                First Name
-              </label>
-              <Input
-                id="signup-first-name"
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                required
-                placeholder="John"
-              />
+
+        {step === 1 && (
+          <div>
+            <div className="signup-tier-grid">
+              {([1, 2, 3] as TierKey[]).map((k) => (
+                <TierCard
+                  key={k}
+                  tierKey={k}
+                  selected={selectedTier === k}
+                  onSelect={() => setSelectedTier(k)}
+                />
+              ))}
             </div>
-            <div className="form-group">
-              <label className="form-label required" htmlFor="signup-last-name">
-                Last Name
-              </label>
-              <Input
-                id="signup-last-name"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                required
-                placeholder="Doe"
-              />
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label required" htmlFor="signup-email">
-              Email
-            </label>
-            <Input
-              id="signup-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label required" htmlFor="signup-password">
-              Password
-            </label>
-            <Input.Password
-              id="signup-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label required" htmlFor="signup-org-name">
-              Organization Name
-            </label>
-            <Input
-              id="signup-org-name"
-              type="text"
-              value={orgName}
-              onChange={(e) => setOrgName(e.target.value)}
-              required
-              placeholder="My Organization"
-            />
-          </div>
-          <div className="form-group">
-            <label className="form-label" htmlFor="signup-org-subdomain">
-              Organization Subdomain (optional)
-            </label>
-            <Input
-              id="signup-org-subdomain"
-              type="text"
-              value={orgSubdomain}
-              onChange={(e) => setOrgSubdomain(e.target.value)}
-              placeholder="e.g., myorg"
-            />
-            <span className="form-help-text">
-              Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
-            </span>
-          </div>
-          <div className="form-actions">
-            <Button type="primary" htmlType="submit" loading={loading} block>
-              {loading ? "Creating account..." : "Sign Up"}
+            <Button
+              type="primary"
+              block
+              className="mt-xl"
+              onClick={() => setStep(2)}
+            >
+              Continue with {TIER_LIMITS[selectedTier].name} →
             </Button>
           </div>
-        </form>
+        )}
+
+        {step === 2 && (
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="form-row">
+              <div className="form-group">
+                <label className="form-label required" htmlFor="signup-first-name">
+                  First Name
+                </label>
+                <Input
+                  id="signup-first-name"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  placeholder="John"
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label required" htmlFor="signup-last-name">
+                  Last Name
+                </label>
+                <Input
+                  id="signup-last-name"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  placeholder="Doe"
+                />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label required" htmlFor="signup-email">
+                Email
+              </label>
+              <Input
+                id="signup-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label required" htmlFor="signup-password">
+                Password
+              </label>
+              <Input.Password
+                id="signup-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label required" htmlFor="signup-org-name">
+                Organization Name
+              </label>
+              <Input
+                id="signup-org-name"
+                type="text"
+                value={orgName}
+                onChange={(e) => setOrgName(e.target.value)}
+                required
+                placeholder="My Organization"
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="signup-org-subdomain">
+                Organization Subdomain (optional)
+              </label>
+              <Input
+                id="signup-org-subdomain"
+                type="text"
+                value={orgSubdomain}
+                onChange={(e) => setOrgSubdomain(e.target.value)}
+                placeholder="e.g., myorg"
+              />
+              <span className="form-help-text">
+                Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
+              </span>
+            </div>
+            <div className="form-actions">
+              <Button type="primary" htmlType="submit" loading={loading} block>
+                {loading ? "Creating account..." : "Sign Up"}
+              </Button>
+            </div>
+          </form>
+        )}
+
         <div className="auth-footer">
           Already have an account? <Link to="/signin">Sign in</Link>
         </div>

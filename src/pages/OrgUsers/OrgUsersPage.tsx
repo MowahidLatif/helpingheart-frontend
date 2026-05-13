@@ -14,12 +14,19 @@ type Member = {
   permissions: string[];
 };
 
-type OutletContext = { orgId: string | null; role: string | null };
+type OutletContext = {
+  orgId: string | null;
+  role: string | null;
+  orgTierInfo?: import("@/lib/tierFeatures").OrgTierInfo | null;
+};
 
 type Tab = "members" | "create";
 
 export default function OrgUsersPage() {
-  const { orgId, role: viewerRole } = useOutletContext<OutletContext>();
+  const { orgId, role: viewerRole, orgTierInfo } = useOutletContext<OutletContext>();
+  const orgTier = orgTierInfo?.tier ?? 1;
+  const maxMembers = orgTierInfo?.limits?.max_members ?? 1;
+  const memberCount = orgTierInfo?.usage?.member_count ?? 0;
   const [activeTab, setActiveTab] = useState<Tab>("members");
 
   const [members, setMembers] = useState<Member[]>([]);
@@ -236,9 +243,28 @@ export default function OrgUsersPage() {
 
   if (!orgId) return <p>Loading organization...</p>;
 
+  if (orgTier < 2) {
+    return (
+      <div style={{ padding: "1rem" }}>
+        <h1>Organization Users</h1>
+        <div className="tier-gate-banner">
+          <strong>Team Management</strong> is available on the Grow plan and above.{" "}
+          Upgrade to add team members, assign roles, and collaborate on campaigns.{" "}
+          <a href="/pricing">See pricing →</a>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={{ padding: "1rem" }}>
       <h1>Organization Users</h1>
+      {orgTier === 2 && maxMembers !== null && (
+        <p style={{ color: memberCount >= maxMembers ? "red" : "#666", marginBottom: "0.75rem" }}>
+          Team members: {memberCount} / {maxMembers}
+          {memberCount >= maxMembers && " — limit reached. Upgrade to Scale for unlimited members."}
+        </p>
+      )}
 
       <Tabs
         activeKey={activeTab}
@@ -300,6 +326,8 @@ export default function OrgUsersPage() {
                 type="primary"
                 htmlType="submit"
                 loading={addLoading}
+                disabled={maxMembers !== null && memberCount >= maxMembers}
+                title={maxMembers !== null && memberCount >= maxMembers ? "Member limit reached. Upgrade to Scale." : undefined}
                 style={{ alignSelf: "flex-end" }}
               >
                 {addLoading ? "Adding..." : "Add user"}
