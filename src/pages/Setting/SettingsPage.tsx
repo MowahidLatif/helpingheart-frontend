@@ -11,9 +11,20 @@ import {
   validateName,
   validatePasswordChange,
 } from "@/lib/settingsValidation";
+import { TIER_LIMITS, TIER_NAMES } from "@/lib/tierFeatures";
+import type { TierKey } from "@/lib/tierFeatures";
 
 type Profile = { id: string; email: string; name: string } | null;
-type Org = { id: string; name: string; subdomain?: string; role?: string } | null;
+type Org = { id: string; name: string; subdomain?: string; role?: string; tier?: number } | null;
+
+type AckCampaign = {
+  id: string;
+  title: string;
+  locked_tier: number;
+  locked_tier_name: string;
+  locked_fee_percent: number;
+  status: string;
+};
 type EmailSettings = {
   from_name?: string;
   from_email?: string;
@@ -88,7 +99,14 @@ const SettingsPage = () => {
   const [deleteError, setDeleteError] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // Tier management
+  const [pendingTier, setPendingTier] = useState<TierKey | null>(null);
+  const [tierLoading, setTierLoading] = useState(false);
+  const [showAckModal, setShowAckModal] = useState(false);
+  const [ackCampaigns, setAckCampaigns] = useState<AckCampaign[]>([]);
+
   const canEditOrg = org && (org.role === "owner" || org.role === "admin");
+  const isOwner = org?.role === "owner";
 
   useEffect(() => {
     let cancelled = false;
@@ -109,7 +127,7 @@ const SettingsPage = () => {
         const firstOrg = orgsRes.data?.[0];
         if (firstOrg) {
           const [orgDetail, emailRes] = await Promise.all([
-            api.get<{ id: string; name: string; subdomain?: string }>(
+            api.get<{ id: string; name: string; subdomain?: string; tier?: number }>(
               API_ENDPOINTS.orgs.get(firstOrg.id)
             ),
             api.get<EmailSettings>(API_ENDPOINTS.orgs.emailSettings(firstOrg.id)).catch(() => ({ data: null })),
@@ -120,6 +138,7 @@ const SettingsPage = () => {
               name: orgDetail.data.name,
               subdomain: orgDetail.data.subdomain,
               role: firstOrg.role,
+              tier: orgDetail.data.tier ?? 1,
             });
             setOrgName(orgDetail.data.name ?? "");
             setOrgSubdomain(orgDetail.data.subdomain ?? "");
@@ -250,6 +269,36 @@ const SettingsPage = () => {
       notifyError(err, "Failed to update organization.");
     } finally {
       setOrgLoading(false);
+    }
+  };
+
+  const handleTierChange = async (newTier: TierKey, acknowledged = false) => {
+    if (!org?.id || !isOwner) return;
+    setTierLoading(true);
+    try {
+      await api.patch(API_ENDPOINTS.orgs.tier(org.id), {
+        tier: newTier,
+        acknowledged,
+      });
+      // Success — apply the new tier
+      setOrg((o) => (o ? { ...o, tier: newTier } : o));
+      setPendingTier(null);
+      setShowAckModal(false);
+      setAckCampaigns([]);
+      notifySuccess(`Plan changed to ${TIER_NAMES[newTier]}.`);
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number; data?: { requires_acknowledgment?: boolean; campaigns?: AckCampaign[] } } })?.response?.status;
+      const data = (err as { response?: { data?: { requires_acknowledgment?: boolean; campaigns?: AckCampaign[] } } })?.response?.data;
+      if (status === 409 && data?.requires_acknowledgment) {
+        // Show acknowledgment modal
+        setAckCampaigns(data.campaigns ?? []);
+        setShowAckModal(true);
+      } else {
+        notifyError(err, "Failed to change plan.");
+        setPendingTier(null);
+      }
+    } finally {
+      setTierLoading(false);
     }
   };
 
@@ -444,6 +493,78 @@ const SettingsPage = () => {
           </form>
         </section>
       )}
+
+      {org && isOwner && (
+        <section style={{ marginBottom: "2rem" }}>
+          <h2>Plan</h2>
+          {(() => {
+            const currentTier = (org.tier ?? 1) as TierKey;
+            const limits = TIER_LIMITS[currentTier];
+            return (
+              <>
+                <p style={{ marginBottom: "0.5rem" }}>
+                  <strong>Current plan:</strong> {limits.name} — {limits.platform_fee_percent}% of total raised at payout
+                </p>
+                <p style={{ color: "#666", marginBottom: "1rem", fontSize: "0.9rem" }}>
+                  New campaigns created after a plan change will use the new rate.
+                  Existing campaigns keep their original rate.
+                </p>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {([1, 2, 3] as TierKey[]).map((t) => (
+                    <Button
+                      key={t}
+                      type={t === currentTier ? "primary" : "default"}
+                      disabled={t === currentTier || tierLoading}
+                      loading={tierLoading && pendingTier === t}
+                      onClick={() => {
+                        setPendingTier(t);
+                        handleTierChange(t);
+                      }}
+                    >
+                      {TIER_NAMES[t]} ({TIER_LIMITS[t].platform_fee_percent}%)
+                    </Button>
+                  ))}
+                </div>
+              </>
+            );
+          })()}
+        </section>
+      )}
+
+      {/* Tier-change acknowledgment modal */}
+      <Modal isOpen={showAckModal} onClose={() => { setShowAckModal(false); setPendingTier(null); }}>
+        <h3 style={{ marginTop: 0 }}>Before you continue</h3>
+        <p>
+          You have one or more campaigns currently running on your account.
+          Changing your plan will <strong>not</strong> affect these campaigns —
+          they will continue to be billed at the plan they were started on:
+        </p>
+        <ul style={{ paddingLeft: "1.25rem", marginBottom: "1.25rem" }}>
+          {ackCampaigns.map((c) => (
+            <li key={c.id} style={{ marginBottom: "0.35rem" }}>
+              <strong>{c.title}</strong>{" "}
+              <span style={{ color: "#666" }}>
+                ({c.status}) — locked at {c.locked_tier_name} ({c.locked_fee_percent}%)
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p>
+          Any new campaigns you create after this change will be billed at your new plan rate.
+        </p>
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+          <Button onClick={() => { setShowAckModal(false); setPendingTier(null); }}>
+            Cancel
+          </Button>
+          <Button
+            type="primary"
+            loading={tierLoading}
+            onClick={() => pendingTier && handleTierChange(pendingTier, true)}
+          >
+            I acknowledge — change plan
+          </Button>
+        </div>
+      </Modal>
 
       {org && canEditOrg && (
         <section style={{ marginBottom: "2rem" }}>

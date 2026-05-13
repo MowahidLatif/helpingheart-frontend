@@ -22,6 +22,7 @@ type Campaign = {
   fee_option?: "donor_pays" | "platform_absorbs";
   fee_policy_version?: string;
   fee_option_locked?: boolean;
+  locked_tier?: number;
 };
 
 type GiveawayLog = {
@@ -473,7 +474,14 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
 
   return (
     <div style={{ padding: "2rem" }}>
-      <h2>{campaign.title}</h2>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+        <h2 style={{ margin: 0 }}>{campaign.title}</h2>
+        {campaign.locked_tier != null && (
+          <span className="locked-tier-badge">
+            {["Starter", "Grow", "Scale"][(campaign.locked_tier ?? 1) - 1] ?? "Starter"} plan · {[3, 4, 5][(campaign.locked_tier ?? 1) - 1] ?? 3}% fee
+          </span>
+        )}
+      </div>
       <p>Slug: {campaign.slug}</p>
 
       <div style={{ marginTop: "1rem", marginBottom: "2rem" }}>

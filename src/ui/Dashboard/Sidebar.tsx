@@ -12,6 +12,7 @@ type Campaign = {
   status: string;
   total_raised: number;
   giveaway_prize_cents?: number;
+  locked_tier?: number;
 };
 
 type SidebarProps = {
@@ -158,6 +159,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                   {c.status}
                 </span>
               </div>
+              {c.locked_tier != null && (
+                <div className="sidebar-campaign-card__tier">
+                  {["Starter", "Grow", "Scale"][(c.locked_tier ?? 1) - 1] ?? "Starter"} · {[3, 4, 5][(c.locked_tier ?? 1) - 1] ?? 3}% fee
+                </div>
+              )}
               <div className="sidebar-campaign-card__amount">
                 ${Number(c.total_raised ?? 0).toLocaleString()} / ${Number(c.goal).toLocaleString()}
               </div>
