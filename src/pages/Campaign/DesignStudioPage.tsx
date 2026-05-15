@@ -724,7 +724,6 @@ export default function DesignStudioPage() {
           </p>
           <EmbedGenerator
             campaign={embedCampaign}
-            initialType={productType === "full" ? "full" : "widget"}
             initialColor={tokens.primary_color.replace(/^#/, "")}
           />
           <div style={{ marginTop: "1.5rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>

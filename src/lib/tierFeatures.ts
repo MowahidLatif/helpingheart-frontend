@@ -12,6 +12,7 @@ export interface TierLimits {
   email_marketing: boolean;
   giveaway: boolean;
   iframe_embed: boolean;
+  media_uploads: boolean;
   campaign_updates: boolean;
   basic_analytics: boolean;
   advanced_analytics: boolean;
@@ -30,6 +31,7 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     email_marketing: false,
     giveaway: false,
     iframe_embed: false,
+    media_uploads: false,
     campaign_updates: false,
     basic_analytics: false,
     advanced_analytics: false,
@@ -45,7 +47,8 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     task_management_full: false,
     email_marketing: false,
     giveaway: false,
-    iframe_embed: true,
+    iframe_embed: false,
+    media_uploads: true,
     campaign_updates: true,
     basic_analytics: true,
     advanced_analytics: false,
@@ -62,6 +65,7 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     email_marketing: true,
     giveaway: true,
     iframe_embed: true,
+    media_uploads: true,
     campaign_updates: true,
     basic_analytics: true,
     advanced_analytics: true,

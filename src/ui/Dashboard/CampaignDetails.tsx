@@ -993,13 +993,13 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       )}
 
       {showDonations && campaign.id && (
-        orgTier >= 2 ? (
+        orgTier >= 3 ? (
           <EmbedGenerator
             campaign={{ id: campaign.id, slug: campaign.slug, title: campaign.title }}
           />
         ) : (
           <div className="tier-gate-banner">
-            <strong>iFrame Embedding</strong> is available on the Grow plan and above.{" "}
+            <strong>iFrame Embedding</strong> is available on the Scale plan.{" "}
             <a href="/pricing">See pricing</a>
           </div>
         )

@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, FormEvent } from "react";
-import { Progress, Input, Button, Upload, List, Typography, Alert, Steps, Space, Spin } from "antd";
+import { Progress, Input, Button, Upload, List, Typography, Alert, Steps, Space, Spin, Tabs } from "antd";
 import type { UploadFile } from "antd";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -35,20 +35,34 @@ const requirePlatformPay =
   import.meta.env.VITE_REQUIRE_PLATFORM_PAYMENT_FOR_AI === "1";
 
 const STEP_DETAILS = 0;
-const STEP_ASSETS = 1;
-const STEP_DESCRIBE = 2;
+const STEP_INSPIRE = 1;
+const STEP_ASSETS = 2;
 const STEP_GENERATING = 3;
 const STEP_PREVIEW = 4;
 
-const STEP_ITEMS = [
+const ALL_STEP_ITEMS = [
   { title: "Details" },
-  { title: "Assets" },
-  { title: "Describe" },
+  { title: "Design" },
+  { title: "Media" },
+  { title: "Generating" },
+  { title: "Preview" },
+];
+
+const STARTER_STEP_ITEMS = [
+  { title: "Details" },
+  { title: "Design" },
   { title: "Generating" },
   { title: "Preview" },
 ];
 
 const PUBLIC_POLL_MS = 12_000;
+
+type Theme = {
+  primary_color: string;
+  secondary_color: string;
+  font_family: string;
+  border_radius: string;
+};
 
 type JobRow = {
   id: string;
@@ -62,7 +76,6 @@ export type CampaignAiWizardMode = "new" | "resume";
 
 type Props = {
   mode: CampaignAiWizardMode;
-  /** Set when mode is "resume" (from route :campaignId) */
   initialCampaignId?: string;
 };
 
@@ -142,21 +155,31 @@ function getPresetAmounts(campaign: Campaign | null): number[] {
   return DEFAULT_PRESETS;
 }
 
+/** Map internal step constant to the Steps indicator index, accounting for Starter tier (no Media step). */
+function stepToIndex(step: number, canUploadMedia: boolean): number {
+  if (canUploadMedia) return step;
+  // Starter: skip STEP_ASSETS (2) → compress 3,4 down by 1
+  if (step <= STEP_INSPIRE) return step;
+  if (step === STEP_ASSETS) return STEP_INSPIRE; // shouldn't land here for Starter
+  return step - 1;
+}
+
 export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props) {
   const navigate = useNavigate();
   const [resumeLoading, setResumeLoading] = useState(mode === "resume");
 
-  const [step, setStep] = useState(mode === "new" ? STEP_DETAILS : STEP_ASSETS);
+  const [step, setStep] = useState(mode === "new" ? STEP_DETAILS : STEP_INSPIRE);
   const [campaignId, setCampaignId] = useState<string | null>(
     mode === "resume" && initialCampaignId ? initialCampaignId : null
   );
+  const [orgTier, setOrgTier] = useState<number>(2); // default to allow media until fetched
+  const canUploadMedia = orgTier >= 2;
 
+  // Campaign details
   const [title, setTitle] = useState("");
   const [goal, setGoal] = useState("");
   const [status, setStatus] = useState("draft");
-  const [feeOption, setFeeOption] = useState<"donor_pays" | "platform_absorbs">(
-    "donor_pays"
-  );
+  const [feeOption, setFeeOption] = useState<"donor_pays" | "platform_absorbs">("donor_pays");
   const [giveawayPrize, setGiveawayPrize] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
 
@@ -167,11 +190,22 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const [generateLoading, setGenerateLoading] = useState(false);
   const [error, setError] = useState("");
   const [job, setJob] = useState<JobRow | null>(null);
+
+  // Design inspiration (STEP_INSPIRE)
+  const [inspireMode, setInspireMode] = useState<"url" | "description">("url");
+  const [inspireUrl, setInspireUrl] = useState("");
+  const [inspireDesc, setInspireDesc] = useState("");
+  const [theme, setTheme] = useState<Theme | null>(null);
+  const [tokenLoading, setTokenLoading] = useState(false);
+  const [tokenError, setTokenError] = useState("");
+
+  // Platform payment
   const [platformPiId, setPlatformPiId] = useState<string | null>(null);
   const [platformClientSecret, setPlatformClientSecret] = useState<string | null>(null);
   const [platformAmountCents, setPlatformAmountCents] = useState(0);
   const [platformDevMode, setPlatformDevMode] = useState(false);
 
+  // Preview
   const [previewCampaign, setPreviewCampaign] = useState<Campaign | null>(null);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -199,6 +233,16 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
     }
   }, [campaignId]);
 
+  const fetchOrgTier = useCallback(async (orgId: string) => {
+    try {
+      const res = await api.get(API_ENDPOINTS.orgs.tierInfo(orgId));
+      setOrgTier(Number(res.data?.tier) || 1);
+    } catch {
+      // keep default
+    }
+  }, []);
+
+  // Resume flow
   useEffect(() => {
     if (mode !== "resume" || !initialCampaignId) {
       setResumeLoading(false);
@@ -211,6 +255,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         if (cancelled) return;
         setCampaignId(initialCampaignId);
         setCampaignTitle(res.data?.title || "");
+        if (res.data?.org_id) await fetchOrgTier(res.data.org_id);
         const recipe = parseAiSiteRecipeFromDb(res.data?.ai_site_recipe);
         if (recipe) {
           setStep(STEP_PREVIEW);
@@ -222,29 +267,29 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
             if (!cancelled) setPreviewLoading(false);
           }
         } else {
-          setStep(STEP_ASSETS);
+          setStep(STEP_INSPIRE);
         }
       } catch {
         if (!cancelled) {
           setError("Could not load campaign");
-          setStep(STEP_ASSETS);
+          setStep(STEP_INSPIRE);
         }
       } finally {
         if (!cancelled) setResumeLoading(false);
       }
     })();
-    return () => {
-      cancelled = true;
-    };
-  }, [mode, initialCampaignId]);
+    return () => { cancelled = true; };
+  }, [mode, initialCampaignId, fetchOrgTier]);
 
+  // Load media when entering assets step
   useEffect(() => {
-    if (!campaignId || step < STEP_ASSETS) return;
+    if (!campaignId || step !== STEP_ASSETS) return;
     loadMedia();
   }, [campaignId, step, loadMedia]);
 
+  // Platform payment setup
   useEffect(() => {
-    if (!requirePlatformPay || !campaignId || step !== STEP_DESCRIBE) return;
+    if (!requirePlatformPay || !campaignId || step !== STEP_INSPIRE) return;
     (async () => {
       try {
         const res = await api.post(API_ENDPOINTS.platform.aiGenerationCheckout, {});
@@ -262,12 +307,13 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
     })();
   }, [campaignId, step]);
 
+  // Job polling
   useEffect(() => {
     if (!job || !campaignId || step !== STEP_GENERATING) return;
     if (job.status === "failed") {
       setError(job.error_message || "Generation failed");
       setGenerateLoading(false);
-      setStep(STEP_DESCRIBE);
+      setStep(STEP_INSPIRE);
       return;
     }
     if (job.status === "completed") {
@@ -277,9 +323,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       fetchPublicCampaign().finally(() => setPreviewLoading(false));
       return;
     }
-    if (job.status !== "pending" && job.status !== "running") {
-      return;
-    }
+    if (job.status !== "pending" && job.status !== "running") return;
     const t = window.setInterval(async () => {
       try {
         const res = await api.get(API_ENDPOINTS.aiSite.job(campaignId, job.id));
@@ -289,7 +333,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           if (j.status === "failed") {
             setError(j.error_message || "Generation failed");
             setGenerateLoading(false);
-            setStep(STEP_DESCRIBE);
+            setStep(STEP_INSPIRE);
           }
           if (j.status === "completed") {
             setGenerateLoading(false);
@@ -298,13 +342,12 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
             fetchPublicCampaign().finally(() => setPreviewLoading(false));
           }
         }
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }, 1500);
     return () => window.clearInterval(t);
   }, [job, campaignId, step, fetchPublicCampaign]);
 
+  // Preview polling
   useEffect(() => {
     if (step !== STEP_PREVIEW || !campaignId) return;
     fetchPublicCampaign();
@@ -315,43 +358,50 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const handleCreateNext = async (e: FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!title.trim()) {
-      setError("Title is required");
-      return;
-    }
+    if (!title.trim()) { setError("Title is required"); return; }
     setCreateLoading(true);
     try {
       const payload: {
-        title: string;
-        goal: number;
-        status: string;
-        fee_option: "donor_pays" | "platform_absorbs";
-        giveaway_prize_cents?: number;
-      } = {
-        title: title.trim(),
-        goal: parseFloat(goal) || 0,
-        status,
-        fee_option: feeOption,
-      };
-      if (giveawayPrize) {
-        payload.giveaway_prize_cents = Math.round(parseFloat(giveawayPrize) * 100);
-      }
+        title: string; goal: number; status: string;
+        fee_option: "donor_pays" | "platform_absorbs"; giveaway_prize_cents?: number;
+      } = { title: title.trim(), goal: parseFloat(goal) || 0, status, fee_option: feeOption };
+      if (giveawayPrize) payload.giveaway_prize_cents = Math.round(parseFloat(giveawayPrize) * 100);
+      let orgId = "";
       if (campaignId) {
         await api.patch(API_ENDPOINTS.campaigns.patch(campaignId), payload);
         setCampaignTitle(title.trim());
       } else {
         const response = await api.post(API_ENDPOINTS.campaigns.create, payload);
         const id = response.data.id as string;
+        orgId = response.data.org_id as string;
         setCampaignId(id);
         setCampaignTitle(title.trim());
+        if (orgId) await fetchOrgTier(orgId);
       }
-      setStep(STEP_ASSETS);
+      setStep(STEP_INSPIRE);
     } catch (err) {
       const msg = getErrorMessage(err);
       setError(msg);
       notifyError(msg);
     } finally {
       setCreateLoading(false);
+    }
+  };
+
+  const handleExtractTokens = async () => {
+    if (!campaignId) return;
+    const input = inspireMode === "url" ? inspireUrl.trim() : inspireDesc.trim();
+    if (!input) { setTokenError(inspireMode === "url" ? "Enter a website URL to analyze." : "Enter a brand description."); return; }
+    setTokenError("");
+    setTokenLoading(true);
+    try {
+      const body = inspireMode === "url" ? { url: input } : { description: input };
+      const res = await api.post(API_ENDPOINTS.campaigns.designExtractTokens(campaignId), body);
+      setTheme(res.data.tokens as Theme);
+    } catch (e) {
+      setTokenError(getErrorMessage(e));
+    } finally {
+      setTokenLoading(false);
     }
   };
 
@@ -373,11 +423,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       return false;
     }
     try {
-      const row = await uploadMediaToS3(
-        campaignId,
-        file.originFileObj,
-        inferMediaType(file.originFileObj)
-      );
+      const row = await uploadMediaToS3(campaignId, file.originFileObj, inferMediaType(file.originFileObj));
       setMedia((m) => [...m, row]);
     } catch (e) {
       const msg = getErrorMessage(e);
@@ -390,22 +436,18 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const handleGenerate = async () => {
     if (!campaignId) return;
     const p = prompt.trim();
-    if (!p) {
-      setError("Describe your page in the prompt field.");
-      return;
-    }
+    if (!p) { setError("Describe what you want in the prompt field."); return; }
     if (requirePlatformPay && !platformPiId) {
-      setError("Complete platform payment first, or disable VITE_REQUIRE_PLATFORM_PAYMENT_FOR_AI.");
+      setError("Complete platform payment first.");
       return;
     }
     setError("");
     setGenerateLoading(true);
     setJob(null);
     try {
-      const body: Record<string, string> = { prompt: p };
-      if (requirePlatformPay && platformPiId) {
-        body.platform_payment_intent_id = platformPiId;
-      }
+      const body: Record<string, unknown> = { prompt: p };
+      if (theme) body.theme = theme;
+      if (requirePlatformPay && platformPiId) body.platform_payment_intent_id = platformPiId;
       const res = await api.post(API_ENDPOINTS.aiSite.generate(campaignId), body);
       const j = res.data?.job as JobRow;
       if (j?.id) {
@@ -426,10 +468,8 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   };
 
   const platformPayOk = !requirePlatformPay || !!platformPiId;
-  const showStripePlatform =
-    requirePlatformPay && stripePromise && platformClientSecret && !platformDevMode;
+  const showStripePlatform = requirePlatformPay && stripePromise && platformClientSecret && !platformDevMode;
   const feeOptionLockedInWizard = !!campaignId && status !== "draft";
-
   const aiRecipe = parseAiSiteRecipeFromDb(previewCampaign?.ai_site_recipe);
   const presets = getPresetAmounts(previewCampaign);
   const assetQuota = mediaCountsByType(media);
@@ -448,12 +488,17 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
     <div style={{ padding: "2rem", maxWidth: 960, margin: "0 auto" }}>
       <h1 style={{ marginTop: 0 }}>{mode === "new" ? "Create campaign" : "AI site builder"}</h1>
 
-      <Steps current={step} items={STEP_ITEMS} style={{ marginBottom: 32 }} />
+      <Steps
+        current={stepToIndex(step, canUploadMedia)}
+        items={canUploadMedia ? ALL_STEP_ITEMS : STARTER_STEP_ITEMS}
+        style={{ marginBottom: 32 }}
+      />
 
       {error ? (
         <Alert type="error" message={error} style={{ marginBottom: 16 }} showIcon closable onClose={() => setError("")} />
       ) : null}
 
+      {/* ── STEP 0: Campaign details ── */}
       {step === STEP_DETAILS && mode === "new" && (
         <div>
           <p>Start with the basics for your fundraiser.</p>
@@ -491,11 +536,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
             />
             <label style={{ display: "block", marginBottom: 16 }}>
               Status
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                style={{ display: "block", marginTop: 4 }}
-              >
+              <select value={status} onChange={(e) => setStatus(e.target.value)} style={{ display: "block", marginTop: 4 }}>
                 <option value="draft">Draft</option>
                 <option value="active">Active</option>
               </select>
@@ -504,9 +545,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
               Payment model
               <select
                 value={feeOption}
-                onChange={(e) =>
-                  setFeeOption(e.target.value as "donor_pays" | "platform_absorbs")
-                }
+                onChange={(e) => setFeeOption(e.target.value as "donor_pays" | "platform_absorbs")}
                 disabled={feeOptionLockedInWizard}
                 style={{ display: "block", marginTop: 4 }}
               >
@@ -526,64 +565,113 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         </div>
       )}
 
-      {step === STEP_ASSETS && campaignId && (
+      {/* ── STEP 1: Design inspiration ── */}
+      {step === STEP_INSPIRE && campaignId && (
         <div>
           <p>
             Campaign: <strong>{campaignTitle || campaignId}</strong>
           </p>
-          <p>Upload images, videos, or PDFs the AI can use on your page. This step is optional.</p>
-          <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
-            Remaining slots: {Math.max(0, MAX_CAMPAIGN_IMAGES - assetQuota.image)} images,{" "}
-            {Math.max(0, MAX_CAMPAIGN_VIDEOS - assetQuota.video)} videos,{" "}
-            {Math.max(0, MAX_CAMPAIGN_DOCS - assetQuota.doc)} documents (per campaign).
-          </Text>
-          <Space style={{ marginBottom: 16 }}>
-            <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*,video/*,.pdf">
-              <Button type="default">Upload file</Button>
-            </Upload>
-            <Button onClick={loadMedia} loading={loadingMedia} type="link">
-              Refresh list
-            </Button>
-          </Space>
-          <List
-            size="small"
-            style={{ marginBottom: 24 }}
-            dataSource={media}
-            locale={{ emptyText: "No files yet — you can skip and add more later from the dashboard." }}
-            renderItem={(item) => (
-              <List.Item>
-                <a href={item.url || "#"} target="_blank" rel="noreferrer">
-                  {item.type}
-                </a>
-                {item.description ? ` — ${item.description}` : null}
-              </List.Item>
-            )}
-          />
-          <Space>
-            {mode === "new" ? (
-              <Button type="default" onClick={() => setStep(STEP_DETAILS)}>
-                Back
-              </Button>
+
+          {/* Design inspiration — URL scrape (Tier 2+) or text description */}
+          <div style={{ marginBottom: 24, padding: 16, border: "1px solid #eee", borderRadius: 8 }}>
+            <Text strong style={{ display: "block", marginBottom: 8 }}>Design inspiration (optional)</Text>
+
+            {canUploadMedia ? (
+              <>
+                <Tabs
+                  activeKey={inspireMode}
+                  onChange={(k) => { setInspireMode(k as "url" | "description"); setTokenError(""); }}
+                  size="small"
+                  style={{ marginBottom: 12 }}
+                  items={[
+                    { key: "url", label: "Import from website" },
+                    { key: "description", label: "Describe style" },
+                  ]}
+                />
+                {inspireMode === "url" ? (
+                  <div>
+                    <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                      Paste a website URL and we'll extract its colors, fonts, and style to inspire the AI.
+                    </Text>
+                    <Space.Compact style={{ width: "100%", maxWidth: 500 }}>
+                      <Input
+                        value={inspireUrl}
+                        onChange={(e) => setInspireUrl(e.target.value)}
+                        placeholder="https://example.com"
+                        onPressEnter={handleExtractTokens}
+                      />
+                      <Button type="default" onClick={handleExtractTokens} loading={tokenLoading}>
+                        Analyze
+                      </Button>
+                    </Space.Compact>
+                  </div>
+                ) : (
+                  <div>
+                    <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                      Describe your brand's look and feel (colors, style, mood).
+                    </Text>
+                    <Space.Compact style={{ width: "100%", maxWidth: 500 }} direction="vertical">
+                      <TextArea
+                        rows={3}
+                        value={inspireDesc}
+                        onChange={(e) => setInspireDesc(e.target.value)}
+                        placeholder='e.g. "A modern nature nonprofit with deep green tones, rounded buttons, and clean sans-serif fonts."'
+                      />
+                      <Button type="default" onClick={handleExtractTokens} loading={tokenLoading} style={{ marginTop: 8 }}>
+                        Generate style
+                      </Button>
+                    </Space.Compact>
+                  </div>
+                )}
+              </>
             ) : (
-              <Button type="default" onClick={() => navigate("/dashboard")}>
-                Back to dashboard
-              </Button>
+              <div>
+                <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                  Describe your brand's look and feel (colors, style, mood).
+                </Text>
+                <TextArea
+                  rows={3}
+                  value={inspireDesc}
+                  onChange={(e) => setInspireDesc(e.target.value)}
+                  placeholder='e.g. "A warm community fundraiser with orange tones, rounded design, and a friendly feel."'
+                  style={{ maxWidth: 500 }}
+                />
+                <div style={{ marginTop: 4 }}>
+                  <Text type="secondary" style={{ fontSize: 12 }}>
+                    Upgrade to Grow to import styles directly from a website URL.{" "}
+                    <a href="/pricing">See pricing</a>
+                  </Text>
+                </div>
+              </div>
             )}
-            <Button type="primary" onClick={() => setStep(STEP_DESCRIBE)}>
-              Next
-            </Button>
-          </Space>
-        </div>
-      )}
 
-      {step === STEP_DESCRIBE && campaignId && (
-        <div>
-          <p>
-            Campaign: <strong>{campaignTitle || campaignId}</strong>
-          </p>
-          <p>Describe the website you want. Assets you uploaded will be included in the AI context.</p>
+            {tokenError ? <Alert type="error" message={tokenError} showIcon style={{ marginTop: 12, maxWidth: 500 }} /> : null}
 
-          {requirePlatformPay ? (
+            {theme && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 12, flexWrap: "wrap" }}>
+                <Text type="success" style={{ fontSize: 13 }}>Style extracted:</Text>
+                {theme.primary_color && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
+                    <span style={{ width: 16, height: 16, borderRadius: 3, background: theme.primary_color, border: "1px solid #ddd", display: "inline-block" }} />
+                    {theme.primary_color}
+                  </span>
+                )}
+                {theme.secondary_color && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13 }}>
+                    <span style={{ width: 16, height: 16, borderRadius: 3, background: theme.secondary_color, border: "1px solid #ddd", display: "inline-block" }} />
+                    {theme.secondary_color}
+                  </span>
+                )}
+                {theme.font_family && <Text style={{ fontSize: 13 }}>{theme.font_family}</Text>}
+                <Button size="small" type="link" onClick={() => setTheme(null)} style={{ padding: 0, fontSize: 12 }}>
+                  Clear
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Platform payment (if required) */}
+          {requirePlatformPay && (
             <div style={{ marginBottom: 24, padding: 16, border: "1px solid #eee", borderRadius: 8 }}>
               <Text strong>Platform payment</Text>
               {platformDevMode && platformPiId ? (
@@ -601,26 +689,95 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
               ) : (
                 <p style={{ marginTop: 8 }}>
                   <Text type="warning">
-                    Enable Stripe keys and set REQUIRE_PLATFORM_PAYMENT_FOR_AI=1 on the API, or turn off
-                    VITE_REQUIRE_PLATFORM_PAYMENT_FOR_AI for local testing.
+                    Enable Stripe keys and set REQUIRE_PLATFORM_PAYMENT_FOR_AI=1 on the API.
                   </Text>
                 </p>
               )}
             </div>
-          ) : null}
+          )}
 
-          <Text strong>Prompt</Text>
+          {/* Prompt */}
+          <Text strong>Describe your page</Text>
           <TextArea
             rows={6}
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder='e.g. "A warm landing page for our equipment fundraiser with a hero, story section, gallery from our uploads, and clear donate button."'
+            placeholder='e.g. "A warm landing page for our equipment fundraiser with a hero, story section, gallery from our uploads, and a clear donate button."'
             style={{ marginTop: 8, marginBottom: 16 }}
           />
+
           <Space>
-            <Button type="default" onClick={() => setStep(STEP_ASSETS)}>
-              Back
-            </Button>
+            {mode === "new" ? (
+              <Button type="default" onClick={() => setStep(STEP_DETAILS)}>Back</Button>
+            ) : (
+              <Button type="default" onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+            )}
+            {canUploadMedia ? (
+              <Button type="primary" onClick={() => setStep(STEP_ASSETS)} disabled={!prompt.trim()}>
+                Next: Add media
+              </Button>
+            ) : (
+              <Button
+                type="primary"
+                onClick={handleGenerate}
+                disabled={generateLoading || !platformPayOk || !prompt.trim()}
+                loading={generateLoading}
+              >
+                Generate site
+              </Button>
+            )}
+          </Space>
+        </div>
+      )}
+
+      {/* ── STEP 2: Media (Tier 2+ only) ── */}
+      {step === STEP_ASSETS && campaignId && (
+        <div>
+          <p>
+            Campaign: <strong>{campaignTitle || campaignId}</strong>
+          </p>
+
+          {canUploadMedia ? (
+            <>
+              <p>Upload images, videos, or PDFs the AI can use on your page. This step is optional.</p>
+              <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                Remaining slots: {Math.max(0, MAX_CAMPAIGN_IMAGES - assetQuota.image)} images,{" "}
+                {Math.max(0, MAX_CAMPAIGN_VIDEOS - assetQuota.video)} videos,{" "}
+                {Math.max(0, MAX_CAMPAIGN_DOCS - assetQuota.doc)} documents (per campaign).
+              </Text>
+              <Space style={{ marginBottom: 16 }}>
+                <Upload beforeUpload={handleUpload} showUploadList={false} accept="image/*,video/*,.pdf">
+                  <Button type="default">Upload file</Button>
+                </Upload>
+                <Button onClick={loadMedia} loading={loadingMedia} type="link">
+                  Refresh list
+                </Button>
+              </Space>
+              <List
+                size="small"
+                style={{ marginBottom: 24 }}
+                dataSource={media}
+                locale={{ emptyText: "No files yet — you can skip and add more later from the dashboard." }}
+                renderItem={(item) => (
+                  <List.Item>
+                    <a href={item.url || "#"} target="_blank" rel="noreferrer">{item.type}</a>
+                    {item.description ? ` — ${item.description}` : null}
+                  </List.Item>
+                )}
+              />
+            </>
+          ) : (
+            <div style={{ padding: "2rem", background: "#f5f5f5", borderRadius: 8, marginBottom: 24, textAlign: "center" }}>
+              <Text type="secondary">
+                Media uploads (images, videos, documents) are available on the{" "}
+                <strong>Grow plan</strong> and above.{" "}
+                <a href="/pricing">See pricing →</a>
+              </Text>
+            </div>
+          )}
+
+          <Space>
+            <Button type="default" onClick={() => setStep(STEP_INSPIRE)}>Back</Button>
             <Button
               type="primary"
               onClick={handleGenerate}
@@ -633,12 +790,12 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         </div>
       )}
 
+      {/* ── STEP 3: Generating ── */}
       {step === STEP_GENERATING && campaignId && (
         <div style={{ textAlign: "center", padding: "2rem 0" }}>
           <h2 style={{ fontWeight: 600 }}>Building your page</h2>
           <p style={{ maxWidth: 480, margin: "0 auto 24px", color: "#666" }}>
-            Our AI is generating your donation page using your prompt and assets. This usually takes a short
-            while.
+            Our AI is generating your donation page using your prompt and assets. This usually takes a short while.
           </p>
           {job ? (
             <>
@@ -646,11 +803,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                 percent={job.progress_percent}
                 style={{ maxWidth: 400, margin: "0 auto" }}
                 status={
-                  job.status === "failed"
-                    ? "exception"
-                    : job.status === "completed"
-                      ? "success"
-                      : "active"
+                  job.status === "failed" ? "exception" : job.status === "completed" ? "success" : "active"
                 }
               />
               <p style={{ marginTop: 12 }}>{job.step}</p>
@@ -661,31 +814,20 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           <div style={{ marginTop: 24 }}>
             <Button
               type="default"
-              onClick={() => {
-                setStep(STEP_DESCRIBE);
-                setGenerateLoading(false);
-                setJob(null);
-              }}
+              onClick={() => { setStep(STEP_INSPIRE); setGenerateLoading(false); setJob(null); }}
             >
-              Cancel and edit prompt
+              Cancel and edit
             </Button>
           </div>
         </div>
       )}
 
+      {/* ── STEP 4: Preview ── */}
       {step === STEP_PREVIEW && campaignId && (
         <div>
           <Space style={{ marginBottom: 16 }} wrap>
-            <Button type="default" onClick={() => navigate("/dashboard")}>
-              Back to dashboard
-            </Button>
-            <Button
-              type="default"
-              onClick={() => {
-                setStep(STEP_DESCRIBE);
-                setJob(null);
-              }}
-            >
+            <Button type="default" onClick={() => navigate("/dashboard")}>Back to dashboard</Button>
+            <Button type="default" onClick={() => { setStep(STEP_INSPIRE); setJob(null); }}>
               Change prompt and regenerate
             </Button>
             <a href={`/donate/${campaignId}`} target="_blank" rel="noopener noreferrer">
@@ -696,24 +838,17 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           {previewLoading && !previewCampaign ? (
             <Spin />
           ) : !stripeConfigured ? (
-            <Alert
-              type="warning"
-              message="Add VITE_STRIPE_PUBLISHABLE_KEY to test donations from this preview."
-              showIcon
-            />
+            <Alert type="warning" message="Add VITE_STRIPE_PUBLISHABLE_KEY to test donations from this preview." showIcon />
           ) : !previewCampaign ? (
             <Alert type="info" message="Could not load campaign preview." showIcon />
           ) : !aiRecipe ? (
             <Alert
               type="warning"
-              message="No AI site generated yet. Go back to the prompt step and click Generate."
+              message="No AI site generated yet. Go back to the design step and click Generate."
               showIcon
             />
           ) : (
-            <div
-              className="donate-page donate-page-blocks"
-              style={{ border: "1px solid #eee", borderRadius: 8, padding: 16 }}
-            >
+            <div className="donate-page donate-page-blocks" style={{ border: "1px solid #eee", borderRadius: 8, padding: 16 }}>
               <AiSiteRenderer
                 campaign={previewCampaign}
                 recipe={aiRecipe}

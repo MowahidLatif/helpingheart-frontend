@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { useCampaignLiveTotals } from "@/lib/useCampaignLiveTotals";
-import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { AiSiteIframeRenderer } from "@/ui/AiSite/AiSiteIframeRenderer";
 import { getIframeBundleContent, parseAiSiteRenderModelFromDb } from "@/lib/aiSiteRecipe";
@@ -102,7 +102,7 @@ export default function FullCampaignEmbedPage() {
           );
         })()
       ) : (
-        <BlockRenderer campaign={campaign} onDonateClick={onDonateClick} />
+        <div style={{ color: "#666", padding: "1rem" }}>This campaign has no AI site yet.</div>
       )}
     </div>
   );

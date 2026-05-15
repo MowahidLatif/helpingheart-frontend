@@ -34,12 +34,13 @@ const featureRows: FeatureRow[] = [
     t2: getAiGenLabel(2),
     t3: getAiGenLabel(3),
   },
+  { label: "Custom Media Add-ons (Images, Videos, Documents, etc...)", t1: false, t2: true, t3: true },
   { label: "Stripe Connect payouts", t1: true, t2: true, t3: true },
   { label: "Custom campaign subdomain", t1: true, t2: true, t3: true },
   { label: "Real-time donation feed", t1: true, t2: true, t3: true },
   { label: "Donor email receipts (SendGrid)", t1: true, t2: true, t3: true },
   { label: "Campaign update posts", t1: false, t2: true, t3: true },
-  { label: "iFrame embed (HTML / WP / React)", t1: false, t2: true, t3: true },
+  { label: "iFrame embed widget (HTML / WP / React)", t1: false, t2: false, t3: true },
   { label: "Basic task management", t1: false, t2: true, t3: true },
   { label: "Full task suite (checklists, files, blockers, time entries, @mentions)", t1: false, t2: false, t3: true },
   { label: "Email marketing to donor list", t1: false, t2: false, t3: true },
@@ -96,27 +97,29 @@ const Pricing = () => {
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Stripe Connect payouts</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom subdomain</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Donor email receipts</li>
+                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Custom media add-ons</li>
                     <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Team members</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Task management</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> iFrame embeds</li>
+                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> iFrame embed widget</li>
                   </>
                 )}
                 {key === 2 && (
                   <>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Up to 5 active campaigns</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> {getAiGenLabel(2)} AI generations</li>
+                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom Media Add-ons (Images, Videos, Documents)</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Up to 5 team members</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Basic task management</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> iFrame embedding</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Campaign update posts</li>
+                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> iFrame embed widget</li>
                     <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Email marketing</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Giveaway / lottery</li>
                   </>
                 )}
                 {key === 3 && (
                   <>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Unlimited campaigns</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> {getAiGenLabel(3)} AI generations</li>
+                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom Media Add-ons (Images, Videos, Documents)</li>
+                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> iFrame embed widget</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Unlimited team members</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Full task suite</li>
                     <li className="pricing-tier__feat"><span className="tier-check">✓</span> Email marketing & segmentation</li>

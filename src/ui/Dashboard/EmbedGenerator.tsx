@@ -4,15 +4,12 @@ import GenericTextInput from "@/components/Form/GenericTextInput";
 
 const FONTS = ["Inter", "Georgia", "Roboto", "Merriweather", "Lato"];
 const WIDGET_HEIGHT = 400;
-const FULL_HEIGHT = 700;
 const DEFAULT_ACCENT = "1D9E75";
 
-type EmbedType = "widget" | "full";
 type ExportFormat = "html" | "wordpress" | "react";
 
 type Props = {
   campaign: { id: string; slug?: string; title?: string };
-  initialType?: EmbedType;
   initialColor?: string;
   initialFont?: string;
 };
@@ -20,23 +17,19 @@ type Props = {
 function buildSnippets(
   origin: string,
   campaignId: string,
-  type: EmbedType,
   color: string,
   font: string,
 ): Record<ExportFormat, string> {
-  const path = type === "widget" ? "progress" : "full";
-  const height = type === "widget" ? WIDGET_HEIGHT : FULL_HEIGHT;
-  const url = `${origin}/embed/${path}/${campaignId}?color=${color}&font=${font}`;
+  const url = `${origin}/embed/progress/${campaignId}?color=${color}&font=${font}`;
   return {
-    html: `<iframe\n  src="${url}"\n  width="100%"\n  height="${height}"\n  frameborder="0"\n  style="border-radius:12px;overflow:hidden;"\n  allow="payment"\n></iframe>`,
-    wordpress: `[helpinghandsfund campaign="${campaignId}" type="${type}" color="${color}" font="${font}" height="${height}"]`,
-    react: `import { HHFEmbed } from "@helpinghandsfund/embed-react";\n\n<HHFEmbed\n  campaign="${campaignId}"\n  type="${type}"\n  color="${color}"\n  font="${font}"\n  height={${height}}\n/>`,
+    html: `<iframe\n  src="${url}"\n  width="100%"\n  height="${WIDGET_HEIGHT}"\n  frameborder="0"\n  style="border-radius:12px;overflow:hidden;"\n  allow="payment"\n></iframe>`,
+    wordpress: `[helpinghandsfund campaign="${campaignId}" type="widget" color="${color}" font="${font}" height="${WIDGET_HEIGHT}"]`,
+    react: `import { HHFEmbed } from "@helpinghandsfund/embed-react";\n\n<HHFEmbed\n  campaign="${campaignId}"\n  type="widget"\n  color="${color}"\n  font="${font}"\n  height={${WIDGET_HEIGHT}}\n/>`,
   };
 }
 
 export default function EmbedGenerator({
   campaign,
-  initialType = "widget",
   initialColor = DEFAULT_ACCENT,
   initialFont = "Inter",
 }: Props) {
@@ -44,16 +37,14 @@ export default function EmbedGenerator({
   const resolvedColor = normalizedColor.length === 6 ? normalizedColor : DEFAULT_ACCENT;
   const resolvedFont = FONTS.includes(initialFont) ? initialFont : "Inter";
 
-  const [type, setType] = useState<EmbedType>(initialType);
   const [color, setColor] = useState(resolvedColor);
   const [font, setFont] = useState(resolvedFont);
   const [format, setFormat] = useState<ExportFormat>("html");
   const [copied, setCopied] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const snippets = buildSnippets(origin, campaign.id, type, color, font);
-  const previewPath = type === "widget" ? "progress" : "full";
-  const previewUrl = `${origin}/embed/${previewPath}/${campaign.id}?color=${color}&font=${font}`;
+  const snippets = buildSnippets(origin, campaign.id, color, font);
+  const previewUrl = `${origin}/embed/progress/${campaign.id}?color=${color}&font=${font}`;
 
   const copy = useCallback(() => {
     navigator.clipboard.writeText(snippets[format]).then(() => {
@@ -77,41 +68,8 @@ export default function EmbedGenerator({
     <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1.5rem" }}>
       <h3 style={{ margin: "0 0 0.4rem" }}>Add to your website</h3>
       <p style={{ color: "#666", marginBottom: "1.25rem", maxWidth: 560, fontSize: 14 }}>
-        Embed your campaign on any external site. Choose a style and copy the snippet.
+        Embed a live progress widget on any external site. Copy the snippet below.
       </p>
-
-      {/* Type selector */}
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-        {(["widget", "full"] as EmbedType[]).map((t) => {
-          const active = type === t;
-          return (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setType(t)}
-              style={{
-                flex: "1 1 180px",
-                maxWidth: 240,
-                padding: "0.75rem 1rem",
-                borderRadius: 8,
-                border: `2px solid ${active ? accentHex : "#ddd"}`,
-                background: active ? "#f0fdf8" : "#fafafa",
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              <div style={{ fontWeight: 600, fontSize: 14, color: active ? accentHex : "#333" }}>
-                {t === "widget" ? "Compact Widget" : "Full Campaign Site"}
-              </div>
-              <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>
-                {t === "widget"
-                  ? "Progress bar + live donations feed"
-                  : "Complete campaign page with all sections"}
-              </div>
-            </button>
-          );
-        })}
-      </div>
 
       {/* Customization */}
       <div style={{ display: "flex", gap: "1rem", marginBottom: "1.25rem", flexWrap: "wrap", alignItems: "flex-end" }}>
@@ -222,7 +180,7 @@ export default function EmbedGenerator({
         src={previewUrl}
         title="Embed preview"
         width="100%"
-        height={type === "widget" ? WIDGET_HEIGHT : FULL_HEIGHT}
+        height={WIDGET_HEIGHT}
         frameBorder={0}
         style={{ border: "1px solid #ddd", borderRadius: 8, display: "block" }}
       />
