@@ -1,39 +1,29 @@
 import React, { useState, useEffect } from "react";
 
-const DONORS = [
-  "Sarah",
-  "Michael",
-  "Emily",
-  "James",
-  "Emma",
-  "David",
-  "Olivia",
-  "Alex",
-  "Jordan",
-  "Taylor",
+const FEED_ENTRIES = [
+  "A donor in Toronto gave $100",
+  "Anonymous gave $25",
+  "A donor gave $250 — 68% of goal reached",
+  "A donor in Vancouver gave $75",
+  "A donor gave $50",
+  "Anonymous gave $200 — goal is close",
+  "A donor in Calgary gave $40",
+  "A donor gave $150",
 ];
 
 const DonationVisualization: React.FC = () => {
   const [donations, setDonations] = useState<string[]>([
-    "Sarah donated $50",
-    "Michael helped reach 80% of the goal",
-    "Emily donated $25",
+    FEED_ENTRIES[2],
+    FEED_ENTRIES[0],
+    FEED_ENTRIES[3],
   ]);
 
   useEffect(() => {
+    let idx = 4;
     const interval = setInterval(() => {
-      const donor = DONORS[Math.floor(Math.random() * DONORS.length)];
-      const amount = Math.floor(Math.random() * 100) + 10;
-      const messages = [
-        `${donor} donated $${amount}`,
-        `${donor} helped push the campaign forward`,
-        `${donor} donated $${amount}—thank you!`,
-      ];
-      const newDonation =
-        messages[Math.floor(Math.random() * messages.length)];
-      setDonations((prev) => [newDonation, ...prev].slice(0, 6));
+      setDonations((prev) => [FEED_ENTRIES[idx % FEED_ENTRIES.length], ...prev].slice(0, 6));
+      idx++;
     }, 4000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -41,8 +31,11 @@ const DonationVisualization: React.FC = () => {
     <section className="landing-section landing-donation-feed">
       <div className="container">
         <div className="landing-section__title">
-          <h2>Live Donation Feed</h2>
-          <p>See donations roll in real-time—just like on your campaign page</p>
+          <h2>Your donation feed, live.</h2>
+          <p>
+            Donors see every contribution the moment it clears — driving urgency
+            and social proof on your campaign page.
+          </p>
         </div>
 
         <div className="landing-feed__list">

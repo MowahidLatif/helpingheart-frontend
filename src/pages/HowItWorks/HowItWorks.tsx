@@ -1,38 +1,38 @@
 const steps = [
   {
     number: "01",
-    title: "Sign Up & Create Your Organization",
-    body: "Create your free account in seconds. When you sign up, your organization is set up automatically with its own subdomain — your campaigns will live at a link like helpinghands.ca/yourname. You can invite team members and assign them roles (owner, admin, or member) right from the dashboard.",
+    title: "Create your account and organization",
+    body: "Sign up with your email and password. Your organization is created automatically and assigned a subdomain (yourname.helpinghands.ca). Invite team members immediately or add them later. There is no approval queue or manual review.",
   },
   {
     number: "02",
-    title: "Create a Campaign",
-    body: "Inside your dashboard, create a campaign with a title, fundraising goal, and an optional giveaway prize. Set it to Draft to work on it privately, or Active to go live immediately. You can run as many campaigns as you need at the same time.",
+    title: "Create a campaign",
+    body: "From your dashboard, create a campaign with a title and fundraising goal. Optionally add a giveaway prize — a cash amount or description of what the winner receives. Set it to Draft to keep it private while you build, or Active to go live immediately.",
   },
   {
     number: "03",
-    title: "Build Your Campaign Page",
-    body: "Use the drag-and-drop Page Layout Builder to design your campaign page without any code. Add blocks — a hero banner, rich text sections, a media gallery (images, videos, documents), a live progress bar, and a donate button — and arrange them however you like. Preview the page exactly as donors will see it before publishing.",
+    title: "Generate your campaign site with AI",
+    body: "HelpingHandsFund's AI site builder creates your campaign page from a prompt. Paste your organization's website URL and the AI extracts your colors, fonts, and brand style. Or describe your cause in plain language. The result is a fully structured campaign page — hero section, story, media, progress bar, and donate button — generated in under 30 seconds. On Grow and Scale plans you can also upload images, videos, and documents.",
   },
   {
     number: "04",
-    title: "Share & Collect Donations",
-    body: "Share your campaign link or embed a live progress widget on your own website. Donors give securely through Stripe — no account required on their end. Every successful donation triggers an automatic, customizable email receipt sent directly to the donor.",
+    title: "Share your campaign",
+    body: "Your campaign has a permanent public URL at yourname.helpinghands.ca/campaign-name. Share the link directly, or copy the iframe snippet from your dashboard to embed a live progress widget on any external website. Donors can give by card, Apple Pay, or Google Pay — no account required.",
   },
   {
     number: "05",
-    title: "Track, Engage & Celebrate",
-    body: "Your dashboard gives you a real-time view of every campaign: total raised, donation count, donor messages, campaign updates, and comments. Export your donor list as a CSV, draw a giveaway winner at any time, and manage internal tasks with your team — all in one place.",
+    title: "Track donations and close out",
+    body: "Every donation appears in your dashboard in real time. When your campaign ends, draw a giveaway winner directly from the dashboard — choose all donors or those above a minimum amount, and the winner is announced on the campaign page. Export your donor list as a CSV at any time. Your Stripe account receives the net payout after the platform fee.",
   },
 ];
 
 const HowItWorks = () => {
   return (
     <div className="info-page">
-      <h1>How It Works</h1>
+      <h1>How HelpingHandsFund Works</h1>
       <p className="mb-2xl">
-        Helping Hands makes it easy to launch a professional fundraising campaign
-        in minutes — no coding, no complicated setup, just results.
+        From first login to funded campaign — here's exactly what happens at
+        each step.
       </p>
 
       <div className="d-flex" style={{ flexDirection: "column", gap: "2rem" }}>
@@ -53,11 +53,11 @@ const HowItWorks = () => {
         ))}
       </div>
 
-      <div className="info-callout">
-        <p>Ready to get started?</p>
+      <div className="info-callout" style={{ marginTop: "3rem" }}>
+        <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Ready to start?</p>
         <p>
-          <a href="/signup">Create your free account</a> and launch your first
-          campaign today. No credit card required.
+          <a href="/signup">Create your account</a> and launch your first
+          campaign. No credit card required.
         </p>
       </div>
     </div>

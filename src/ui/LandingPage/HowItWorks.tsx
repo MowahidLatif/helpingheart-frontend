@@ -4,28 +4,28 @@ import { Link } from "react-router-dom";
 const STEPS = [
   {
     number: 1,
-    title: "Sign Up",
-    text: "Create an account in seconds. Add your organization and you're ready to go.",
+    title: "Create your account",
+    text: "Sign up with your email. Your organization and its subdomain are set up automatically — no approval process.",
   },
   {
     number: 2,
-    title: "Create a Campaign",
-    text: "Set your fundraising goal, add a title, and optionally include a giveaway prize.",
+    title: "Start a campaign",
+    text: "Give your campaign a title, goal amount, and optional giveaway prize. Set it live immediately or keep it in draft while you build.",
   },
   {
     number: 3,
-    title: "Build Your Page",
-    text: "Use our drag-and-drop builder to add blocks, set your goal, and customize your design.",
+    title: "Generate your campaign site",
+    text: "Paste your organization's website URL or describe your brand. The AI builds a complete, styled campaign page in under 30 seconds.",
   },
   {
     number: 4,
-    title: "Share Your Link",
-    text: "Send your unique URL to friends, family, and supporters. Your org gets its own subdomain.",
+    title: "Share your link",
+    text: "Your campaign has a permanent public URL. Share it anywhere: social, email, or embed it on your website as a live progress widget.",
   },
   {
     number: 5,
-    title: "Watch It Grow",
-    text: "Get real-time updates as donations roll in. Draw giveaway winners when you're ready.",
+    title: "Track every donation",
+    text: "Your dashboard shows each donation as it arrives — amount, donor message, and running total. Draw a giveaway winner when your campaign ends.",
   },
 ];
 
@@ -34,8 +34,8 @@ const HowItWorks: React.FC = () => {
     <section className="landing-section">
       <div className="container">
         <div className="landing-section__title">
-          <h2>How It Works</h2>
-          <p>Five simple steps to start raising funds for your cause</p>
+          <h2>From zero to funded in five steps.</h2>
+          <p>No technical setup. No design experience needed.</p>
         </div>
 
         <div className="landing-how-it-works__steps">
@@ -50,7 +50,7 @@ const HowItWorks: React.FC = () => {
 
         <div className="text-center mt-xl">
           <Link to="/signup" className="btn btn-primary btn-lg">
-            Get started for free
+            Start your campaign
           </Link>
         </div>
       </div>

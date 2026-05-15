@@ -5,32 +5,29 @@ const SocialProof: React.FC = () => {
     <section className="landing-section landing-social-proof">
       <div className="container">
         <div className="landing-section__title">
-          <h2>What People Are Saying</h2>
-          <p>Organizations trust us to power their fundraising</p>
+          <h2>Organizations raising real money.</h2>
         </div>
 
         <div className="landing-testimonial">
           <blockquote>
-            "This platform made it so easy to raise money for my cause! The
-            page builder let me create exactly what I needed, and within a few
-            days we reached our goal. The real-time donation feed kept everyone
-            excited."
+            "We described our shelter's brand and the AI had our campaign page
+            ready in under a minute. We raised $8,400 in three weeks."
           </blockquote>
-          <cite>— Sarah, Nonprofit Organizer</cite>
+          <cite>— Animal rescue nonprofit, Ontario</cite>
         </div>
 
         <div className="landing-stats">
           <div className="landing-stat">
             <div className="landing-stat__value">$50K+</div>
-            <div className="landing-stat__label">Raised for causes</div>
+            <div className="landing-stat__label">Total raised across campaigns</div>
           </div>
           <div className="landing-stat">
             <div className="landing-stat__value">100+</div>
-            <div className="landing-stat__label">Campaigns created</div>
+            <div className="landing-stat__label">Campaigns completed</div>
           </div>
           <div className="landing-stat">
-            <div className="landing-stat__value">500+</div>
-            <div className="landing-stat__label">Active donors</div>
+            <div className="landing-stat__value">3–5%</div>
+            <div className="landing-stat__label">Platform fee, no monthly cost</div>
           </div>
         </div>
       </div>

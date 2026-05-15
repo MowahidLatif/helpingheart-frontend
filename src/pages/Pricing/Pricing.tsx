@@ -66,9 +66,8 @@ const Pricing = () => {
     <div className="info-page pricing-page">
       <h1>Pricing</h1>
       <p className="mb-2xl">
-        Simple, performance-based pricing — HelpingHandsFund only earns when you
-        do. No monthly subscription, no setup fees. Choose the plan that fits
-        your organization and upgrade any time.
+        HelpingHandsFund charges a percentage of what you raise — nothing more.
+        No monthly subscription, no hidden fees. We earn when you earn.
       </p>
 
       <div className="pricing-tiers-grid mb-2xl">
@@ -84,6 +83,11 @@ const Pricing = () => {
               )}
               <div className="pricing-tier__header">
                 <h2 className="pricing-tier__name m-0">{limits.name}</h2>
+                <p className="m-0" style={{ fontSize: "0.85rem", color: "#666", marginTop: "0.2rem" }}>
+                  {key === 1 && "For individuals and small projects getting started."}
+                  {key === 2 && "For active organizations running multiple campaigns."}
+                  {key === 3 && "For high-volume fundraisers who need every feature."}
+                </p>
                 <div className="pricing-tier__fee">
                   <span className="pricing-tier__pct">{limits.platform_fee_percent}%</span>
                   <span className="pricing-tier__fee-label"> of total raised</span>
@@ -179,11 +183,11 @@ const Pricing = () => {
       <div className="info-callout" style={{ marginTop: 0 }}>
         <h3 className="m-0 mb-sm">Why performance-based pricing?</h3>
         <p>
-          HelpingHandsFund's incentives are aligned with yours: we only earn when
-          you raise money. The higher-tier plans fund the additional compute,
-          email infrastructure, and AI credits required for advanced features —
-          so heavier usage is always accompanied by proportionally higher
-          platform revenue.
+          When your campaign raises more, we earn more. That alignment means our
+          incentives are always in your favor — we have every reason to help your
+          campaigns succeed. Higher tiers include features that require real
+          infrastructure costs (AI compute, email delivery, advanced reporting)
+          — the fee increase funds exactly those capabilities.
         </p>
       </div>
     </div>

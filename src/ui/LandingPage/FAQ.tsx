@@ -2,34 +2,34 @@ import React from "react";
 
 const FAQ_ITEMS = [
   {
-    question: "How much does it cost?",
+    question: "How much does HelpingHandsFund cost?",
     answer:
-      "Helping Hands is completely free to use. We only take a small platform percentage from each successful donation — you'll always see the exact fee before a transaction is processed. No monthly fees, no setup costs.",
+      "Nothing upfront. We charge a platform fee of 3–5% only on donations you collect — which tier you're on determines the exact rate. No monthly subscription, no setup fees.",
   },
   {
     question: "Do I need technical skills?",
     answer:
-      "Not at all. Our drag-and-drop page builder lets you create professional campaign pages without writing a single line of code. Just pick your blocks, customize the content, and publish.",
+      "No. The AI generates your campaign site from a description or a URL. You don't write code or design anything.",
   },
   {
     question: "How do I receive donations?",
     answer:
-      "Donations are processed securely through Stripe. Funds are transferred directly to your connected bank account. Payouts typically take 2–7 business days depending on your region.",
+      "You connect a Stripe account from your Settings page. Funds are transferred directly to your bank — HelpingHandsFund never holds your money.",
   },
   {
-    question: "Can I run multiple campaigns?",
+    question: "Can I run multiple campaigns at once?",
     answer:
-      "Yes! You can create and manage as many campaigns as you need, all from a single dashboard. Each campaign gets its own page, goal, and shareable link.",
+      "Yes. The number of simultaneous active campaigns depends on your plan tier: 2 on Starter, 5 on Grow, unlimited on Scale.",
   },
   {
-    question: "Is there a transaction fee?",
+    question: "What is the cancellation fee?",
     answer:
-      "We use a tiered fee structure: 5% for campaigns under $50K, 4% for $50K–$500K, 3% for $500K–$1M, and 2.5% for $1M+. Standard Stripe payment processing fees apply separately.",
+      "If you cancel a campaign before it reaches its goal, a flat 5% is deducted from what was raised at that point. If the campaign runs to completion, only the standard tier fee applies.",
   },
   {
-    question: "Can I add team members?",
+    question: "Can I embed this on my own website?",
     answer:
-      "Absolutely. Invite team members to your organization and assign them roles (owner, admin, or member). Control who can create campaigns, edit content, manage tasks, and more.",
+      "Yes. Copy one iframe snippet from your campaign dashboard and paste it anywhere. It shows a live progress bar and recent donations. Available on the Scale plan.",
   },
 ];
 
@@ -38,8 +38,7 @@ const FAQ: React.FC = () => {
     <section className="landing-section">
       <div className="container">
         <div className="landing-section__title">
-          <h2>Frequently Asked Questions</h2>
-          <p>Everything you need to know to get started</p>
+          <h2>Common questions.</h2>
         </div>
 
         <div className="landing-faq">

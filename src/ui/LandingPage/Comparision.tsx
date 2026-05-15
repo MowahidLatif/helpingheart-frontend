@@ -5,8 +5,8 @@ const Comparision: React.FC = () => {
     <section className="landing-section">
       <div className="container">
         <div className="landing-section__title">
-          <h2>Why Choose Us?</h2>
-          <p>Compare and see what sets our platform apart</p>
+          <h2>Not all fundraising platforms are the same.</h2>
+          <p>HelpingHandsFund is built around your campaign — not around upsells.</p>
         </div>
 
         <div className="landing-comparison">
@@ -14,45 +14,50 @@ const Comparision: React.FC = () => {
             <thead>
               <tr>
                 <th>Feature</th>
-                <th>Our Platform</th>
+                <th>HelpingHandsFund</th>
                 <th>Others</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>Custom Page Builder</td>
+                <td>AI-generated campaign site</td>
                 <td>✓ Yes</td>
-                <td>✗ Limited</td>
+                <td>✗ Not available</td>
               </tr>
               <tr>
-                <td>Live Donation Updates</td>
-                <td>✓ Yes</td>
-                <td>✗ No</td>
-              </tr>
-              <tr>
-                <td>Custom Subdomain (yourorg.helpinghands.ca)</td>
+                <td>Live donation feed on campaign page</td>
                 <td>✓ Yes</td>
                 <td>✗ No</td>
               </tr>
               <tr>
-                <td>Giveaway / Raffle Support</td>
+                <td>Custom org subdomain</td>
+                <td>✓ yourname.helpinghands.ca</td>
+                <td>✗ No</td>
+              </tr>
+              <tr>
+                <td>Giveaway / prize draw built in</td>
                 <td>✓ Yes</td>
                 <td>✗ No</td>
               </tr>
               <tr>
-                <td>Transparent Platform Fees</td>
-                <td>✓ Tiered (2.5–5%)</td>
-                <td>✗ Hidden</td>
+                <td>Performance-based fee (no monthly subscription)</td>
+                <td>✓ 3–5% of raised</td>
+                <td>✗ Monthly fee + %</td>
               </tr>
               <tr>
-                <td>Stripe Integration</td>
+                <td>Stripe Connect (funds go directly to you)</td>
                 <td>✓ Yes</td>
                 <td>✗ Varies</td>
               </tr>
               <tr>
-                <td>Email Receipts</td>
+                <td>Automatic donor email receipts</td>
                 <td>✓ Yes</td>
-                <td>✗ Often extra</td>
+                <td>✗ Often paid add-on</td>
+              </tr>
+              <tr>
+                <td>Embeddable progress widget</td>
+                <td>✓ Yes</td>
+                <td>✗ No</td>
               </tr>
             </tbody>
           </table>

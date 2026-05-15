@@ -1,64 +1,64 @@
 const features = [
   {
-    title: "Block-based campaign page editor",
+    title: "AI-generated campaign sites",
     description:
-      "A drag-and-drop layout builder lets campaign owners compose their donation page from reusable blocks — hero banner, text sections, media gallery, progress bar, donate button, and more.",
+      "Describe your cause or paste your organization's website URL. The AI builds a complete campaign page — styled to match your brand — in under 30 seconds. Available on all plans.",
   },
   {
-    title: "Secure payments via Stripe",
+    title: "Stripe Connect payments",
     description:
-      "Every donation is processed through Stripe with full PCI compliance. Donors never leave your campaign page, and a customizable email receipt is sent automatically after every successful transaction.",
+      "Donors pay by card, Apple Pay, or Google Pay. Every donation flows directly to your connected Stripe account. HelpingHandsFund never holds your funds.",
   },
   {
-    title: "Real-time dashboard",
+    title: "Live donation dashboard",
     description:
-      "Track every campaign's progress live: total raised, donation count, recent donors, and messages. Export donor data as a CSV at any time.",
+      "Track total raised, donation count, and individual donor messages from your dashboard. The campaign page updates in real time so supporters see momentum as it builds.",
   },
   {
     title: "Giveaway engine",
     description:
-      "Run a prize draw directly from the dashboard. Choose to include all donors or only those above a minimum amount, and the winner is announced automatically on the campaign page.",
+      "Attach a prize to any campaign and draw a winner from your donor pool when you're ready. Filter by donation amount; the announcement posts automatically on the campaign page.",
   },
   {
-    title: "Team & permissions management",
+    title: "Team and permissions",
     description:
-      "Invite team members to your organization with owner, admin, or member roles. Fine-grained permissions control who can create campaigns, edit content, or manage tasks.",
+      "Invite staff or volunteers with owner, admin, or member roles. Each role controls access to campaign creation, editing, media uploads, and task management.",
   },
   {
-    title: "Campaign updates & comments",
+    title: "Campaign updates",
     description:
-      "Post updates to keep donors informed and allow supporters to leave comments. Internal task management lets your team coordinate work without leaving the platform.",
+      "Post updates to keep donors informed as your campaign progresses. Available on Grow and Scale plans.",
   },
   {
     title: "Embeddable progress widget",
     description:
-      "Copy a single iframe snippet to embed a live donation progress bar on any external website — your blog, your org's homepage, anywhere.",
+      "Copy an iframe snippet from your dashboard and paste it on any website. It renders a live progress bar with donation totals — no coding required. Available on the Scale plan.",
   },
   {
-    title: "Security-first",
+    title: "Account security",
     description:
-      "Two-factor authentication (TOTP), bcrypt-hashed passwords, short-lived JWT access tokens, and automatic refresh token rotation keep every account safe.",
+      "Passwords are bcrypt-hashed. Two-factor authentication (TOTP) is available from Settings. All sessions use short-lived JWT tokens with automatic rotation.",
   },
 ];
 
 const About = () => {
   return (
     <div className="info-page">
-      <h1>About Helping Hands</h1>
+      <h1>About HelpingHandsFund</h1>
       <p className="mb-md">
-        Helping Hands is a fundraising platform built for individuals,
-        nonprofits, and community organizations who want to launch professional
-        donation campaigns without the complexity of traditional fundraising
-        software.
+        HelpingHandsFund is a fundraising platform built for nonprofits,
+        community groups, and anyone organizing a cause. We give you an
+        AI-generated campaign site, live donation tracking, and direct Stripe
+        payouts — in one product, with no monthly fee.
       </p>
       <p className="mb-2xl">
-        We believe that collecting donations online should be as simple as
-        writing a message and sharing a link. Everything else — payments,
-        receipts, campaign pages, donor management — should happen
-        automatically.
+        The platform is built on a simple idea: the hardest part of fundraising
+        should be the cause itself, not the software. Every feature — from the
+        AI site builder to the embeddable progress widget — exists to remove
+        friction between you and your donors.
       </p>
 
-      <h2>What we have built</h2>
+      <h2>What the platform includes</h2>
       <div className="about-features-list mb-2xl">
         {features.map((f) => (
           <div key={f.title} className="card about-feature-card">
@@ -68,20 +68,15 @@ const About = () => {
         ))}
       </div>
 
-      <h2>Our mission</h2>
+      <h2>Our approach</h2>
       <p className="mb-xl">
-        Our mission is to lower the barrier to fundraising for everyone. Whether
-        you are helping a neighbor, running a community project, or growing a
-        nonprofit, Helping Hands gives you the infrastructure to do it
-        professionally — for free.
+        We charge a percentage of what you raise because our incentives should
+        match yours. If your campaign raises more, we earn more — so we have
+        every reason to make the platform work well for you.
       </p>
 
       <div className="info-callout">
-        <p>We are just getting started.</p>
-        <p>
-          Have a question or want to get in touch?{" "}
-          <a href="/contact">Send us a message</a>.
-        </p>
+        <p>Questions? <a href="/contact">Send us a message.</a></p>
       </div>
     </div>
   );

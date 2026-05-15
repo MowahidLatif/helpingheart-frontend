@@ -6,9 +6,9 @@ const Footer = () => {
       <div className="container">
         <div className="d-flex" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: "1.5rem" }}>
           <div>
-            <div className="font-bold mb-sm">Helping Hands</div>
+            <div className="font-bold mb-sm">HelpingHandsFund</div>
             <p className="text-secondary text-sm m-0">
-              Empowering fundraisers everywhere.
+              Fundraising infrastructure for organizations that need results.
             </p>
           </div>
           <nav className="d-flex" style={{ gap: "1.5rem", alignItems: "center", flexWrap: "wrap" }}>
@@ -20,7 +20,7 @@ const Footer = () => {
           </nav>
         </div>
         <div className="text-secondary text-sm mt-lg" style={{ borderTop: "1px solid var(--color-border, #dee2e6)", paddingTop: "1rem" }}>
-          &copy; {new Date().getFullYear()} Helping Hands. All rights reserved.
+          &copy; {new Date().getFullYear()} HelpingHandsFund. All rights reserved.
         </div>
       </div>
     </footer>
