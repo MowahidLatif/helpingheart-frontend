@@ -83,6 +83,7 @@ export default function DashboardLayout() {
           role={role}
           refreshCampaignsTrigger={refreshCampaignsTrigger}
           onClose={() => setSidebarOpen(false)}
+          orgTierInfo={orgTierInfo}
         />
       </aside>
 

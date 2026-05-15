@@ -4,7 +4,9 @@ import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import CampaignDetails from "@/ui/Dashboard/CampaignDetails";
 import AnalyticsHome from "@/ui/Dashboard/AnalyticsHome";
+import { FeatureGate } from "@/components/FeatureGate";
 import { notifyError } from "@/lib/notifications";
+import type { OrgTierInfo } from "@/lib/tierFeatures";
 
 type Campaign = {
   id: string;
@@ -24,6 +26,7 @@ type Campaign = {
 type OutletContext = {
   orgId?: string | null;
   role?: string | null;
+  orgTierInfo?: OrgTierInfo | null;
   onRefreshCampaigns?: () => void;
   onCampaignDeleted?: () => void;
 };
@@ -32,7 +35,8 @@ export default function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const outletContext = useOutletContext<OutletContext>();
-  const { orgId = null, role = null } = outletContext || {};
+  const { orgId = null, role = null, orgTierInfo = null } = outletContext || {};
+  const orgTier = orgTierInfo?.tier ?? 1;
 
   const stateCampaign =
     (location.state as { selectedCampaign?: Campaign } | null)?.selectedCampaign ?? null;
@@ -82,11 +86,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <AnalyticsHome
-      campaigns={campaigns}
-      orgId={orgId}
-      role={role}
-      onSelectCampaign={handleSelectCampaign}
-    />
+    <FeatureGate
+      feature="basic_analytics"
+      orgTier={orgTier}
+      lockedMessage="Analytics are available on the Grow plan and above."
+    >
+      <AnalyticsHome
+        campaigns={campaigns}
+        orgId={orgId}
+        role={role}
+        onSelectCampaign={handleSelectCampaign}
+      />
+    </FeatureGate>
   );
 }

@@ -4,6 +4,7 @@
         "./src/main.tsx",
         "./src/vite-env.d.ts",
         "./src/components/apperrorboundary.tsx",
+        "./src/components/featuregate.tsx",
         "./src/components/protectedroute.tsx",
         "./src/components/button/button.tsx",
         "./src/components/button/logoutbutton.tsx",

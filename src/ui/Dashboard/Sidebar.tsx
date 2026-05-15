@@ -1,8 +1,10 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { notifyError } from "@/lib/notifications";
+import { TIER_NAMES, TIER_FEE } from "@/lib/tierFeatures";
+import type { OrgTierInfo } from "@/lib/tierFeatures";
 
 type Campaign = {
   id: string;
@@ -21,6 +23,7 @@ type SidebarProps = {
   role?: string | null;
   refreshCampaignsTrigger?: number;
   onClose?: () => void;
+  orgTierInfo?: OrgTierInfo | null;
 };
 
 const STATUS_CLASS: Record<string, string> = {
@@ -36,6 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   role,
   refreshCampaignsTrigger = 0,
   onClose,
+  orgTierInfo,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -176,6 +180,22 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
           );
         })
+      )}
+      {orgTierInfo && (
+        <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #eee" }}>
+          <div style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.25rem" }}>Current plan</div>
+          <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#333" }}>
+            {TIER_NAMES[orgTierInfo.tier]} · {TIER_FEE[orgTierInfo.tier]}% fee
+          </div>
+          {orgTierInfo.tier < 3 && (
+            <Link
+              to="/settings"
+              style={{ fontSize: "0.8rem", color: "#1D9E75", textDecoration: "none", fontWeight: 500 }}
+            >
+              Upgrade plan →
+            </Link>
+          )}
+        </div>
       )}
     </div>
   );

@@ -506,8 +506,8 @@ const SettingsPage = () => {
                   <strong>Current plan:</strong> {limits.name} — {limits.platform_fee_percent}% of total raised at payout
                 </p>
                 <p style={{ color: "#666", marginBottom: "1rem", fontSize: "0.9rem" }}>
-                  New campaigns created after a plan change will use the new rate.
-                  Existing campaigns keep their original rate.
+                  Changing your plan immediately updates the fee rate for all your active campaigns.
+                  Completed campaigns are unaffected.
                 </p>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                   {([1, 2, 3] as TierKey[]).map((t) => (
@@ -535,22 +535,22 @@ const SettingsPage = () => {
       <Modal isOpen={showAckModal} onClose={() => { setShowAckModal(false); setPendingTier(null); }}>
         <h3 style={{ marginTop: 0 }}>Before you continue</h3>
         <p>
-          You have one or more campaigns currently running on your account.
-          Changing your plan will <strong>not</strong> affect these campaigns —
-          they will continue to be billed at the plan they were started on:
+          You have one or more active campaigns on your account.
+          Changing your plan will <strong>immediately update</strong> the fee rate for these campaigns:
         </p>
         <ul style={{ paddingLeft: "1.25rem", marginBottom: "1.25rem" }}>
           {ackCampaigns.map((c) => (
             <li key={c.id} style={{ marginBottom: "0.35rem" }}>
               <strong>{c.title}</strong>{" "}
               <span style={{ color: "#666" }}>
-                ({c.status}) — locked at {c.locked_tier_name} ({c.locked_fee_percent}%)
+                ({c.status}) — currently {c.locked_tier_name} ({c.locked_fee_percent}%)
               </span>
             </li>
           ))}
         </ul>
         <p>
-          Any new campaigns you create after this change will be billed at your new plan rate.
+          All listed campaigns will be billed at your new plan rate going forward.
+          Completed campaigns are not affected.
         </p>
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.5rem" }}>
           <Button onClick={() => { setShowAckModal(false); setPendingTier(null); }}>
@@ -561,7 +561,7 @@ const SettingsPage = () => {
             loading={tierLoading}
             onClick={() => pendingTier && handleTierChange(pendingTier, true)}
           >
-            I acknowledge — change plan
+            Change plan — update active campaigns
           </Button>
         </div>
       </Modal>

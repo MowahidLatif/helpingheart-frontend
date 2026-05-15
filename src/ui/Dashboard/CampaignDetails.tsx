@@ -4,6 +4,7 @@ import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS, TASK_COMMENT_TYPES, TASK_TITLE_SUGGESTIONS } from "@/lib/constants";
 import Modal from "@/components/Modal";
 import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
+import { FeatureGate } from "@/components/FeatureGate";
 import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
 import GenericTextInput from "@/components/Form/GenericTextInput";
 
@@ -923,37 +924,43 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       {campaign?.id && (role === "admin" || role === "owner") && (
         <div style={{ marginTop: "2rem", borderTop: "1px solid #eee", paddingTop: "1rem" }}>
           <h3>Updates</h3>
-          {updatesLoading ? (
-            <p>Loading…</p>
-          ) : (
-            <>
-              <form onSubmit={handleAddUpdate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
-                <GenericTextInput
-                  value={newUpdateTitle}
-                  setValue={(value) => setNewUpdateTitle(String(value ?? ""))}
-                  placeholder="Update title"
-                  required
-                  hideLabel
-                  wrapperStyle={{ marginBottom: "0.5rem" }}
-                  inputStyle={{ display: "block", width: "100%", maxWidth: "400px", padding: "0.5rem" }}
-                />
-                <textarea value={newUpdateBody} onChange={(e) => setNewUpdateBody(e.target.value)} placeholder="Update body" required rows={3} style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
-                <button type="submit" disabled={updateSubmitLoading}>Post update</button>
-              </form>
-              {updates.length === 0 ? <p style={{ color: "#666" }}>No updates yet.</p> : (
-                <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
-                  {updates.map((u) => (
-                    <li key={u.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
-                      <strong>{u.title}</strong>
-                      <span style={{ fontSize: "0.9rem", color: "#666", marginLeft: "0.5rem" }}>{u.created_at ? new Date(u.created_at).toLocaleString() : ""}</span>
-                      <p style={{ margin: "0.25rem 0", whiteSpace: "pre-wrap" }}>{u.body}</p>
-                      <button type="button" onClick={() => handleDeleteUpdate(u.id)} style={{ fontSize: "0.85rem", color: "#666" }}>Delete</button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
-          )}
+          <FeatureGate
+            feature="campaign_updates"
+            orgTier={orgTier}
+            lockedMessage="Campaign update posts are available on the Grow plan and above."
+          >
+            {updatesLoading ? (
+              <p>Loading…</p>
+            ) : (
+              <>
+                <form onSubmit={handleAddUpdate} style={{ marginBottom: "1rem", padding: "0.5rem", border: "1px solid #ddd" }}>
+                  <GenericTextInput
+                    value={newUpdateTitle}
+                    setValue={(value) => setNewUpdateTitle(String(value ?? ""))}
+                    placeholder="Update title"
+                    required
+                    hideLabel
+                    wrapperStyle={{ marginBottom: "0.5rem" }}
+                    inputStyle={{ display: "block", width: "100%", maxWidth: "400px", padding: "0.5rem" }}
+                  />
+                  <textarea value={newUpdateBody} onChange={(e) => setNewUpdateBody(e.target.value)} placeholder="Update body" required rows={3} style={{ display: "block", width: "100%", maxWidth: "400px", marginBottom: "0.5rem", padding: "0.5rem" }} />
+                  <button type="submit" disabled={updateSubmitLoading}>Post update</button>
+                </form>
+                {updates.length === 0 ? <p style={{ color: "#666" }}>No updates yet.</p> : (
+                  <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+                    {updates.map((u) => (
+                      <li key={u.id} style={{ borderBottom: "1px solid #eee", padding: "0.5rem 0" }}>
+                        <strong>{u.title}</strong>
+                        <span style={{ fontSize: "0.9rem", color: "#666", marginLeft: "0.5rem" }}>{u.created_at ? new Date(u.created_at).toLocaleString() : ""}</span>
+                        <p style={{ margin: "0.25rem 0", whiteSpace: "pre-wrap" }}>{u.body}</p>
+                        <button type="button" onClick={() => handleDeleteUpdate(u.id)} style={{ fontSize: "0.85rem", color: "#666" }}>Delete</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            )}
+          </FeatureGate>
         </div>
       )}
 
