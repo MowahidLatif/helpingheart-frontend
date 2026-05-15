@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { getTenantOrgSubdomainFromHost } from "@/lib/hostTenant";
-import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { AiSiteIframeRenderer } from "@/ui/AiSite/AiSiteIframeRenderer";
@@ -22,12 +22,6 @@ const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 function getPresetAmounts(campaign: Campaign | null): number[] {
   const model = parseAiSiteRenderModelFromDb(campaign?.ai_site_recipe);
   if (model?.type === "dsl") return getDonatePresetsFromRecipe(model.recipe);
-  if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
-  const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
-  const presets = donateBlock?.props?.preset_amounts;
-  if (Array.isArray(presets) && presets.length > 0) {
-    return presets.filter((n) => typeof n === "number" && n > 0);
-  }
   return DEFAULT_PRESETS;
 }
 
@@ -151,7 +145,6 @@ export default function DonatePage() {
           <meta name="twitter:card" content="summary" />
         </Helmet>
       ) : null}
-      {/* Missing, corrupt, or invalid ai_site_recipe parses as null → classic blocks (defaultBlocks if no page_layout). */}
       {renderModel?.type === "dsl" ? (
         <AiSiteRenderer
           campaign={campaign}
@@ -181,7 +174,9 @@ export default function DonatePage() {
           );
         })()
       ) : (
-        <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />
+        <p className="donation-error">
+          This campaign page is not ready yet. The organizer hasn&apos;t generated their site.
+        </p>
       )}
       <DonationModal
         open={modalOpen}

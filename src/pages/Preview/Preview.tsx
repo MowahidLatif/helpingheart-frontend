@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
-import { BlockRenderer, Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
@@ -13,12 +13,6 @@ const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 function getPresetAmounts(campaign: Campaign | null): number[] {
   const recipe = parseAiSiteRecipeFromDb(campaign?.ai_site_recipe);
   if (recipe) return getDonatePresetsFromRecipe(recipe);
-  if (!campaign?.page_layout?.blocks) return DEFAULT_PRESETS;
-  const donateBlock = campaign.page_layout.blocks.find((b) => b.type === "donate_button");
-  const presets = donateBlock?.props?.preset_amounts;
-  if (Array.isArray(presets) && presets.length > 0) {
-    return (presets as unknown[]).filter((n): n is number => typeof n === "number" && n > 0);
-  }
   return DEFAULT_PRESETS;
 }
 
@@ -90,7 +84,6 @@ export default function PreviewPage() {
       </div>
 
       <div className="donate-page donate-page-blocks">
-        {/* Invalid or absent recipe → same fallback as DonatePage (BlockRenderer + defaultBlocks). */}
         {aiRecipe ? (
           <AiSiteRenderer
             campaign={campaign}
@@ -99,7 +92,9 @@ export default function PreviewPage() {
             stickyDonate={false}
           />
         ) : (
-          <BlockRenderer campaign={campaign} onDonateClick={() => setModalOpen(true)} />
+          <p style={{ padding: "2rem", color: "#6b7280" }}>
+            No AI site has been generated for this campaign yet. Use the AI site builder to create one.
+          </p>
         )}
         <DonationModal
           open={modalOpen}

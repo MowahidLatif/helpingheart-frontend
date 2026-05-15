@@ -18,7 +18,6 @@ import DonatePage from "@/pages/Donate/DonatePage";
 import ThankYouPage from "@/pages/Donate/ThankYouPage";
 import CreateCampaignPage from "@/pages/Campaign/CreateCampaignPage";
 import LayoutBuilderPage from "@/pages/Campaign/LayoutBuilderPage";
-import PageLayoutBuilder from "@/pages/Campaign/PageLayoutBuilder";
 import AiSiteWizardPage from "@/pages/Campaign/AiSiteWizardPage";
 import DesignStudioPage from "@/pages/Campaign/DesignStudioPage";
 import TenantPublicHome from "@/pages/Campaign/TenantPublicHome";
@@ -145,14 +144,6 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute requiredPermissions={["campaign:edit"]}>
         <LayoutBuilderPage />
-      </ProtectedRoute>
-    ),
-  },
-  {
-    path: "/campaign/page-layout/:campaignId",
-    element: (
-      <ProtectedRoute requiredPermissions={["campaign:edit"]}>
-        <PageLayoutBuilder />
       </ProtectedRoute>
     ),
   },

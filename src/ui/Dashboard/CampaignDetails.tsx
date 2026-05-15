@@ -444,16 +444,12 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     navigate("/preview", { state: { campaignId: campaign.id } });
   };
 
-  const handleEditMedia = () => {
+  const handleManageMedia = () => {
     navigate(`/campaign/layout-builder/${campaign.id}`);
   };
 
   const handleAiSite = () => {
     navigate(`/campaign/ai-site/${campaign.id}`);
-  };
-
-  const handleEditLayout = () => {
-    navigate(`/campaign/page-layout/${campaign.id}`);
   };
 
   const progressPercent = progress?.percent || 0;
@@ -555,13 +551,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           View Live Page
         </a>
         <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleOpenEdit}>Edit campaign</button>
-        <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleEditMedia}>Edit Media</button>
+        <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleManageMedia}>Manage Media</button>
         <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleAiSite}>AI site builder</button>
-        {import.meta.env.VITE_ENABLE_CLASSIC_PAGE_BUILDER === "true" ? (
-          <button className="btn btn-secondary btn-sm mr-sm mb-sm" onClick={handleEditLayout}>
-            Classic page layout
-          </button>
-        ) : null}
         {isGiveaway && orgTier >= 3 && (
           <button
             className="btn btn-secondary btn-sm mr-sm mb-sm"

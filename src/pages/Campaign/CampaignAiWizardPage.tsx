@@ -19,7 +19,7 @@ import {
 import { uploadMediaToS3, inferMediaType, type PersistedMedia } from "@/lib/mediaUpload";
 import { AiSiteRenderer } from "@/ui/AiSite/AiSiteRenderer";
 import { DonationModal } from "@/components/DonationModal/DonationModal";
-import { BlockRenderer, type Campaign } from "@/ui/DonateBlocks/BlockRenderer";
+import type { Campaign } from "@/ui/DonateBlocks/BlockRenderer";
 import { getDonatePresetsFromRecipe, parseAiSiteRecipeFromDb } from "@/lib/aiSiteRecipe";
 import { notifyError } from "@/lib/notifications";
 import GenericTextInput from "@/components/Form/GenericTextInput";
@@ -704,27 +704,11 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           ) : !previewCampaign ? (
             <Alert type="info" message="Could not load campaign preview." showIcon />
           ) : !aiRecipe ? (
-            <>
-              <Alert
-                type="info"
-                message="AI layout not available (missing or invalid recipe). Showing the same classic layout as the public page—regenerate from the prompt step if you expected an AI site."
-                showIcon
-                style={{ marginBottom: 16 }}
-              />
-              <div
-                className="donate-page donate-page-blocks"
-                style={{ border: "1px solid #eee", borderRadius: 8, padding: 16 }}
-              >
-                <BlockRenderer campaign={previewCampaign} onDonateClick={() => setModalOpen(true)} />
-                <DonationModal
-                  open={modalOpen}
-                  onClose={() => setModalOpen(false)}
-                  campaignId={campaignId}
-                  campaignTitle={previewCampaign.title || campaignTitle || "Campaign"}
-                  presetAmounts={presets}
-                />
-              </div>
-            </>
+            <Alert
+              type="warning"
+              message="No AI site generated yet. Go back to the prompt step and click Generate."
+              showIcon
+            />
           ) : (
             <div
               className="donate-page donate-page-blocks"
