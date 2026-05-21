@@ -56,8 +56,8 @@ const HowItWorks = () => {
       <div className="info-callout" style={{ marginTop: "3rem" }}>
         <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Ready to start?</p>
         <p>
-          <a href="/signup">Create your account</a> and launch your first
-          campaign. No credit card required.
+          <a href="/waitlist">Join the waitlist</a> and be first to launch your
+          campaign when we open on August 1, 2026.
         </p>
       </div>
     </div>

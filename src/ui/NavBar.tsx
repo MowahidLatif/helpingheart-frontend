@@ -26,11 +26,10 @@ const NavBar: React.FC = () => {
         <Link to="/contact" className="navbar-link">
           Contact
         </Link>
-        <Link to="/signin" className="navbar-link">
-          Sign In
-        </Link>
-        <Link to="/signup" className="btn btn-primary btn-sm">
-          Sign Up
+        {/* <Link to="/signin" className="navbar-link">Sign In</Link> */}
+        {/* <Link to="/signup" className="btn btn-primary btn-sm">Sign Up</Link> */}
+        <Link to="/waitlist" className="btn btn-primary btn-sm">
+          Join the Waitlist
         </Link>
       </div>
     </nav>

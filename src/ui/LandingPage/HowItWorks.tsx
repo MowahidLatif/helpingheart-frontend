@@ -49,8 +49,8 @@ const HowItWorks: React.FC = () => {
         </div>
 
         <div className="text-center mt-xl">
-          <Link to="/signup" className="btn btn-primary btn-lg">
-            Start your campaign
+          <Link to="/waitlist" className="btn btn-primary btn-lg">
+            Join the Waitlist
           </Link>
         </div>
       </div>

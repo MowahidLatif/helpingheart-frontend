@@ -1,8 +1,9 @@
 import { RouteObject } from "react-router-dom";
-import SignUp from "@/pages/SignUp/SignUp";
+// import SignUp from "@/pages/SignUp/SignUp";
 import SettingsPage from "@/pages/Setting/SettingsPage";
-import SignIn from "@/pages/SignIn/SignIn";
+// import SignIn from "@/pages/SignIn/SignIn";
 import LandingPage from "@/pages/Landing/LandingPage";
+import WaitlistPage from "@/pages/Waitlist/WaitlistPage";
 import HowItWorks from "@/pages/HowItWorks/HowItWorks";
 import Pricing from "@/pages/Pricing/Pricing";
 import About from "@/pages/About/About";
@@ -36,13 +37,11 @@ export const routes: RouteObject[] = [
     path: "/",
     element: <LandingPage />,
   },
+  // { path: "/signup", element: <SignUp /> },
+  // { path: "/signin", element: <SignIn /> },
   {
-    path: "/signup",
-    element: <SignUp />,
-  },
-  {
-    path: "/signin",
-    element: <SignIn />,
+    path: "/waitlist",
+    element: <WaitlistPage />,
   },
   {
     path: "/how-it-works",

@@ -5,14 +5,14 @@ const FinalCTA: React.FC = () => {
   return (
     <section className="landing-cta">
       <div className="container">
-        <h2>Your next campaign starts today.</h2>
+        <h2>Launching August 1, 2026.</h2>
         <p>
-          No monthly fee. No credit card required to sign up. Connect Stripe
-          when you're ready to go live.
+          We're putting the final touches on HelpingHandsFund. Join the waitlist
+          and be first in line when we open our doors.
         </p>
         <div className="btn-group" style={{ justifyContent: "center" }}>
-          <Link to="/signup" className="btn btn-primary btn-lg">
-            Create your campaign
+          <Link to="/waitlist" className="btn btn-primary btn-lg">
+            Join the Waitlist
           </Link>
           <Link to="/pricing" className="btn btn-secondary btn-lg">
             See pricing

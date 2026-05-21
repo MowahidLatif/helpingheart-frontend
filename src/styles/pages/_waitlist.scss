@@ -1,0 +1,94 @@
+// =============================================================================
+// Page-specific Styles - Waitlist Page
+// =============================================================================
+@use '../abstracts' as *;
+
+.waitlist-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-xl;
+  background-color: $color-background-light;
+
+  @include respond-below(mobile) {
+    padding: $spacing-md;
+    align-items: flex-start;
+    padding-top: $spacing-2xl;
+  }
+}
+
+.waitlist-page__inner {
+  @include card-base;
+  width: 100%;
+  max-width: 520px;
+  padding: $spacing-2xl;
+  text-align: center;
+
+  @include respond-below(mobile) {
+    padding: $spacing-lg;
+  }
+}
+
+.waitlist-page__badge {
+  display: inline-block;
+  background-color: $color-primary;
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  padding: 4px $spacing-md;
+  border-radius: $border-radius-full;
+  margin-bottom: $spacing-lg;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.waitlist-page__title {
+  margin-bottom: $spacing-md;
+  font-size: $font-size-xl;
+  line-height: $line-height-tight;
+}
+
+.waitlist-page__subtitle {
+  color: $color-text-secondary;
+  margin-bottom: $spacing-xl;
+  line-height: $line-height-relaxed;
+}
+
+.waitlist-page__form {
+  text-align: left;
+}
+
+.waitlist-page__form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-md;
+
+  @include respond-below(mobile) {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+
+.waitlist-page__success {
+  padding: $spacing-lg 0;
+
+  h2 {
+    margin: $spacing-md 0 $spacing-sm;
+  }
+
+  p {
+    color: $color-text-secondary;
+  }
+}
+
+.waitlist-page__success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: $color-success;
+  color: #fff;
+  font-size: 24px;
+  line-height: 56px;
+  margin: 0 auto;
+}

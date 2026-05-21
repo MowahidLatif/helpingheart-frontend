@@ -31,8 +31,8 @@ const Hero: React.FC = () => {
           </p>
 
           <div className="landing-hero__cta">
-            <Link to="/signup" className="btn btn-primary btn-lg">
-              Start your campaign
+            <Link to="/waitlist" className="btn btn-primary btn-lg">
+              Join the Waitlist
             </Link>
             <Link to="/how-it-works" className="btn btn-secondary btn-lg">
               See how it works
