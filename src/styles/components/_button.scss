@@ -76,6 +76,11 @@
 .btn-lg {
   padding: $spacing-md $spacing-xl;
   font-size: $font-size-lg;
+
+  @include respond-below(mobile) {
+    padding: $spacing-sm $spacing-lg;
+    font-size: $font-size-base;
+  }
 }
 
 // Button block
