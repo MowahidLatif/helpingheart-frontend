@@ -57,7 +57,7 @@ const HowItWorks = () => {
         <p style={{ fontWeight: 600, marginBottom: "0.25rem" }}>Ready to start?</p>
         <p>
           <a href="/waitlist">Join the waitlist</a> and be first to launch your
-          campaign when we open on August 1, 2026.
+          campaign when we open on September 1, 2026.
         </p>
       </div>
     </div>

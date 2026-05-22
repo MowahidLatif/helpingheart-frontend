@@ -31,7 +31,7 @@ const WaitlistPage: React.FC = () => {
   return (
     <div className="waitlist-page">
       <div className="waitlist-page__inner">
-        <div className="waitlist-page__badge">Coming August 1, 2026</div>
+        <div className="waitlist-page__badge">Coming September 1, 2026</div>
         <h1 className="waitlist-page__title">Be the first to know when we launch.</h1>
         <p className="waitlist-page__subtitle">
           HelpingHandsFund is putting the finishing touches on something great.
@@ -42,7 +42,7 @@ const WaitlistPage: React.FC = () => {
           <div className="waitlist-page__success">
             <div className="waitlist-page__success-icon">✓</div>
             <h2>You're on the list!</h2>
-            <p>We'll be in touch when HelpingHandsFund launches on August 1, 2026.</p>
+            <p>We'll be in touch when HelpingHandsFund launches on September 1, 2026.</p>
           </div>
         ) : (
           <Form
