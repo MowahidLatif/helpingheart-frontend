@@ -2,6 +2,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
+import { TIER_NAMES } from "@/lib/tierFeatures";
+import type { OrgTierInfo, TierKey } from "@/lib/tierFeatures";
 
 function getInitials(name: string): string {
   return name
@@ -16,6 +18,7 @@ const AuthenticatedNavBar = () => {
   const navigate = useNavigate();
   const [orgName, setOrgName] = useState<string>("");
   const [orgLogoUrl, setOrgLogoUrl] = useState<string>("");
+  const [planName, setPlanName] = useState<string>("");
 
   const user = (() => {
     try {
@@ -34,14 +37,18 @@ const AuthenticatedNavBar = () => {
       .then((res) => {
         const first = res.data?.[0];
         if (!first) return;
-        return api
-          .get<{ id: string; name: string; logo_url?: string }>(
-            API_ENDPOINTS.orgs.get(first.id)
-          )
-          .then((orgRes) => {
-            setOrgName(orgRes.data.name ?? "");
-            setOrgLogoUrl(orgRes.data.logo_url ?? "");
-          });
+        const orgId = first.id;
+        return Promise.all([
+          api.get<{ id: string; name: string; logo_url?: string }>(
+            API_ENDPOINTS.orgs.get(orgId)
+          ),
+          api.get<OrgTierInfo>(API_ENDPOINTS.orgs.tierInfo(orgId)),
+        ]).then(([orgRes, tierRes]) => {
+          setOrgName(orgRes.data.name ?? "");
+          setOrgLogoUrl(orgRes.data.logo_url ?? "");
+          const tier = tierRes.data.tier as TierKey;
+          setPlanName(TIER_NAMES[tier] ?? tierRes.data.tier_name ?? "");
+        });
       })
       .catch(() => {});
   }, []);
@@ -66,6 +73,9 @@ const AuthenticatedNavBar = () => {
           <span className="navbar-logo">HH</span>
         )}
         <span className="d-tablet-none">{orgName || "Helping Hands"}</span>
+        {planName && (
+          <span className="plan-badge navbar-plan-badge">{planName}</span>
+        )}
       </Link>
       <div className="navbar-menu">
         <Link to="/dashboard" className="navbar-link">

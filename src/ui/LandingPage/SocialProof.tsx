@@ -26,8 +26,8 @@ const SocialProof: React.FC = () => {
             <div className="landing-stat__label">Campaigns completed</div>
           </div>
           <div className="landing-stat">
-            <div className="landing-stat__value">3–5%</div>
-            <div className="landing-stat__label">Platform fee, no monthly cost</div>
+            <div className="landing-stat__value">$10+</div>
+            <div className="landing-stat__label">Plans from $10/month</div>
           </div>
         </div>
       </div>

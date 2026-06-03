@@ -503,10 +503,10 @@ const SettingsPage = () => {
             return (
               <>
                 <p style={{ marginBottom: "0.5rem" }}>
-                  <strong>Current plan:</strong> {limits.name} — {limits.platform_fee_percent}% of total raised at payout
+                  <strong>Current plan:</strong> {limits.name} — ${limits.monthly_price}/month
                 </p>
                 <p style={{ color: "#666", marginBottom: "1rem", fontSize: "0.9rem" }}>
-                  Changing your plan immediately updates the fee rate for all your active campaigns.
+                  Changing your plan immediately updates features and limits for all your active campaigns.
                   Completed campaigns are unaffected.
                 </p>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
@@ -521,7 +521,7 @@ const SettingsPage = () => {
                         handleTierChange(t);
                       }}
                     >
-                      {TIER_NAMES[t]} ({TIER_LIMITS[t].platform_fee_percent}%)
+                      {TIER_NAMES[t]} (${TIER_LIMITS[t].monthly_price}/mo)
                     </Button>
                   ))}
                 </div>
@@ -536,20 +536,20 @@ const SettingsPage = () => {
         <h3 style={{ marginTop: 0 }}>Before you continue</h3>
         <p>
           You have one or more active campaigns on your account.
-          Changing your plan will <strong>immediately update</strong> the fee rate for these campaigns:
+          Changing your plan will <strong>immediately update</strong> features and limits for these campaigns:
         </p>
         <ul style={{ paddingLeft: "1.25rem", marginBottom: "1.25rem" }}>
           {ackCampaigns.map((c) => (
             <li key={c.id} style={{ marginBottom: "0.35rem" }}>
               <strong>{c.title}</strong>{" "}
               <span style={{ color: "#666" }}>
-                ({c.status}) — currently {c.locked_tier_name} ({c.locked_fee_percent}%)
+                ({c.status}) — currently on {c.locked_tier_name}
               </span>
             </li>
           ))}
         </ul>
         <p>
-          All listed campaigns will be billed at your new plan rate going forward.
+          All listed campaigns will use your new plan&apos;s features and limits going forward.
           Completed campaigns are not affected.
         </p>
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.5rem" }}>

@@ -32,7 +32,7 @@ const features = [
   {
     title: "Embeddable progress widget",
     description:
-      "Copy an iframe snippet from your dashboard and paste it on any website. It renders a live progress bar with donation totals — no coding required. Available on the Scale plan.",
+      "Copy an iframe snippet from your dashboard and paste it on any website. It renders a live progress bar with donation totals — no coding required. Available on Grow and Scale plans.",
   },
   {
     title: "Account security",
@@ -49,7 +49,7 @@ const About = () => {
         HelpingHandsFund is a fundraising platform built for nonprofits,
         community groups, and anyone organizing a cause. We give you an
         AI-generated campaign site, live donation tracking, and direct Stripe
-        payouts — in one product, with no monthly fee.
+        payouts — in one product, with plans starting at $10/month.
       </p>
       <p className="mb-2xl">
         The platform is built on a simple idea: the hardest part of fundraising
@@ -70,9 +70,9 @@ const About = () => {
 
       <h2>Our approach</h2>
       <p className="mb-xl">
-        We charge a percentage of what you raise because our incentives should
-        match yours. If your campaign raises more, we earn more — so we have
-        every reason to make the platform work well for you.
+        We offer flat monthly subscriptions because pricing should be
+        predictable. Pick the plan that fits your organization today and
+        upgrade as you grow — no percentage taken from what you raise.
       </p>
 
       <div className="info-callout">

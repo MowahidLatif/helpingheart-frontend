@@ -205,3 +205,22 @@
   border-radius: $border-radius-sm;
   flex-shrink: 0;
 }
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: $font-weight-medium;
+  color: $color-text-secondary;
+  background-color: $color-background-light;
+  border: 1px solid $color-border;
+  border-radius: $border-radius-full;
+  padding: 2px $spacing-sm;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.navbar-plan-badge {
+  margin-left: $spacing-xs;
+  flex-shrink: 0;
+}

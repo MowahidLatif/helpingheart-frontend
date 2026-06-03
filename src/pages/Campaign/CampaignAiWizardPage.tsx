@@ -127,7 +127,7 @@ function PlatformPaymentForm({
   return (
     <form onSubmit={handleSubmit} style={{ marginTop: 12 }}>
       <Text type="secondary">
-        Platform fee: ${(amountCents / 100).toFixed(2)} — supports AI site generation.
+        Generation fee: ${(amountCents / 100).toFixed(2)} — supports AI site generation.
       </Text>
       <div style={{ marginTop: 12 }}>
         <PaymentElement />

@@ -22,7 +22,7 @@ const steps = [
   {
     number: "05",
     title: "Track donations and close out",
-    body: "Every donation appears in your dashboard in real time. When your campaign ends, draw a giveaway winner directly from the dashboard — choose all donors or those above a minimum amount, and the winner is announced on the campaign page. Export your donor list as a CSV at any time. Your Stripe account receives the net payout after the platform fee.",
+    body: "Every donation appears in your dashboard in real time. When your campaign ends, draw a giveaway winner directly from the dashboard — choose all donors or those above a minimum amount, and the winner is announced on the campaign page. Export your donor list as a CSV at any time. Your Stripe account receives payouts directly.",
   },
 ];
 

@@ -1,5 +1,10 @@
 import { Link } from "react-router-dom";
-import { TIER_LIMITS, getAiGenLabel } from "@/lib/tierFeatures";
+import {
+  TIER_LIMITS,
+  TIER_PRICE,
+  getAiGenLabel,
+  getTierCardFeatures,
+} from "@/lib/tierFeatures";
 import type { TierKey } from "@/lib/tierFeatures";
 
 type FeatureRow = {
@@ -11,21 +16,21 @@ type FeatureRow = {
 
 const featureRows: FeatureRow[] = [
   {
-    label: "Platform fee (% of total raised)",
-    t1: "3%",
-    t2: "4%",
-    t3: "5%",
-  },
-  {
-    label: "Active campaigns",
-    t1: `Up to ${TIER_LIMITS[1].max_active_campaigns}`,
-    t2: `Up to ${TIER_LIMITS[2].max_active_campaigns}`,
-    t3: "Unlimited",
+    label: "Monthly price",
+    t1: `$${TIER_PRICE[1]}`,
+    t2: `$${TIER_PRICE[2]}`,
+    t3: `$${TIER_PRICE[3]}`,
   },
   {
     label: "Team members",
-    t1: "Owner only",
+    t1: "1 admin",
     t2: `Up to ${TIER_LIMITS[2].max_members}`,
+    t3: "Unlimited",
+  },
+  {
+    label: "Active campaigns",
+    t1: `${TIER_LIMITS[1].max_active_campaigns}`,
+    t2: `Up to ${TIER_LIMITS[2].max_active_campaigns}`,
     t3: "Unlimited",
   },
   {
@@ -34,19 +39,24 @@ const featureRows: FeatureRow[] = [
     t2: getAiGenLabel(2),
     t3: getAiGenLabel(3),
   },
-  { label: "Custom Media Add-ons (Images, Videos, Documents, etc...)", t1: false, t2: true, t3: true },
-  { label: "Stripe Connect payouts", t1: true, t2: true, t3: true },
   { label: "Custom campaign subdomain", t1: true, t2: true, t3: true },
   { label: "Real-time donation feed", t1: true, t2: true, t3: true },
-  { label: "Donor email receipts (SendGrid)", t1: true, t2: true, t3: true },
-  { label: "Campaign update posts", t1: false, t2: true, t3: true },
-  { label: "iFrame embed widget (HTML / WP / React)", t1: false, t2: false, t3: true },
+  { label: "Automated donor email receipts", t1: true, t2: true, t3: true },
+  { label: "Stripe Connect payouts", t1: true, t2: true, t3: true },
   { label: "Basic task management", t1: false, t2: true, t3: true },
-  { label: "Full task suite (checklists, files, blockers, time entries, @mentions)", t1: false, t2: false, t3: true },
-  { label: "Email marketing to donor list", t1: false, t2: false, t3: true },
-  { label: "Donor segmentation & open/click tracking", t1: false, t2: false, t3: true },
+  { label: "iFrame embedding (widget + full page)", t1: false, t2: true, t3: true },
+  { label: "Campaign update notifications", t1: false, t2: true, t3: true },
+  { label: "Basic analytics dashboard", t1: false, t2: true, t3: true },
+  {
+    label: "Full task suite (checklists, attachments, blockers, time entries, @mentions)",
+    t1: false,
+    t2: false,
+    t3: true,
+  },
+  { label: "Email marketing with open + click tracking", t1: false, t2: false, t3: true },
+  { label: "Donor segmentation", t1: false, t2: false, t3: true },
   { label: "Giveaway / lottery feature", t1: false, t2: false, t3: true },
-  { label: "Advanced analytics & exportable reports", t1: false, t2: false, t3: true },
+  { label: "Advanced analytics + CSV export", t1: false, t2: false, t3: true },
 ];
 
 const tiers: { key: TierKey; popular?: boolean }[] = [
@@ -66,13 +76,14 @@ const Pricing = () => {
     <div className="info-page pricing-page">
       <h1>Pricing</h1>
       <p className="mb-2xl">
-        HelpingHandsFund charges a percentage of what you raise — nothing more.
-        No monthly subscription, no hidden fees. We earn when you earn.
+        Simple, flat monthly plans — no percentage taken from your donations.
+        Pick the tier that fits your organization and upgrade anytime.
       </p>
 
       <div className="pricing-tiers-grid mb-2xl">
         {tiers.map(({ key, popular }) => {
           const limits = TIER_LIMITS[key];
+          const features = getTierCardFeatures(key);
           return (
             <div
               key={key}
@@ -89,51 +100,19 @@ const Pricing = () => {
                   {key === 3 && "For high-volume fundraisers who need every feature."}
                 </p>
                 <div className="pricing-tier__fee">
-                  <span className="pricing-tier__pct">{limits.platform_fee_percent}%</span>
-                  <span className="pricing-tier__fee-label"> of total raised</span>
+                  <span className="pricing-tier__pct">${limits.monthly_price}</span>
+                  <span className="pricing-tier__fee-label">/month</span>
                 </div>
               </div>
               <ul className="pricing-tier__features">
-                {key === 1 && (
-                  <>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Up to 2 active campaigns</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> {getAiGenLabel(1)} AI site generations</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Stripe Connect payouts</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom subdomain</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Donor email receipts</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Custom media add-ons</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Team members</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> iFrame embed widget</li>
-                  </>
-                )}
-                {key === 2 && (
-                  <>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Up to 5 active campaigns</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> {getAiGenLabel(2)} AI generations</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom Media Add-ons (Images, Videos, Documents)</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Up to 5 team members</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Basic task management</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Campaign update posts</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> iFrame embed widget</li>
-                    <li className="pricing-tier__feat pricing-tier__feat--muted"><span className="tier-dash">–</span> Email marketing</li>
-                  </>
-                )}
-                {key === 3 && (
-                  <>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Unlimited campaigns</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> {getAiGenLabel(3)} AI generations</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Custom Media Add-ons (Images, Videos, Documents)</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> iFrame embed widget</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Unlimited team members</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Full task suite</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Email marketing & segmentation</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Giveaway / lottery feature</li>
-                    <li className="pricing-tier__feat"><span className="tier-check">✓</span> Advanced analytics & exports</li>
-                  </>
-                )}
+                {features.map((feat) => (
+                  <li key={feat} className="pricing-tier__feat">
+                    <span className="tier-check">✓</span> {feat}
+                  </li>
+                ))}
               </ul>
               <Link
-                to={`/signup?tier=${key}`}
+                to="/waitlist"
                 className={`btn ${popular ? "btn-primary" : "btn-outline"} pricing-tier__cta`}
               >
                 Get started
@@ -141,17 +120,6 @@ const Pricing = () => {
             </div>
           );
         })}
-      </div>
-
-      <div className="info-callout mb-2xl" style={{ marginTop: 0 }}>
-        <h3 className="m-0 mb-sm">Early cancellation fee</h3>
-        <p>
-          If you cancel a campaign before it reaches its goal, a flat{" "}
-          <strong>5% fee</strong> is automatically deducted from the total raised
-          at time of cancellation before the remainder is paid out. This fee
-          applies to all tiers. If a campaign runs to completion or hits its
-          goal, only the standard tier fee applies — no cancellation fee.
-        </p>
       </div>
 
       <section className="card pricing-compare-card mb-2xl">
@@ -179,17 +147,6 @@ const Pricing = () => {
           </table>
         </div>
       </section>
-
-      <div className="info-callout" style={{ marginTop: 0 }}>
-        <h3 className="m-0 mb-sm">Why performance-based pricing?</h3>
-        <p>
-          When your campaign raises more, we earn more. That alignment means our
-          incentives are always in your favor — we have every reason to help your
-          campaigns succeed. Higher tiers include features that require real
-          infrastructure costs (AI compute, email delivery, advanced reporting)
-          — the fee increase funds exactly those capabilities.
-        </p>
-      </div>
     </div>
   );
 };

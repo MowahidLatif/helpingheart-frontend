@@ -1,7 +1,7 @@
 const faqs = [
   {
-    q: "Is HelpingHandsFund free to use?",
-    a: "Signing up, creating campaigns, and managing your organization are all free. We take a platform fee of 3%, 4%, or 5% (depending on your plan tier) only on donations collected. You see the exact fee before any donation is processed.",
+    q: "How much does HelpingHandsFund cost?",
+    a: "Plans start at $10/month for Starter, $40/month for Grow, and $100/month for Scale. There is no percentage taken from your donations — you pay a flat monthly subscription for the features you need.",
   },
   {
     q: "How does payment processing work?",

@@ -5,43 +5,35 @@ import api from "@/lib/api";
 import { decodeTokenClaims } from "@/lib/auth";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { notifyError } from "@/lib/notifications";
-import { TIER_LIMITS, getAiGenLabel } from "@/lib/tierFeatures";
+import {
+  TIER_LIMITS,
+  formatMonthlyPriceLong,
+  getTierCardFeatures,
+} from "@/lib/tierFeatures";
 import type { TierKey } from "@/lib/tierFeatures";
 
 type StepTierCardProps = {
   tierKey: TierKey;
   selected: boolean;
+  popular?: boolean;
   onSelect: () => void;
 };
 
-function TierCard({ tierKey, selected, onSelect }: StepTierCardProps) {
+function TierCard({ tierKey, selected, popular, onSelect }: StepTierCardProps) {
   const limits = TIER_LIMITS[tierKey];
-  const highlights: string[] = [];
-  if (tierKey === 1) {
-    highlights.push(`Up to ${limits.max_active_campaigns} active campaigns`);
-    highlights.push(`${getAiGenLabel(1)} AI site generations`);
-    highlights.push("Stripe payouts, custom subdomain");
-  } else if (tierKey === 2) {
-    highlights.push(`Up to ${limits.max_active_campaigns} active campaigns`);
-    highlights.push(`${getAiGenLabel(2)} AI generations`);
-    highlights.push("Team management (up to 5 members)");
-    highlights.push("iFrame embedding, campaign updates");
-  } else {
-    highlights.push("Unlimited campaigns & members");
-    highlights.push(`${getAiGenLabel(3)} AI generations`);
-    highlights.push("Full task suite, email marketing");
-    highlights.push("Giveaway / lottery, advanced analytics");
-  }
+  const highlights = getTierCardFeatures(tierKey).slice(0, 5);
   return (
     <button
       type="button"
       onClick={onSelect}
-      className={`signup-tier-card${selected ? " signup-tier-card--selected" : ""}`}
+      className={`signup-tier-card${selected ? " signup-tier-card--selected" : ""}${popular ? " signup-tier-card--popular" : ""}`}
     >
+      {popular && <span className="signup-tier-card__badge">Most Popular</span>}
       <div className="signup-tier-card__header">
         <span className="signup-tier-card__name">{limits.name}</span>
         <span className="signup-tier-card__fee">
-          {limits.platform_fee_percent}%<span className="signup-tier-card__fee-label"> of raised</span>
+          ${limits.monthly_price}
+          <span className="signup-tier-card__fee-label">/month</span>
         </span>
       </div>
       <ul className="signup-tier-card__features">
@@ -127,7 +119,7 @@ export default function SignUp() {
                 ← Change plan
               </button>{" "}
               <strong>{TIER_LIMITS[selectedTier].name}</strong> —{" "}
-              {TIER_LIMITS[selectedTier].platform_fee_percent}% of raised
+              {formatMonthlyPriceLong(selectedTier)}
             </p>
           )}
         </div>
@@ -139,6 +131,7 @@ export default function SignUp() {
                 <TierCard
                   key={k}
                   tierKey={k}
+                  popular={k === 2}
                   selected={selectedTier === k}
                   onSelect={() => setSelectedTier(k)}
                 />

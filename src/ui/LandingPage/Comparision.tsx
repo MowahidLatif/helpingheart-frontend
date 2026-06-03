@@ -40,8 +40,8 @@ const Comparision: React.FC = () => {
                 <td>✗ No</td>
               </tr>
               <tr>
-                <td>Performance-based fee (no monthly subscription)</td>
-                <td>✓ 3–5% of raised</td>
+                <td>Flat monthly subscription (no % of raised)</td>
+                <td>✓ From $10/mo</td>
                 <td>✗ Monthly fee + %</td>
               </tr>
               <tr>

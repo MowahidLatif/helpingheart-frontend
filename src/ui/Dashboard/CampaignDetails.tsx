@@ -464,7 +464,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
   const grossRaised = progress?.total_raised ?? campaign.total_raised ?? 0;
   const netToOrgCents = progress?.net_to_org_cents;
   const stripeFeeCents = progress?.stripe_fee_cents;
-  const progressPlatformFeeCents = progress?.platform_fee_cents;
 
   const feeOptionLabel =
     feeOption === "platform_absorbs" ? "Platform absorbs fees" : "Donor pays fees";
@@ -475,7 +474,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         <h2 style={{ margin: 0 }}>{campaign.title}</h2>
         {campaign.locked_tier != null && (
           <span className="locked-tier-badge">
-            {["Starter", "Grow", "Scale"][(campaign.locked_tier ?? 1) - 1] ?? "Starter"} plan · {[3, 4, 5][(campaign.locked_tier ?? 1) - 1] ?? 3}% fee
+            {["Starter", "Grow", "Scale"][(campaign.locked_tier ?? 1) - 1] ?? "Starter"} plan
           </span>
         )}
       </div>
@@ -504,17 +503,6 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
             <br />
           </>
         )}
-        {progressPlatformFeeCents ? (
-          <>
-            <strong>💳 Platform Fee:</strong> ${(progressPlatformFeeCents / 100).toFixed(2)}
-            <br />
-          </>
-        ) : campaign.platform_fee_cents ? (
-          <>
-            <strong>💳 Platform Fee:</strong> ${(campaign.platform_fee_cents / 100).toFixed(2)} ({campaign.platform_fee_percent}%)
-            <br />
-          </>
-        ) : null}
         {typeof stripeFeeCents === "number" ? (
           <>
             <strong>🏦 Stripe Fees:</strong> ${(stripeFeeCents / 100).toFixed(2)}

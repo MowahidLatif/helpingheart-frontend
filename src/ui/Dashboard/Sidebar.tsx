@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { notifyError } from "@/lib/notifications";
-import { TIER_NAMES, TIER_FEE } from "@/lib/tierFeatures";
+import { TIER_NAMES, formatMonthlyPrice } from "@/lib/tierFeatures";
 import type { OrgTierInfo } from "@/lib/tierFeatures";
 
 type Campaign = {
@@ -165,7 +165,7 @@ const Sidebar: React.FC<SidebarProps> = ({
               </div>
               {c.locked_tier != null && (
                 <div className="sidebar-campaign-card__tier">
-                  {["Starter", "Grow", "Scale"][(c.locked_tier ?? 1) - 1] ?? "Starter"} · {[3, 4, 5][(c.locked_tier ?? 1) - 1] ?? 3}% fee
+                  {TIER_NAMES[(c.locked_tier ?? 1) as 1 | 2 | 3] ?? "Starter"}
                 </div>
               )}
               <div className="sidebar-campaign-card__amount">
@@ -185,7 +185,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div style={{ marginTop: "1.5rem", paddingTop: "1rem", borderTop: "1px solid #eee" }}>
           <div style={{ fontSize: "0.78rem", color: "#888", marginBottom: "0.25rem" }}>Current plan</div>
           <div style={{ fontWeight: 600, fontSize: "0.88rem", color: "#333" }}>
-            {TIER_NAMES[orgTierInfo.tier]} · {TIER_FEE[orgTierInfo.tier]}% fee
+            {TIER_NAMES[orgTierInfo.tier]} · {formatMonthlyPrice(orgTierInfo.tier)}
           </div>
           {orgTierInfo.tier < 3 && (
             <Link

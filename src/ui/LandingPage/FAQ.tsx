@@ -4,7 +4,7 @@ const FAQ_ITEMS = [
   {
     question: "How much does HelpingHandsFund cost?",
     answer:
-      "Nothing upfront. We charge a platform fee of 3–5% only on donations you collect — which tier you're on determines the exact rate. No monthly subscription, no setup fees.",
+      "Plans start at $10/month (Starter), $40/month (Grow), and $100/month (Scale). There is no percentage taken from your donations — just a flat monthly subscription for the features you need.",
   },
   {
     question: "Do I need technical skills?",
@@ -19,17 +19,17 @@ const FAQ_ITEMS = [
   {
     question: "Can I run multiple campaigns at once?",
     answer:
-      "Yes. The number of simultaneous active campaigns depends on your plan tier: 2 on Starter, 5 on Grow, unlimited on Scale.",
+      "Yes. The number of simultaneous active campaigns depends on your plan: 1 on Starter, up to 3 on Grow, unlimited on Scale.",
   },
   {
-    question: "What is the cancellation fee?",
+    question: "Can I change or cancel my plan?",
     answer:
-      "If you cancel a campaign before it reaches its goal, a flat 5% is deducted from what was raised at that point. If the campaign runs to completion, only the standard tier fee applies.",
+      "Yes. Upgrade or downgrade anytime from Settings. Plan changes take effect immediately and update features and limits for your active campaigns.",
   },
   {
     question: "Can I embed this on my own website?",
     answer:
-      "Yes. Copy one iframe snippet from your campaign dashboard and paste it anywhere. It shows a live progress bar and recent donations. Available on the Scale plan.",
+      "Yes. Copy one iframe snippet from your campaign dashboard and paste it anywhere. It shows a live progress bar and recent donations. Available on Grow and Scale plans.",
   },
 ];
 

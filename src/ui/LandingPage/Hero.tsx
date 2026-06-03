@@ -27,7 +27,7 @@ const Hero: React.FC = () => {
           <p className="landing-hero__subtitle">
             HelpingHandsFund gives nonprofits and community organizers an
             AI-built campaign page, live donation tracking, and Stripe payouts
-            — with no monthly subscription.
+            — with simple monthly plans starting at $10.
           </p>
 
           <div className="landing-hero__cta">
