@@ -28,8 +28,12 @@ type AckCampaign = {
 type BillingStatus = {
   subscription_status?: string;
   subscription_current_period_end?: string | null;
+  subscription_cancel_at_period_end?: boolean;
+  subscription_cancel_at?: string | null;
   billing_required?: boolean;
   billing_active?: boolean;
+  can_cancel?: boolean;
+  can_change_tier?: boolean;
   payout_account_ready?: boolean;
   payouts_enabled?: boolean;
 };
@@ -115,6 +119,8 @@ const SettingsPage = () => {
   const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
   const [connectLoading, setConnectLoading] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   const canEditOrg = org && (org.role === "owner" || org.role === "admin");
   const isOwner = org?.role === "owner";
@@ -293,6 +299,22 @@ const SettingsPage = () => {
     }
   };
 
+  const getTierButtonLabel = (t: TierKey, currentTier: TierKey): string => {
+    if (t === currentTier && billingStatus?.billing_active) {
+      return `${TIER_NAMES[t]} (current)`;
+    }
+    if (billingStatus?.billing_required) {
+      return `Subscribe — ${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`;
+    }
+    if (billingStatus?.billing_active && t > currentTier) {
+      return `Upgrade to ${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`;
+    }
+    if (billingStatus?.billing_active && t < currentTier) {
+      return `Downgrade to ${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`;
+    }
+    return `${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`;
+  };
+
   const handleTierChange = async (newTier: TierKey, acknowledged = false) => {
     if (!org?.id || !isOwner) return;
     setTierLoading(true);
@@ -315,7 +337,11 @@ const SettingsPage = () => {
         billingStatus?.billing_active
           ? API_ENDPOINTS.orgs.billingChangeTier(org.id)
           : API_ENDPOINTS.orgs.billingCheckout(org.id);
-      const res = await api.post<{ url?: string; tier?: number }>(endpoint, { tier: newTier });
+      const body: { tier: TierKey; acknowledged?: boolean } = { tier: newTier };
+      if (billingStatus?.billing_active && acknowledged) {
+        body.acknowledged = true;
+      }
+      const res = await api.post<{ url?: string; tier?: number }>(endpoint, body);
       if (res.data.url) {
         window.location.href = res.data.url;
         return;
@@ -326,6 +352,8 @@ const SettingsPage = () => {
         setOrg((o) => (o ? { ...o, tier: newTier } : o));
       }
       setPendingTier(null);
+      setShowAckModal(false);
+      setAckCampaigns([]);
       notifySuccess(`Plan changed to ${TIER_NAMES[newTier]}.`);
       await loadBillingStatus(org.id);
     } catch (err: unknown) {
@@ -380,6 +408,22 @@ const SettingsPage = () => {
       notifyError(err, "Could not start payout setup.");
     } finally {
       setConnectLoading(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!org?.id) return;
+    setCancelLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.orgs.billingCancel(org.id));
+      setShowCancelModal(false);
+      notifySuccess("Subscription canceled. Paid features are now disabled.");
+      await loadBillingStatus(org.id);
+      setOrg((o) => (o ? { ...o, tier: 1 } : o));
+    } catch (err) {
+      notifyError(err, "Failed to cancel subscription.");
+    } finally {
+      setCancelLoading(false);
     }
   };
 
@@ -589,16 +633,27 @@ const SettingsPage = () => {
                 {billingStatus && (
                   <p style={{ color: "#666", marginBottom: "0.75rem", fontSize: "0.9rem" }}>
                     Subscription: {billingStatus.subscription_status ?? "unknown"}
-                    {billingStatus.subscription_current_period_end && (
-                      <> · Renews {new Date(billingStatus.subscription_current_period_end).toLocaleDateString()}</>
+                    {billingStatus.subscription_status === "canceled" && (
+                      <> · <strong style={{ color: "#c0392b" }}>Canceled</strong></>
                     )}
+                    {billingStatus.subscription_status === "past_due" && (
+                      <> · <strong style={{ color: "#c0392b" }}>Payment past due</strong></>
+                    )}
+                    {billingStatus.subscription_cancel_at_period_end && billingStatus.subscription_cancel_at && (
+                      <> · Cancels {new Date(billingStatus.subscription_cancel_at).toLocaleDateString()}</>
+                    )}
+                    {!billingStatus.subscription_cancel_at_period_end &&
+                      billingStatus.subscription_current_period_end &&
+                      billingStatus.billing_active && (
+                        <> · Renews {new Date(billingStatus.subscription_current_period_end).toLocaleDateString()}</>
+                      )}
                     {billingStatus.billing_required && (
                       <> · <strong style={{ color: "#c0392b" }}>Subscribe to activate paid features</strong></>
                     )}
                   </p>
                 )}
                 <p style={{ color: "#666", marginBottom: "1rem", fontSize: "0.9rem" }}>
-                  Choose a plan to subscribe or upgrade. Changes apply to features and limits for active campaigns.
+                  Choose a plan to subscribe, upgrade, or downgrade. Changes apply to features and limits for active campaigns.
                 </p>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
                   {([1, 2, 3] as TierKey[]).map((t) => (
@@ -612,15 +667,16 @@ const SettingsPage = () => {
                         handleTierChange(t);
                       }}
                     >
-                      {t === currentTier && billingStatus?.billing_active
-                        ? `${TIER_NAMES[t]} (current)`
-                        : billingStatus?.billing_required
-                          ? `Subscribe — ${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`
-                          : `${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`}
+                      {getTierButtonLabel(t, currentTier)}
                     </Button>
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {billingStatus?.can_cancel && (
+                    <Button danger onClick={() => setShowCancelModal(true)}>
+                      Cancel subscription
+                    </Button>
+                  )}
                   {billingStatus?.billing_active && (
                     <Button loading={portalLoading} onClick={handleManageBilling}>
                       Manage billing
@@ -669,6 +725,22 @@ const SettingsPage = () => {
             onClick={() => pendingTier && handleTierChange(pendingTier, true)}
           >
             Change plan — update active campaigns
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={showCancelModal} onClose={() => !cancelLoading && setShowCancelModal(false)}>
+        <h3 style={{ marginTop: 0 }}>Cancel subscription?</h3>
+        <p>
+          Your plan will end <strong>immediately</strong> and paid features will be disabled.
+          You can resubscribe anytime from this page.
+        </p>
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+          <Button onClick={() => setShowCancelModal(false)} disabled={cancelLoading}>
+            Keep subscription
+          </Button>
+          <Button danger loading={cancelLoading} onClick={handleCancelSubscription}>
+            Cancel subscription
           </Button>
         </div>
       </Modal>
@@ -942,6 +1014,12 @@ const SettingsPage = () => {
       <section style={{ marginTop: "3rem", borderTop: "1px solid #ccc", paddingTop: "2rem" }}>
         <h2 className="text-danger">Delete account</h2>
         <p>Your account will be anonymized. This cannot be undone.</p>
+        {isOwner && (
+          <p style={{ color: "#666", fontSize: "0.9rem" }}>
+            If you are the organization owner, your subscription will be canceled immediately.
+            If other team members remain, transfer ownership before deleting your account.
+          </p>
+        )}
         <Button danger onClick={() => { setShowDeleteModal(true); setDeleteError(""); setDeletePassword(""); setDeleteCode(""); }}>
           Delete my account
         </Button>
