@@ -103,6 +103,12 @@ export const API_ENDPOINTS = {
     emailSettings: (id: string) => `/api/orgs/${id}/email-settings`,
     tierInfo: (id: string) => `/api/orgs/${id}/tier-info`,
     tier: (id: string) => `/api/orgs/${id}/tier`,
+    billingSetup: (id: string) => `/api/orgs/${id}/billing/setup`,
+    billingCheckout: (id: string) => `/api/orgs/${id}/billing/checkout`,
+    billingChangeTier: (id: string) => `/api/orgs/${id}/billing/change-tier`,
+    billingPortal: (id: string) => `/api/orgs/${id}/billing/portal`,
+    billingStatus: (id: string) => `/api/orgs/${id}/billing/status`,
+    payoutOnboarding: (id: string) => `/api/orgs/${id}/payout-account/onboarding-link`,
   },
 };
 

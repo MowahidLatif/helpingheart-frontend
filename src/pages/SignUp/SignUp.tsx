@@ -83,17 +83,29 @@ export default function SignUp() {
         localStorage.removeItem("refreshToken");
       }
       const claims = decodeTokenClaims(access_token);
+      const resolvedOrgId = org_id ?? claims?.org_id ?? null;
       localStorage.setItem(
         "user",
         JSON.stringify({
           id,
           email: userEmail,
           name,
-          org_id: org_id ?? claims?.org_id ?? null,
+          org_id: resolvedOrgId,
           role: claims?.role ?? null,
           permissions: claims?.permissions ?? [],
         })
       );
+      if (resolvedOrgId) {
+        await api.post(API_ENDPOINTS.orgs.billingSetup(resolvedOrgId));
+        const checkoutRes = await api.post<{ url?: string }>(
+          API_ENDPOINTS.orgs.billingCheckout(resolvedOrgId),
+          { tier: selectedTier }
+        );
+        if (checkoutRes.data.url) {
+          window.location.href = checkoutRes.data.url;
+          return;
+        }
+      }
       navigate("/dashboard");
     } catch (err) {
       notifyError(err, "Sign up failed.");

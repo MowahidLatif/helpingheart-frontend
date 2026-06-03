@@ -22,8 +22,16 @@ type AckCampaign = {
   title: string;
   locked_tier: number;
   locked_tier_name: string;
-  locked_fee_percent: number;
   status: string;
+};
+
+type BillingStatus = {
+  subscription_status?: string;
+  subscription_current_period_end?: string | null;
+  billing_required?: boolean;
+  billing_active?: boolean;
+  payout_account_ready?: boolean;
+  payouts_enabled?: boolean;
 };
 type EmailSettings = {
   from_name?: string;
@@ -104,6 +112,9 @@ const SettingsPage = () => {
   const [tierLoading, setTierLoading] = useState(false);
   const [showAckModal, setShowAckModal] = useState(false);
   const [ackCampaigns, setAckCampaigns] = useState<AckCampaign[]>([]);
+  const [billingStatus, setBillingStatus] = useState<BillingStatus | null>(null);
+  const [portalLoading, setPortalLoading] = useState(false);
+  const [connectLoading, setConnectLoading] = useState(false);
 
   const canEditOrg = org && (org.role === "owner" || org.role === "admin");
   const isOwner = org?.role === "owner";
@@ -142,6 +153,16 @@ const SettingsPage = () => {
             });
             setOrgName(orgDetail.data.name ?? "");
             setOrgSubdomain(orgDetail.data.subdomain ?? "");
+            if (firstOrg.role === "owner") {
+              try {
+                const billingRes = await api.get<BillingStatus>(
+                  API_ENDPOINTS.orgs.billingStatus(firstOrg.id)
+                );
+                if (!cancelled) setBillingStatus(billingRes.data);
+              } catch {
+                if (!cancelled) setBillingStatus(null);
+              }
+            }
             const es = emailRes?.data;
             setEmailSettings(es ?? null);
             if (es) {
@@ -276,21 +297,41 @@ const SettingsPage = () => {
     if (!org?.id || !isOwner) return;
     setTierLoading(true);
     try {
-      await api.patch(API_ENDPOINTS.orgs.tier(org.id), {
-        tier: newTier,
-        acknowledged,
-      });
-      // Success — apply the new tier
-      setOrg((o) => (o ? { ...o, tier: newTier } : o));
+      const isLegacy = billingStatus?.subscription_status === "legacy";
+      if (isLegacy) {
+        await api.patch(API_ENDPOINTS.orgs.tier(org.id), {
+          tier: newTier,
+          acknowledged,
+        });
+        setOrg((o) => (o ? { ...o, tier: newTier } : o));
+        setPendingTier(null);
+        setShowAckModal(false);
+        setAckCampaigns([]);
+        notifySuccess(`Plan changed to ${TIER_NAMES[newTier]}.`);
+        return;
+      }
+
+      const endpoint =
+        billingStatus?.billing_active
+          ? API_ENDPOINTS.orgs.billingChangeTier(org.id)
+          : API_ENDPOINTS.orgs.billingCheckout(org.id);
+      const res = await api.post<{ url?: string; tier?: number }>(endpoint, { tier: newTier });
+      if (res.data.url) {
+        window.location.href = res.data.url;
+        return;
+      }
+      if (typeof res.data.tier === "number") {
+        setOrg((o) => (o ? { ...o, tier: res.data.tier as TierKey } : o));
+      } else {
+        setOrg((o) => (o ? { ...o, tier: newTier } : o));
+      }
       setPendingTier(null);
-      setShowAckModal(false);
-      setAckCampaigns([]);
       notifySuccess(`Plan changed to ${TIER_NAMES[newTier]}.`);
+      await loadBillingStatus(org.id);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number; data?: { requires_acknowledgment?: boolean; campaigns?: AckCampaign[] } } })?.response?.status;
       const data = (err as { response?: { data?: { requires_acknowledgment?: boolean; campaigns?: AckCampaign[] } } })?.response?.data;
       if (status === 409 && data?.requires_acknowledgment) {
-        // Show acknowledgment modal
         setAckCampaigns(data.campaigns ?? []);
         setShowAckModal(true);
       } else {
@@ -299,6 +340,46 @@ const SettingsPage = () => {
       }
     } finally {
       setTierLoading(false);
+    }
+  };
+
+  const loadBillingStatus = async (orgId: string) => {
+    try {
+      const res = await api.get<BillingStatus>(API_ENDPOINTS.orgs.billingStatus(orgId));
+      setBillingStatus(res.data);
+    } catch {
+      setBillingStatus(null);
+    }
+  };
+
+  const handleManageBilling = async () => {
+    if (!org?.id) return;
+    setPortalLoading(true);
+    try {
+      const res = await api.post<{ url?: string }>(API_ENDPOINTS.orgs.billingPortal(org.id));
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      notifyError(err, "Could not open billing portal.");
+    } finally {
+      setPortalLoading(false);
+    }
+  };
+
+  const handleConnectOnboarding = async () => {
+    if (!org?.id) return;
+    setConnectLoading(true);
+    try {
+      await api.post(API_ENDPOINTS.orgs.billingSetup(org.id));
+      const res = await api.post<{ url?: string }>(API_ENDPOINTS.orgs.payoutOnboarding(org.id));
+      if (res.data.url) {
+        window.location.href = res.data.url;
+      }
+    } catch (err) {
+      notifyError(err, "Could not start payout setup.");
+    } finally {
+      setConnectLoading(false);
     }
   };
 
@@ -505,25 +586,51 @@ const SettingsPage = () => {
                 <p style={{ marginBottom: "0.5rem" }}>
                   <strong>Current plan:</strong> {limits.name} — ${limits.monthly_price}/month
                 </p>
+                {billingStatus && (
+                  <p style={{ color: "#666", marginBottom: "0.75rem", fontSize: "0.9rem" }}>
+                    Subscription: {billingStatus.subscription_status ?? "unknown"}
+                    {billingStatus.subscription_current_period_end && (
+                      <> · Renews {new Date(billingStatus.subscription_current_period_end).toLocaleDateString()}</>
+                    )}
+                    {billingStatus.billing_required && (
+                      <> · <strong style={{ color: "#c0392b" }}>Subscribe to activate paid features</strong></>
+                    )}
+                  </p>
+                )}
                 <p style={{ color: "#666", marginBottom: "1rem", fontSize: "0.9rem" }}>
-                  Changing your plan immediately updates features and limits for all your active campaigns.
-                  Completed campaigns are unaffected.
+                  Choose a plan to subscribe or upgrade. Changes apply to features and limits for active campaigns.
                 </p>
-                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
                   {([1, 2, 3] as TierKey[]).map((t) => (
                     <Button
                       key={t}
                       type={t === currentTier ? "primary" : "default"}
-                      disabled={t === currentTier || tierLoading}
+                      disabled={(t === currentTier && !!billingStatus?.billing_active) || tierLoading}
                       loading={tierLoading && pendingTier === t}
                       onClick={() => {
                         setPendingTier(t);
                         handleTierChange(t);
                       }}
                     >
-                      {TIER_NAMES[t]} (${TIER_LIMITS[t].monthly_price}/mo)
+                      {t === currentTier && billingStatus?.billing_active
+                        ? `${TIER_NAMES[t]} (current)`
+                        : billingStatus?.billing_required
+                          ? `Subscribe — ${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`
+                          : `${TIER_NAMES[t]} ($${TIER_LIMITS[t].monthly_price}/mo)`}
                     </Button>
                   ))}
+                </div>
+                <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                  {billingStatus?.billing_active && (
+                    <Button loading={portalLoading} onClick={handleManageBilling}>
+                      Manage billing
+                    </Button>
+                  )}
+                  {billingStatus && !billingStatus.payout_account_ready && (
+                    <Button loading={connectLoading} onClick={handleConnectOnboarding}>
+                      Set up donation payouts
+                    </Button>
+                  )}
                 </div>
               </>
             );

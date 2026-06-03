@@ -1,6 +1,7 @@
 import { RouteObject } from "react-router-dom";
-// import SignUp from "@/pages/SignUp/SignUp";
+import SignUp from "@/pages/SignUp/SignUp";
 import SettingsPage from "@/pages/Setting/SettingsPage";
+import BillingSuccessPage from "@/pages/Setting/BillingSuccessPage";
 // import SignIn from "@/pages/SignIn/SignIn";
 import LandingPage from "@/pages/Landing/LandingPage";
 import WaitlistPage from "@/pages/Waitlist/WaitlistPage";
@@ -37,7 +38,7 @@ export const routes: RouteObject[] = [
     path: "/",
     element: <LandingPage />,
   },
-  // { path: "/signup", element: <SignUp /> },
+  { path: "/signup", element: <SignUp /> },
   // { path: "/signin", element: <SignIn /> },
   {
     path: "/waitlist",
@@ -121,6 +122,14 @@ export const routes: RouteObject[] = [
   {
     path: "/donate/:campaignId",
     element: <DonatePage />,
+  },
+  {
+    path: "/settings/billing/success",
+    element: (
+      <ProtectedRoute>
+        <BillingSuccessPage />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/settings",
