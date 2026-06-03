@@ -1,4 +1,8 @@
 export type TierKey = 1 | 2 | 3;
+export type BillingInterval = "monthly" | "annual";
+
+export const TRIAL_DAYS = 7;
+export const ANNUAL_SAVINGS_LABEL = "2 months free";
 
 export interface TierLimits {
   name: string;
@@ -79,6 +83,16 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
 
 export const TIER_NAMES: Record<TierKey, string> = { 1: "Starter", 2: "Grow", 3: "Scale" };
 export const TIER_PRICE: Record<TierKey, number> = { 1: 10, 2: 40, 3: 100 };
+/** Annual = 10× monthly (2 months free) */
+export const TIER_ANNUAL_PRICE: Record<TierKey, number> = { 1: 100, 2: 400, 3: 1000 };
+
+export function annualPriceForTier(tier: TierKey): number {
+  return TIER_ANNUAL_PRICE[tier];
+}
+
+export function chargeAmountForTier(tier: TierKey, interval: BillingInterval): number {
+  return interval === "annual" ? TIER_ANNUAL_PRICE[tier] : TIER_PRICE[tier];
+}
 
 export function formatMonthlyPrice(tier: TierKey): string {
   return `$${TIER_PRICE[tier]}/mo`;
@@ -86,6 +100,23 @@ export function formatMonthlyPrice(tier: TierKey): string {
 
 export function formatMonthlyPriceLong(tier: TierKey): string {
   return `$${TIER_PRICE[tier]}/month`;
+}
+
+export function formatAnnualPrice(tier: TierKey): string {
+  return `$${TIER_ANNUAL_PRICE[tier]}/yr`;
+}
+
+export function formatPriceForInterval(tier: TierKey, interval: BillingInterval): string {
+  if (interval === "annual") {
+    return `${formatAnnualPrice(tier)} (${ANNUAL_SAVINGS_LABEL})`;
+  }
+  return formatMonthlyPriceLong(tier);
+}
+
+export function trialChargeDateLabel(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + TRIAL_DAYS);
+  return d.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
 }
 
 export function tierHasFeature(tier: TierKey, feature: keyof TierLimits): boolean {

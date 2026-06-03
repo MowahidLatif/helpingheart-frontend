@@ -30,6 +30,14 @@ type BillingStatus = {
   subscription_current_period_end?: string | null;
   subscription_cancel_at_period_end?: boolean;
   subscription_cancel_at?: string | null;
+  billing_interval?: string;
+  trial_ends_at?: string | null;
+  payment_grace_ends_at?: string | null;
+  is_trialing?: boolean;
+  trial_days_remaining?: number | null;
+  next_charge_amount?: number;
+  next_charge_currency?: string;
+  trial_eligible?: boolean;
   billing_required?: boolean;
   billing_active?: boolean;
   can_cancel?: boolean;
@@ -337,9 +345,13 @@ const SettingsPage = () => {
         billingStatus?.billing_active
           ? API_ENDPOINTS.orgs.billingChangeTier(org.id)
           : API_ENDPOINTS.orgs.billingCheckout(org.id);
-      const body: { tier: TierKey; acknowledged?: boolean } = { tier: newTier };
+      const body: { tier: TierKey; acknowledged?: boolean; interval?: string } = { tier: newTier };
       if (billingStatus?.billing_active && acknowledged) {
         body.acknowledged = true;
+      }
+      if (!billingStatus?.billing_active) {
+        body.interval =
+          billingStatus?.billing_interval === "annual" ? "annual" : "monthly";
       }
       const res = await api.post<{ url?: string; tier?: number }>(endpoint, body);
       if (res.data.url) {
@@ -628,11 +640,43 @@ const SettingsPage = () => {
             return (
               <>
                 <p style={{ marginBottom: "0.5rem" }}>
-                  <strong>Current plan:</strong> {limits.name} — ${limits.monthly_price}/month
+                  <strong>Current plan:</strong> {limits.name}
+                  {billingStatus?.billing_interval === "annual"
+                    ? ` — $${limits.monthly_price * 10}/year`
+                    : ` — $${limits.monthly_price}/month`}
                 </p>
+                {billingStatus?.is_trialing && (
+                  <div
+                    style={{
+                      background: "#f0f7ff",
+                      border: "1px solid #cce0ff",
+                      borderRadius: "8px",
+                      padding: "0.75rem 1rem",
+                      marginBottom: "0.75rem",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    <strong>Free trial active</strong>
+                    {billingStatus.trial_days_remaining != null && (
+                      <> — {billingStatus.trial_days_remaining} day
+                        {billingStatus.trial_days_remaining === 1 ? "" : "s"} left</>
+                    )}
+                    {billingStatus.trial_ends_at && billingStatus.next_charge_amount != null && (
+                      <>
+                        {" "}
+                        · Charged ${billingStatus.next_charge_amount} on{" "}
+                        {new Date(billingStatus.trial_ends_at).toLocaleDateString()} unless you
+                        cancel
+                      </>
+                    )}
+                  </div>
+                )}
                 {billingStatus && (
                   <p style={{ color: "#666", marginBottom: "0.75rem", fontSize: "0.9rem" }}>
                     Subscription: {billingStatus.subscription_status ?? "unknown"}
+                    {billingStatus.is_trialing && (
+                      <> · <strong>Trial</strong></>
+                    )}
                     {billingStatus.subscription_status === "canceled" && (
                       <> · <strong style={{ color: "#c0392b" }}>Canceled</strong></>
                     )}

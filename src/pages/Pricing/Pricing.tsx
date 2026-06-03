@@ -1,11 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Button } from "antd";
 import {
   TIER_LIMITS,
   TIER_PRICE,
+  annualPriceForTier,
   getAiGenLabel,
   getTierCardFeatures,
 } from "@/lib/tierFeatures";
-import type { TierKey } from "@/lib/tierFeatures";
+import type { BillingInterval, TierKey } from "@/lib/tierFeatures";
 
 type FeatureRow = {
   label: string;
@@ -20,6 +23,12 @@ const featureRows: FeatureRow[] = [
     t1: `$${TIER_PRICE[1]}`,
     t2: `$${TIER_PRICE[2]}`,
     t3: `$${TIER_PRICE[3]}`,
+  },
+  {
+    label: "Annual price (2 months free)",
+    t1: `$${annualPriceForTier(1)}/yr`,
+    t2: `$${annualPriceForTier(2)}/yr`,
+    t3: `$${annualPriceForTier(3)}/yr`,
   },
   {
     label: "Team members",
@@ -72,25 +81,64 @@ function FeatureVal({ val }: { val: string | boolean }) {
 }
 
 const Pricing = () => {
+  const [interval, setInterval] = useState<BillingInterval>("monthly");
+
   return (
     <div className="info-page pricing-page">
       <h1>Pricing</h1>
-      <p className="mb-2xl">
-        Simple, flat monthly plans — no percentage taken from your donations.
-        Pick the tier that fits your organization and upgrade anytime.
+      <p className="mb-md">
+        Simple, flat plans — no percentage taken from your donations. Every plan includes a{" "}
+        <strong>7-day free trial</strong> (card required; cancel before trial ends — no charge).
       </p>
+
+      <div
+        style={{
+          display: "flex",
+          gap: "0.5rem",
+          justifyContent: "center",
+          marginBottom: "1.5rem",
+        }}
+      >
+        <Button
+          type={interval === "monthly" ? "primary" : "default"}
+          onClick={() => setInterval("monthly")}
+        >
+          Monthly
+        </Button>
+        <Button
+          type={interval === "annual" ? "primary" : "default"}
+          onClick={() => setInterval("annual")}
+        >
+          Annual — 2 months free
+        </Button>
+      </div>
 
       <div className="pricing-tiers-grid mb-2xl">
         {tiers.map(({ key, popular }) => {
           const limits = TIER_LIMITS[key];
           const features = getTierCardFeatures(key);
+          const priceDisplay =
+            interval === "annual" ? (
+              <>
+                <span className="pricing-tier__pct">${annualPriceForTier(key)}</span>
+                <span className="pricing-tier__fee-label">/year</span>
+              </>
+            ) : (
+              <>
+                <span className="pricing-tier__pct">${limits.monthly_price}</span>
+                <span className="pricing-tier__fee-label">/month</span>
+              </>
+            );
           return (
             <div
               key={key}
               className={`card pricing-tier${popular ? " pricing-tier--popular" : ""}`}
             >
-              {popular && (
-                <div className="pricing-tier__badge">Most Popular</div>
+              {popular && <div className="pricing-tier__badge">Most Popular</div>}
+              {interval === "annual" && (
+                <div className="pricing-tier__badge" style={{ top: popular ? "2.5rem" : undefined }}>
+                  2 months free
+                </div>
               )}
               <div className="pricing-tier__header">
                 <h2 className="pricing-tier__name m-0">{limits.name}</h2>
@@ -99,10 +147,7 @@ const Pricing = () => {
                   {key === 2 && "For active organizations running multiple campaigns."}
                   {key === 3 && "For high-volume fundraisers who need every feature."}
                 </p>
-                <div className="pricing-tier__fee">
-                  <span className="pricing-tier__pct">${limits.monthly_price}</span>
-                  <span className="pricing-tier__fee-label">/month</span>
-                </div>
+                <div className="pricing-tier__fee">{priceDisplay}</div>
               </div>
               <ul className="pricing-tier__features">
                 {features.map((feat) => (
@@ -116,6 +161,13 @@ const Pricing = () => {
                 className={`btn ${popular ? "btn-primary" : "btn-outline"} pricing-tier__cta`}
               >
                 Get started
+              </Link>
+              <Link
+                to={`/signup?tier=${key}&interval=${interval}`}
+                className="btn btn-outline pricing-tier__cta"
+                style={{ marginTop: "0.5rem", fontSize: "0.85rem" }}
+              >
+                Start free trial
               </Link>
             </div>
           );
