@@ -638,8 +638,8 @@ const SettingsPage = () => {
                 showSearch
                 optionFilterProp="label"
                 options={(
-                  typeof Intl.supportedValuesOf === "function"
-                    ? Intl.supportedValuesOf("timeZone")
+                  typeof (Intl as any).supportedValuesOf === "function"
+                    ? (Intl as any).supportedValuesOf("timeZone")
                     : ["UTC","America/New_York","America/Chicago","America/Denver","America/Los_Angeles",
                        "America/Winnipeg","America/Toronto","America/Vancouver","America/Phoenix",
                        "America/Halifax","America/St_Johns","Europe/London","Europe/Paris",
