@@ -7,6 +7,7 @@ import EmbedGenerator from "@/ui/Dashboard/EmbedGenerator";
 import { FeatureGate } from "@/components/FeatureGate";
 import { notifyError, notifySuccess, notifyWarn } from "@/lib/notifications";
 import GenericTextInput from "@/components/Form/GenericTextInput";
+import { RafflePanel } from "@/ui/Dashboard/RafflePanel";
 
 type Campaign = {
   id: string;
@@ -526,6 +527,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
           <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
         </div>
       </div>
+
+      <RafflePanel campaignId={campaign.id} />
 
       <div style={{ marginBottom: "1rem" }}>
         <button className="btn btn-primary btn-sm mr-sm mb-sm" onClick={handlePublish}>

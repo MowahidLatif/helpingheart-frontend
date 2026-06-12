@@ -16,12 +16,18 @@ const stripePromise = (() => {
 
 const DEFAULT_PRESETS = [5, 10, 25, 50, 100];
 
+type RaffleInfo = {
+  prize_name: string;
+  status: string;
+};
+
 type DonationModalProps = {
   open: boolean;
   onClose: () => void;
   campaignId: string;
   campaignTitle: string;
   presetAmounts?: number[];
+  raffle?: RaffleInfo | null;
 };
 
 function PaymentForm({
@@ -97,11 +103,14 @@ export function DonationModal({
   campaignId,
   campaignTitle,
   presetAmounts = DEFAULT_PRESETS,
+  raffle = null,
 }: DonationModalProps) {
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [raffleDisplayConsent, setRaffleDisplayConsent] = useState(false);
+  const showRaffle = !!(raffle && raffle.status === "active");
   const [checkoutData, setCheckoutData] = useState<{
     clientSecret: string;
     donationId: string;
@@ -120,6 +129,7 @@ export function DonationModal({
       setCustomAmount("");
       setDonorEmail("");
       setMessage("");
+      setRaffleDisplayConsent(false);
       setCheckoutData(null);
       setError("");
     }
@@ -148,6 +158,7 @@ export function DonationModal({
         amount: amt,
         donor_email: donorEmail.trim() || undefined,
         message: message.trim() || undefined,
+        raffle_display_consent: showRaffle ? raffleDisplayConsent : undefined,
       });
       const data = res.data;
       if (data.error || !data.clientSecret) {
@@ -286,6 +297,23 @@ export function DonationModal({
                   onChange={(e) => setMessage(e.target.value)}
                 />
               </div>
+              {showRaffle && (
+                <div className="form-field" style={{ background: "#f0f7ff", borderRadius: 8, padding: "10px 14px", border: "1px solid #bfdbfe" }}>
+                  <p style={{ margin: "0 0 8px", fontSize: 13, color: "#1d4ed8", fontWeight: 600 }}>
+                    🎟 Your donation automatically enters you into the raffle for{" "}
+                    <em>{raffle!.prize_name}</em>.
+                  </p>
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", fontSize: 13 }}>
+                    <input
+                      type="checkbox"
+                      checked={raffleDisplayConsent}
+                      onChange={(e) => setRaffleDisplayConsent(e.target.checked)}
+                      style={{ marginTop: 2 }}
+                    />
+                    If I win, display my first name and last initial on the campaign page.
+                  </label>
+                </div>
+              )}
               <Button
                 type="primary"
                 className="donation-submit-btn"

@@ -17,6 +17,7 @@ export interface TierLimits {
   task_management_full: boolean;
   email_marketing: boolean;
   giveaway: boolean;
+  raffle: boolean;
   iframe_embed: boolean;
   media_uploads: boolean;
   campaign_updates: boolean;
@@ -37,6 +38,7 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     task_management_full: false,
     email_marketing: false,
     giveaway: false,
+    raffle: false,
     iframe_embed: false,
     media_uploads: false,
     campaign_updates: false,
@@ -55,6 +57,7 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     task_management_full: false,
     email_marketing: false,
     giveaway: false,
+    raffle: true,
     iframe_embed: true,
     media_uploads: true,
     campaign_updates: true,
@@ -73,6 +76,7 @@ export const TIER_LIMITS: Record<TierKey, TierLimits> = {
     task_management_full: true,
     email_marketing: true,
     giveaway: true,
+    raffle: true,
     iframe_embed: true,
     media_uploads: true,
     campaign_updates: true,
@@ -152,6 +156,7 @@ export function getTierCardFeatures(tier: TierKey): string[] {
       "iFrame embedding (widget + full page)",
       "Campaign update notifications to donors",
       "Basic analytics dashboard",
+      "Campaign raffles (auto-entry, auto-draw, winner management)",
     ];
   }
   return [
@@ -163,6 +168,7 @@ export function getTierCardFeatures(tier: TierKey): string[] {
     "Email marketing to donor list with open + click tracking",
     "Donor segmentation",
     "Giveaway / lottery feature",
+    "Campaign raffles (auto-entry, auto-draw, winner management)",
     "Advanced analytics + CSV export",
   ];
 }

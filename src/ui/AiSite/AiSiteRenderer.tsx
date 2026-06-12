@@ -18,6 +18,7 @@ import { HeroBlock } from "@/ui/DonateBlocks/HeroBlock";
 import { TextBlock } from "@/ui/DonateBlocks/TextBlock";
 import type { Block } from "@/ui/DonateBlocks/BlockRenderer";
 
+import { RaffleBlock } from "@/ui/DonateBlocks/RaffleBlock";
 import "./AiSiteRenderer.scss";
 
 type AiEditContextValue = {
@@ -287,6 +288,8 @@ export function AiSiteRenderer({
             return <FooterAi key={node.id} node={node} />;
           case "spacer":
             return <SpacerAi key={node.id} node={node} />;
+          case "raffle_block":
+            return <RaffleBlock key={node.id} node={node} />;
           default:
             return null;
         }

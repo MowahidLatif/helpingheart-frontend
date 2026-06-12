@@ -26,6 +26,8 @@ import TenantPublicHome from "@/pages/Campaign/TenantPublicHome";
 import ProgressEmbedPage from "@/pages/Embed/ProgressEmbedPage";
 import FullCampaignEmbedPage from "@/pages/Embed/FullCampaignEmbedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import FreeEntryPage from "@/pages/Raffle/FreeEntryPage";
+import ClaimPrizePage from "@/pages/Raffle/ClaimPrizePage";
 
 /** Routes when the SPA is served on `{org}.{VITE_PUBLIC_SITE_HOST_SUFFIX}` (public sites only). */
 export const tenantPublicOnlyRoutes: RouteObject[] = [
@@ -170,5 +172,13 @@ export const routes: RouteObject[] = [
         <DesignStudioPage />
       </ProtectedRoute>
     ),
+  },
+  {
+    path: "/campaigns/:slug/raffle/free-entry",
+    element: <FreeEntryPage />,
+  },
+  {
+    path: "/raffles/claim",
+    element: <ClaimPrizePage />,
   },
 ];

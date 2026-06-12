@@ -29,7 +29,8 @@ export type AiNodeType =
   | "donate_section"
   | "progress_section"
   | "footer"
-  | "spacer";
+  | "spacer"
+  | "raffle_block";
 
 export type AiGalleryItem = { url: string; alt?: string };
 
@@ -84,6 +85,7 @@ const ALLOWED: Set<string> = new Set([
   "progress_section",
   "footer",
   "spacer",
+  "raffle_block",
 ]);
 
 function nonEmptyStr(v: unknown): v is string {
@@ -161,6 +163,10 @@ function validateNodeProps(type: string, pr: Record<string, unknown>): boolean {
   if (type === "spacer") {
     const h = pr.height_px;
     if (h != null && (typeof h !== "number" || h < 0 || h > 400)) return false;
+    return true;
+  }
+  if (type === "raffle_block") {
+    // All props are optional strings/nulls — pass through
     return true;
   }
   return false;

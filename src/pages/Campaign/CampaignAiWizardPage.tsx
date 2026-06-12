@@ -35,13 +35,15 @@ const requirePlatformPay =
   import.meta.env.VITE_REQUIRE_PLATFORM_PAYMENT_FOR_AI === "1";
 
 const STEP_DETAILS = 0;
-const STEP_INSPIRE = 1;
-const STEP_ASSETS = 2;
-const STEP_GENERATING = 3;
-const STEP_PREVIEW = 4;
+const STEP_RAFFLE = 1;
+const STEP_INSPIRE = 2;
+const STEP_ASSETS = 3;
+const STEP_GENERATING = 4;
+const STEP_PREVIEW = 5;
 
 const ALL_STEP_ITEMS = [
   { title: "Details" },
+  { title: "Raffle" },
   { title: "Design" },
   { title: "Media" },
   { title: "Generating" },
@@ -50,6 +52,7 @@ const ALL_STEP_ITEMS = [
 
 const STARTER_STEP_ITEMS = [
   { title: "Details" },
+  { title: "Raffle" },
   { title: "Design" },
   { title: "Generating" },
   { title: "Preview" },
@@ -158,7 +161,7 @@ function getPresetAmounts(campaign: Campaign | null): number[] {
 /** Map internal step constant to the Steps indicator index, accounting for Starter tier (no Media step). */
 function stepToIndex(step: number, canUploadMedia: boolean): number {
   if (canUploadMedia) return step;
-  // Starter: skip STEP_ASSETS (2) → compress 3,4 down by 1
+  // Starter: skip STEP_ASSETS (3) → compress later steps down by 1
   if (step <= STEP_INSPIRE) return step;
   if (step === STEP_ASSETS) return STEP_INSPIRE; // shouldn't land here for Starter
   return step - 1;
@@ -182,6 +185,14 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const [feeOption, setFeeOption] = useState<"donor_pays" | "platform_absorbs">("donor_pays");
   const [giveawayPrize, setGiveawayPrize] = useState("");
   const [createLoading, setCreateLoading] = useState(false);
+
+  // Raffle step state
+  const [raffleEnabled, setRaffleEnabled] = useState(false);
+  const [rafflePrizeName, setRafflePrizeName] = useState("");
+  const [rafflePrizeDescription, setRafflePrizeDescription] = useState("");
+  const [raffleComplianceAck, setRaffleComplianceAck] = useState(false);
+  const [raffleLoading, setRaffleLoading] = useState(false);
+  const canCreateRaffle = orgTier >= 2;
 
   const [campaignTitle, setCampaignTitle] = useState("");
   const [media, setMedia] = useState<PersistedMedia[]>([]);
@@ -378,7 +389,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         setCampaignTitle(title.trim());
         if (orgId) await fetchOrgTier(orgId);
       }
-      setStep(STEP_INSPIRE);
+      setStep(STEP_RAFFLE);
     } catch (err) {
       const msg = getErrorMessage(err);
       setError(msg);
@@ -386,6 +397,33 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
     } finally {
       setCreateLoading(false);
     }
+  };
+
+  const handleRaffleNext = async () => {
+    setError("");
+    if (raffleEnabled) {
+      if (!rafflePrizeName.trim()) { setError("Prize name is required."); return; }
+      if (rafflePrizeName.trim().length > 120) { setError("Prize name must be 120 characters or fewer."); return; }
+      if (!raffleComplianceAck) { setError("Please acknowledge the compliance requirement."); return; }
+      if (!campaignId) { setError("Campaign not found."); return; }
+      setRaffleLoading(true);
+      try {
+        await api.post(`/api/campaigns/${campaignId}/raffle`, {
+          prize_name: rafflePrizeName.trim(),
+          prize_description: rafflePrizeDescription.trim() || undefined,
+          compliance_ack: true,
+        });
+      } catch (err) {
+        const msg = getErrorMessage(err);
+        setError(msg);
+        notifyError(msg);
+        setRaffleLoading(false);
+        return;
+      } finally {
+        setRaffleLoading(false);
+      }
+    }
+    setStep(STEP_INSPIRE);
   };
 
   const handleExtractTokens = async () => {
@@ -565,7 +603,82 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
         </div>
       )}
 
-      {/* ── STEP 1: Design inspiration ── */}
+      {/* ── STEP 1: Raffle (optional) ── */}
+      {step === STEP_RAFFLE && campaignId && (
+        <div style={{ maxWidth: 560 }}>
+          <p>Optionally add a raffle to this campaign to incentivize donations.</p>
+          {!canCreateRaffle ? (
+            <div style={{ padding: 16, background: "#fafafa", border: "1px solid #eee", borderRadius: 8, marginBottom: 16 }}>
+              <strong>Raffles are available on Grow and Scale plans.</strong>
+              <br />
+              <Text type="secondary">Upgrade in Settings to unlock campaign raffles.</Text>
+            </div>
+          ) : (
+            <div style={{ marginBottom: 16 }}>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12, cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  checked={raffleEnabled}
+                  onChange={(e) => setRaffleEnabled(e.target.checked)}
+                />
+                <strong>Add a raffle to this campaign</strong>
+              </label>
+
+              {raffleEnabled && (
+                <div style={{ paddingLeft: 24, borderLeft: "3px solid #1677ff" }}>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", marginBottom: 4 }}>
+                      Prize name <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <Input
+                      value={rafflePrizeName}
+                      onChange={(e) => setRafflePrizeName(e.target.value)}
+                      placeholder="e.g. Apple iPad Pro"
+                      maxLength={120}
+                      style={{ maxWidth: 400 }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", marginBottom: 4 }}>Prize description (optional)</label>
+                    <TextArea
+                      value={rafflePrizeDescription}
+                      onChange={(e) => setRafflePrizeDescription(e.target.value)}
+                      placeholder="Describe the prize..."
+                      maxLength={1000}
+                      rows={3}
+                      style={{ maxWidth: 400 }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: 12, padding: 12, background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 6 }}>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      Your raffle will run until your campaign ends. Donors are automatically entered — one entry per donor.
+                    </Text>
+                  </div>
+                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={raffleComplianceAck}
+                      onChange={(e) => setRaffleComplianceAck(e.target.checked)}
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text style={{ fontSize: 13 }}>
+                      I confirm I am responsible for complying with raffle, lottery, and gaming laws in my jurisdiction.
+                    </Text>
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
+          <Space>
+            <Button onClick={() => setStep(STEP_DETAILS)}>Back</Button>
+            <Button type="primary" onClick={handleRaffleNext} loading={raffleLoading}>
+              {raffleEnabled && canCreateRaffle ? "Add raffle & continue" : "Skip & continue"}
+            </Button>
+          </Space>
+        </div>
+      )}
+
+      {/* ── STEP 2: Design inspiration ── */}
       {step === STEP_INSPIRE && campaignId && (
         <div>
           <p>
