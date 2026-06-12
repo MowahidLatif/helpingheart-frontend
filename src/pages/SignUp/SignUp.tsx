@@ -86,6 +86,10 @@ export default function SignUp() {
     if (!email || !firstName || !lastName || !password || !orgName) return;
     setLoading(true);
     try {
+      const detectedTimezone = (() => {
+        try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; }
+        catch { return "UTC"; }
+      })();
       const response = await api.post(API_ENDPOINTS.auth.register, {
         email,
         password,
@@ -94,6 +98,7 @@ export default function SignUp() {
         org_name: orgName,
         org_subdomain: orgSubdomain || undefined,
         org_tier: selectedTier,
+        timezone: detectedTimezone,
       });
       const { access_token, refresh_token, id, email: userEmail, name, org_id } = response.data;
       localStorage.setItem("token", access_token);

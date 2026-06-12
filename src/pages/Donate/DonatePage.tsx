@@ -38,6 +38,7 @@ export default function DonatePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
+  const [liveRaffleEntryCount, setLiveRaffleEntryCount] = useState<number | null>(null);
 
   useEffect(() => {
     if (orgResolved && slugResolved) {
@@ -70,11 +71,16 @@ export default function DonatePage() {
     }
   }, [orgResolved, slugResolved, campaignId]);
 
-  useCampaignLiveTotals(campaign?.id, Boolean(campaign?.id), (patch) => {
-    setCampaign((prev) =>
-      prev ? { ...prev, total_raised: patch.total_raised } : prev,
-    );
-  });
+  useCampaignLiveTotals(
+    campaign?.id,
+    Boolean(campaign?.id),
+    (patch) => {
+      setCampaign((prev) =>
+        prev ? { ...prev, total_raised: patch.total_raised } : prev,
+      );
+    },
+    () => setLiveRaffleEntryCount((c) => (c ?? 0) + 1),
+  );
 
   const presets = getPresetAmounts(campaign);
   const renderModel = parseAiSiteRenderModelFromDb(campaign?.ai_site_recipe);
@@ -150,6 +156,7 @@ export default function DonatePage() {
           campaign={campaign}
           recipe={renderModel.recipe}
           onDonateClick={() => setModalOpen(true)}
+          liveRaffleEntryCount={liveRaffleEntryCount}
         />
       ) : renderModel?.type === "iframeBundle" ? (
         (() => {

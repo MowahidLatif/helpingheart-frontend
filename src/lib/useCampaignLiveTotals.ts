@@ -16,16 +16,19 @@ export type LiveTotalsPatch = {
 };
 
 /**
- * Subscribes to Socket.IO `donation` events for the campaign room; falls back to
- * polling GET /api/campaigns/:id/progress when the socket is disconnected.
+ * Subscribes to Socket.IO `donation` and `raffle_entry` events for the campaign room;
+ * falls back to polling GET /api/campaigns/:id/progress when the socket is disconnected.
  */
 export function useCampaignLiveTotals(
   campaignId: string | undefined,
   enabled: boolean,
   onTotals: (patch: LiveTotalsPatch) => void,
+  onRaffleEntry?: () => void,
 ): void {
   const onTotalsRef = useRef(onTotals);
   onTotalsRef.current = onTotals;
+  const onRaffleEntryRef = useRef(onRaffleEntry);
+  onRaffleEntryRef.current = onRaffleEntry;
 
   useEffect(() => {
     if (!campaignId || !enabled) return;
@@ -80,7 +83,12 @@ export function useCampaignLiveTotals(
       socket.emit("join_campaign", { campaign_id: campaignId });
     });
 
+    const onRaffleEntryEvent = () => {
+      onRaffleEntryRef.current?.();
+    };
+
     socket.on("donation", onDonation);
+    socket.on("raffle_entry", onRaffleEntryEvent);
 
     socket.on("disconnect", () => {
       startPolling();
@@ -98,6 +106,7 @@ export function useCampaignLiveTotals(
       clearTimeout(fallbackTimer);
       stopPolling();
       socket.off("donation", onDonation);
+      socket.off("raffle_entry", onRaffleEntryEvent);
       socket.disconnect();
     };
   }, [campaignId, enabled]);

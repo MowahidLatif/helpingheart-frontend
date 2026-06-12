@@ -546,7 +546,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         </div>
       </div>
 
-      <RafflePanel campaignId={campaign.id} />
+      <RafflePanel campaignId={campaign.id} campaignStatus={campaign.status} />
 
       <div style={{ marginBottom: "1rem" }}>
         <button className="btn btn-primary btn-sm mr-sm mb-sm" onClick={handlePublish}>

@@ -21,7 +21,16 @@ type CampaignPublic = {
   title?: string;
   goal?: number;
   total_raised?: number;
+  slug?: string;
 };
+
+type RafflePublic = {
+  id: string;
+  prize_name: string;
+  status: string;
+  campaign_end_date?: string | null;
+  entry_count?: number | null;
+} | null;
 
 type DonationFeedItem = {
   id: string;
@@ -56,6 +65,7 @@ export default function ProgressEmbedPage() {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [campaign, setCampaign] = useState<CampaignPublic | null>(null);
   const [feed, setFeed] = useState<DonationFeedItem[]>([]);
+  const [raffle, setRaffle] = useState<RafflePublic>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -79,7 +89,13 @@ export default function ProgressEmbedPage() {
     ])
       .then(([progRes, campRes]) => {
         setProgress(progRes.data);
-        setCampaign(campRes?.data ?? null);
+        const camp = campRes?.data ?? null;
+        setCampaign(camp);
+        // Fetch raffle via slug or id
+        const slugOrId = camp?.slug || campaignId;
+        api.get(`/api/campaigns/${slugOrId}/raffle/public`)
+          .then((r) => { if (r.data?.raffle?.status === "active") setRaffle(r.data.raffle); })
+          .catch(() => {});
       })
       .catch((err) => {
         setError(getErrorMessage(err));
@@ -177,6 +193,20 @@ export default function ProgressEmbedPage() {
           >
             Donate
           </a>
+
+          {raffle && (
+            <div style={{ borderTop: "1px solid #eee", marginTop: "0.75rem", paddingTop: "0.5rem", fontSize: 12, color: "#555" }}>
+              🎟 <strong>{raffle.prize_name}</strong>
+              {raffle.entry_count != null && raffle.entry_count > 0 && (
+                <span style={{ marginLeft: 6, color: "#888" }}>· {raffle.entry_count} entered</span>
+              )}
+              {raffle.campaign_end_date && (
+                <span style={{ marginLeft: 6, color: "#888" }}>
+                  · ends {new Date(raffle.campaign_end_date).toLocaleDateString()}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Live donations feed */}

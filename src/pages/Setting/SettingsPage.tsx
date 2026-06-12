@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "antd";
+import { Button, Select } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 import { API_ENDPOINTS } from "@/lib/constants";
 import { getUser } from "@/lib/auth";
@@ -76,6 +76,7 @@ const SettingsPage = () => {
   // Org edit
   const [orgName, setOrgName] = useState("");
   const [orgSubdomain, setOrgSubdomain] = useState("");
+  const [orgTimezone, setOrgTimezone] = useState("UTC");
   const [orgError, setOrgError] = useState("");
   const [orgLoading, setOrgLoading] = useState(false);
 
@@ -152,7 +153,7 @@ const SettingsPage = () => {
         const firstOrg = orgsRes.data?.[0];
         if (firstOrg) {
           const [orgDetail, emailRes] = await Promise.all([
-            api.get<{ id: string; name: string; subdomain?: string; tier?: number }>(
+            api.get<{ id: string; name: string; subdomain?: string; tier?: number; timezone?: string }>(
               API_ENDPOINTS.orgs.get(firstOrg.id)
             ),
             api.get<EmailSettings>(API_ENDPOINTS.orgs.emailSettings(firstOrg.id)).catch(() => ({ data: null })),
@@ -167,6 +168,7 @@ const SettingsPage = () => {
             });
             setOrgName(orgDetail.data.name ?? "");
             setOrgSubdomain(orgDetail.data.subdomain ?? "");
+            setOrgTimezone(orgDetail.data.timezone ?? "UTC");
             if (firstOrg.role === "owner") {
               try {
                 const billingRes = await api.get<BillingStatus>(
@@ -292,7 +294,10 @@ const SettingsPage = () => {
     setOrgError("");
     setOrgLoading(true);
     try {
-      await api.patch(API_ENDPOINTS.orgs.update(org.id), { name: orgName.trim() });
+      await api.patch(API_ENDPOINTS.orgs.update(org.id), {
+        name: orgName.trim(),
+        timezone: orgTimezone,
+      });
       if (orgSubdomain.trim()) {
         await api.patch(API_ENDPOINTS.orgs.subdomain(org.id), {
           subdomain: orgSubdomain.trim().toLowerCase().replace(/[^a-z0-9-]/g, ""),
@@ -622,6 +627,27 @@ const SettingsPage = () => {
                 hideLabel
                 wrapperStyle={{ marginBottom: 0 }}
                 inputStyle={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+              />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Timezone (used for raffle end times):
+              <Select
+                value={orgTimezone}
+                onChange={(v) => setOrgTimezone(v)}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+                showSearch
+                optionFilterProp="label"
+                options={(
+                  typeof Intl.supportedValuesOf === "function"
+                    ? Intl.supportedValuesOf("timeZone")
+                    : ["UTC","America/New_York","America/Chicago","America/Denver","America/Los_Angeles",
+                       "America/Winnipeg","America/Toronto","America/Vancouver","America/Phoenix",
+                       "America/Halifax","America/St_Johns","Europe/London","Europe/Paris",
+                       "Europe/Berlin","Europe/Amsterdam","Europe/Zurich","Europe/Stockholm",
+                       "Europe/Helsinki","Asia/Tokyo","Asia/Seoul","Asia/Shanghai","Asia/Hong_Kong",
+                       "Asia/Singapore","Asia/Kolkata","Asia/Dubai","Australia/Sydney",
+                       "Australia/Melbourne","Pacific/Auckland","Pacific/Honolulu"]
+                ).map((tz: string) => ({ value: tz, label: tz }))}
               />
             </label>
             <Button type="primary" htmlType="submit" loading={orgLoading}>

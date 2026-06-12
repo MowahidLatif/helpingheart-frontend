@@ -12,31 +12,55 @@ type RaffleStatus =
 type RaffleBlockProps = {
   node: AiNode;
   campaignSlug?: string;
+  liveEntryCount?: number;
 };
 
-function Countdown({ endDate }: { endDate: string | null }) {
-  const [label, setLabel] = useState("");
+function Countdown({ endDate, timezone }: { endDate: string | null; timezone?: string | null }) {
+  const [relLabel, setRelLabel] = useState("");
 
   useEffect(() => {
-    if (!endDate) { setLabel(""); return; }
+    if (!endDate) { setRelLabel(""); return; }
     const update = () => {
       const diff = new Date(endDate).getTime() - Date.now();
-      if (diff <= 0) { setLabel("Raffle ended"); return; }
+      if (diff <= 0) { setRelLabel("Raffle ended"); return; }
       const days = Math.floor(diff / 86_400_000);
       const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-      if (days > 0) setLabel(`Raffle ends in ${days} day${days !== 1 ? "s" : ""}`);
-      else if (hours > 0) setLabel(`Raffle ends in ${hours} hour${hours !== 1 ? "s" : ""}`);
-      else setLabel("Raffle ends soon");
+      if (days > 0) setRelLabel(`Raffle ends in ${days} day${days !== 1 ? "s" : ""}`);
+      else if (hours > 0) setRelLabel(`Raffle ends in ${hours} hour${hours !== 1 ? "s" : ""}`);
+      else setRelLabel("Raffle ends soon");
     };
     update();
     const id = window.setInterval(update, 60_000);
     return () => window.clearInterval(id);
   }, [endDate]);
 
-  return label ? <p style={{ fontSize: 13, color: "#888", margin: "4px 0 0" }}>{label}</p> : null;
+  if (!endDate || !relLabel) return null;
+
+  let absoluteLabel = "";
+  try {
+    absoluteLabel = new Date(endDate).toLocaleString("en-US", {
+      timeZone: timezone || "UTC",
+      month: "long",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    });
+  } catch {
+    // invalid timezone fallback
+    absoluteLabel = new Date(endDate).toLocaleString();
+  }
+
+  return (
+    <>
+      <p style={{ fontSize: 13, color: "#888", margin: "4px 0 0" }}>{relLabel}</p>
+      <p style={{ fontSize: 12, color: "#aaa", margin: "2px 0 0" }}>Ends {absoluteLabel}</p>
+    </>
+  );
 }
 
-export function RaffleBlock({ node, campaignSlug }: RaffleBlockProps) {
+export function RaffleBlock({ node, campaignSlug, liveEntryCount: liveEntryCountProp }: RaffleBlockProps) {
   const p = node.props as {
     prize_name?: string | null;
     prize_description?: string | null;
@@ -44,12 +68,15 @@ export function RaffleBlock({ node, campaignSlug }: RaffleBlockProps) {
     prize_value_cents?: number | null;
     status?: RaffleStatus | null;
     campaign_end_date?: string | null;
+    timezone?: string | null;
     winner_display_name?: string | null;
     free_entry_url?: string | null;
     rules_url?: string | null;
+    liveEntryCount?: number | null;
   };
 
   const slug = campaignSlug || (p.free_entry_url?.split("/campaigns/")?.[1]?.split("/")?.[0]);
+  const resolvedEntryCount = liveEntryCountProp ?? p.liveEntryCount ?? null;
 
   const status = p.status || "active";
   const prizeName = p.prize_name || "Prize";
@@ -113,7 +140,12 @@ export function RaffleBlock({ node, campaignSlug }: RaffleBlockProps) {
             Prize value: ~${(p.prize_value_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
           </p>
         )}
-        <Countdown endDate={p.campaign_end_date ?? null} />
+        {(resolvedEntryCount != null && resolvedEntryCount > 0) && (
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#1677ff", fontWeight: 500 }}>
+            🎟 {resolvedEntryCount} {resolvedEntryCount === 1 ? "person" : "people"} entered
+          </p>
+        )}
+        <Countdown endDate={p.campaign_end_date ?? null} timezone={p.timezone} />
         {p.free_entry_url && (
           <p style={{ margin: "12px 0 0", fontSize: 12, color: "#999" }}>
             No donation necessary —{" "}

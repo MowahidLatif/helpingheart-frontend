@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, FormEvent } from "react";
-import { Progress, Input, Button, Upload, List, Typography, Alert, Steps, Space, Spin, Tabs } from "antd";
+import { Progress, Input, Button, Upload, List, Typography, Alert, Steps, Space, Spin, Tabs, InputNumber } from "antd";
 import type { UploadFile } from "antd";
 import { loadStripe } from "@stripe/stripe-js";
 import {
@@ -192,8 +192,10 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const [rafflePrizeDescription, setRafflePrizeDescription] = useState("");
   const [rafflePrizeValueDollars, setRafflePrizeValueDollars] = useState("");
   const [raffleEndDate, setRaffleEndDate] = useState("");
+  const [raffleMinEntries, setRaffleMinEntries] = useState<number | null>(null);
   const [raffleComplianceAck, setRaffleComplianceAck] = useState(false);
   const [raffleLoading, setRaffleLoading] = useState(false);
+  const raffleLive = import.meta.env.VITE_RAFFLE_LIVE === "true";
   const canCreateRaffle = orgTier >= 2;
 
   const [campaignTitle, setCampaignTitle] = useState("");
@@ -422,6 +424,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
           prize_description: rafflePrizeDescription.trim() || undefined,
           prize_value_cents: Math.round(prizeValueDollars * 100),
           compliance_ack: true,
+          ...(raffleMinEntries != null && orgTier >= 3 ? { min_entries: raffleMinEntries } : {}),
         });
       } catch (err) {
         const msg = getErrorMessage(err);
@@ -617,7 +620,17 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
       {step === STEP_RAFFLE && campaignId && (
         <div style={{ maxWidth: 560 }}>
           <p>Optionally add a raffle to this campaign to incentivize donations.</p>
-          {!canCreateRaffle ? (
+          {!raffleLive ? (
+            <div style={{ padding: 16, border: "1px solid #eee", borderRadius: 8, marginBottom: 16 }}>
+              <span style={{ background: "#faad14", borderRadius: 4, padding: "2px 8px", fontSize: 12, fontWeight: 700 }}>
+                Coming Soon
+              </span>
+              <p style={{ marginTop: 8, marginBottom: 0, color: "#555" }}>
+                Raffles are launching in October 2026 — automatically enter your donors to win prizes.
+                Available on Grow and Scale plans.
+              </p>
+            </div>
+          ) : !canCreateRaffle ? (
             <div style={{ padding: 16, background: "#fafafa", border: "1px solid #eee", borderRadius: 8, marginBottom: 16 }}>
               <strong>Raffles are available on Grow and Scale plans.</strong>
               <br />
@@ -685,6 +698,24 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                       Once the raffle is created, the end date will be locked.
                     </p>
                   </div>
+                  {orgTier >= 3 && (
+                    <div style={{ marginBottom: 12 }}>
+                      <label style={{ display: "block", marginBottom: 4 }}>
+                        Minimum entries required (optional){" "}
+                        <Text type="secondary" style={{ fontSize: 12 }}>Scale plan</Text>
+                      </label>
+                      <InputNumber
+                        min={2}
+                        value={raffleMinEntries}
+                        onChange={(v) => setRaffleMinEntries(v ?? null)}
+                        placeholder="e.g. 50"
+                        style={{ width: 160 }}
+                      />
+                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
+                        If not enough entries are received, the raffle will be cancelled and entrants notified.
+                      </p>
+                    </div>
+                  )}
                   <div style={{ marginBottom: 12, padding: 12, background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 6 }}>
                     <Text type="secondary" style={{ fontSize: 13 }}>
                       Your raffle will run until your campaign ends. Donors are automatically entered — one entry per donor.

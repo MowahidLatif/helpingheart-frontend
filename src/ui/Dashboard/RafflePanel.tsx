@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Badge, Spin, Table, Typography } from "antd";
+import { Alert, Badge, Button, Modal, Spin, Table, Typography } from "antd";
 import api, { getErrorMessage } from "@/lib/api";
 
 const { Text } = Typography;
@@ -46,10 +46,11 @@ const STATUS_LABELS: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-export function RafflePanel({ campaignId }: { campaignId: string }) {
+export function RafflePanel({ campaignId, campaignStatus }: { campaignId: string; campaignStatus?: string }) {
   const [data, setData] = useState<RaffleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [drawLoading, setDrawLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,12 +75,39 @@ export function RafflePanel({ campaignId }: { campaignId: string }) {
     return () => { cancelled = true; };
   }, [campaignId]);
 
+  const handleManualDraw = () => {
+    if (!data) return;
+    Modal.confirm({
+      title: "Draw winner now?",
+      content: "This will immediately draw a winner for the raffle. This action cannot be undone.",
+      okText: "Draw winner",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setDrawLoading(true);
+        try {
+          await api.post(`/api/orgs/raffles/${data.raffle.id}/manual-draw`);
+          // Refetch
+          const orgRes = await api.get(`/api/orgs/raffles/${data.raffle.id}/entries`);
+          setData(orgRes.data);
+        } catch (e) {
+          Modal.error({ title: "Draw failed", content: getErrorMessage(e) });
+        } finally {
+          setDrawLoading(false);
+        }
+      },
+    });
+  };
+
   if (loading) return <Spin size="small" style={{ marginBottom: 24 }} />;
   if (error) return null; // Silently hide if org doesn't have access or no raffle
   if (!data) return null;
 
   const { raffle, entry_count, draw_log } = data;
   const status = raffle.status;
+  const canManualDraw =
+    status === "active" &&
+    campaignStatus === "completed" &&
+    !raffle.winner_contact_email;
 
   const logColumns = [
     {
@@ -158,6 +186,22 @@ export function RafflePanel({ campaignId }: { campaignId: string }) {
           }
           style={{ marginBottom: 8 }}
         />
+      )}
+
+      {canManualDraw && (
+        <div style={{ marginTop: 12 }}>
+          <Button
+            type="primary"
+            danger
+            loading={drawLoading}
+            onClick={handleManualDraw}
+          >
+            Draw winner now
+          </Button>
+          <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
+            Campaign has ended — draw the winner manually.
+          </p>
+        </div>
       )}
 
       {draw_log.length > 0 && (

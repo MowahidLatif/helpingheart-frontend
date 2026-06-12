@@ -65,7 +65,12 @@ const featureRows: FeatureRow[] = [
   { label: "Email marketing with open + click tracking", t1: false, t2: false, t3: true },
   { label: "Donor segmentation", t1: false, t2: false, t3: true },
   { label: "Giveaway / lottery feature", t1: false, t2: false, t3: true },
-  { label: "Campaign raffles (auto-entry, auto-draw, winner management)", t1: false, t2: true, t3: true },
+  {
+    label: `Campaign raffles (auto-entry, auto-draw, winner management)${import.meta.env.VITE_RAFFLE_LIVE !== "true" ? " — Coming October 2026" : ""}`,
+    t1: false,
+    t2: true,
+    t3: true,
+  },
   { label: "Advanced analytics + CSV export", t1: false, t2: false, t3: true },
 ];
 

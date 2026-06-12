@@ -40,6 +40,8 @@ type Props = {
   editMode?: boolean;
   /** Called on blur when a text field is edited. */
   onTextEdit?: (nodeId: string, field: string, value: string) => void;
+  /** Live raffle entry count from WebSocket; passed into RaffleBlock. */
+  liveRaffleEntryCount?: number | null;
 };
 
 type EditableTag = "span" | "p" | "h1";
@@ -241,6 +243,7 @@ export function AiSiteRenderer({
   stickyDonate = true,
   editMode = false,
   onTextEdit,
+  liveRaffleEntryCount,
 }: Props) {
   if (recipe.version !== "1") {
     return (
@@ -289,7 +292,14 @@ export function AiSiteRenderer({
           case "spacer":
             return <SpacerAi key={node.id} node={node} />;
           case "raffle_block":
-            return <RaffleBlock key={node.id} node={node} />;
+            return (
+              <RaffleBlock
+                key={node.id}
+                node={node}
+                campaignSlug={campaign.slug}
+                liveEntryCount={liveRaffleEntryCount ?? undefined}
+              />
+            );
           default:
             return null;
         }
