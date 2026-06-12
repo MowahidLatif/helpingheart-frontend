@@ -190,6 +190,8 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
   const [raffleEnabled, setRaffleEnabled] = useState(false);
   const [rafflePrizeName, setRafflePrizeName] = useState("");
   const [rafflePrizeDescription, setRafflePrizeDescription] = useState("");
+  const [rafflePrizeValueDollars, setRafflePrizeValueDollars] = useState("");
+  const [raffleEndDate, setRaffleEndDate] = useState("");
   const [raffleComplianceAck, setRaffleComplianceAck] = useState(false);
   const [raffleLoading, setRaffleLoading] = useState(false);
   const canCreateRaffle = orgTier >= 2;
@@ -404,13 +406,21 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
     if (raffleEnabled) {
       if (!rafflePrizeName.trim()) { setError("Prize name is required."); return; }
       if (rafflePrizeName.trim().length > 120) { setError("Prize name must be 120 characters or fewer."); return; }
+      const prizeValueDollars = parseFloat(rafflePrizeValueDollars);
+      if (!rafflePrizeValueDollars || isNaN(prizeValueDollars) || prizeValueDollars <= 0) {
+        setError("Estimated prize value is required and must be greater than $0."); return;
+      }
       if (!raffleComplianceAck) { setError("Please acknowledge the compliance requirement."); return; }
       if (!campaignId) { setError("Campaign not found."); return; }
       setRaffleLoading(true);
       try {
+        if (raffleEndDate) {
+          await api.patch(`/api/campaigns/${campaignId}`, { ends_at: raffleEndDate });
+        }
         await api.post(`/api/campaigns/${campaignId}/raffle`, {
           prize_name: rafflePrizeName.trim(),
           prize_description: rafflePrizeDescription.trim() || undefined,
+          prize_value_cents: Math.round(prizeValueDollars * 100),
           compliance_ack: true,
         });
       } catch (err) {
@@ -648,6 +658,32 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                       rows={3}
                       style={{ maxWidth: 400 }}
                     />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", marginBottom: 4 }}>
+                      Estimated prize value ($) <span style={{ color: "red" }}>*</span>
+                    </label>
+                    <Input
+                      type="number"
+                      min="0.01"
+                      step="0.01"
+                      placeholder="e.g. 500.00"
+                      value={rafflePrizeValueDollars}
+                      onChange={(e) => setRafflePrizeValueDollars(e.target.value)}
+                      style={{ maxWidth: 200 }}
+                    />
+                  </div>
+                  <div style={{ marginBottom: 12 }}>
+                    <label style={{ display: "block", marginBottom: 4 }}>Campaign end date (optional)</label>
+                    <Input
+                      type="date"
+                      value={raffleEndDate}
+                      onChange={(e) => setRaffleEndDate(e.target.value)}
+                      style={{ maxWidth: 220 }}
+                    />
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
+                      Once the raffle is created, the end date will be locked.
+                    </p>
                   </div>
                   <div style={{ marginBottom: 12, padding: 12, background: "#f6ffed", border: "1px solid #b7eb8f", borderRadius: 6 }}>
                     <Text type="secondary" style={{ fontSize: 13 }}>

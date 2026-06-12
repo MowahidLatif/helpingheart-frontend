@@ -28,6 +28,7 @@ import FullCampaignEmbedPage from "@/pages/Embed/FullCampaignEmbedPage";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import FreeEntryPage from "@/pages/Raffle/FreeEntryPage";
 import ClaimPrizePage from "@/pages/Raffle/ClaimPrizePage";
+import RulesPage from "@/pages/Raffle/RulesPage";
 
 /** Routes when the SPA is served on `{org}.{VITE_PUBLIC_SITE_HOST_SUFFIX}` (public sites only). */
 export const tenantPublicOnlyRoutes: RouteObject[] = [
@@ -176,6 +177,10 @@ export const routes: RouteObject[] = [
   {
     path: "/campaigns/:slug/raffle/free-entry",
     element: <FreeEntryPage />,
+  },
+  {
+    path: "/campaigns/:slug/raffle/rules",
+    element: <RulesPage />,
   },
   {
     path: "/raffles/claim",

@@ -25,6 +25,7 @@ type Campaign = {
   fee_policy_version?: string;
   fee_option_locked?: boolean;
   locked_tier?: number;
+  ends_at?: string | null;
 };
 
 type GiveawayLog = {
@@ -112,6 +113,8 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
     "donor_pays"
   );
   const [editSlug, setEditSlug] = useState("");
+  const [editEndsAt, setEditEndsAt] = useState("");
+  const [editEndsAtLocked, setEditEndsAtLocked] = useState(false);
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState("");
 
@@ -210,13 +213,24 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       .finally(() => setReceiptsLoading(false));
   }, [campaign?.id, showDonations]);
 
-  const handleOpenEdit = () => {
+  const handleOpenEdit = async () => {
     setEditTitle(campaign?.title ?? "");
     setEditGoal(String(campaign?.goal ?? ""));
     setEditStatus(campaign?.status ?? "draft");
     setEditFeeOption(campaign?.fee_option ?? "donor_pays");
     setEditSlug(campaign?.slug ?? "");
+    const existingEndsAt = campaign?.ends_at ? campaign.ends_at.slice(0, 10) : "";
+    setEditEndsAt(existingEndsAt);
+    setEditEndsAtLocked(false);
     setEditError("");
+    if (campaign?.id) {
+      try {
+        const r = await api.get(`/api/campaigns/${campaign.id}/raffle/public`);
+        if (r.data && r.data.status === "active") setEditEndsAtLocked(true);
+      } catch {
+        // no raffle or not accessible — ends_at editable
+      }
+    }
     setShowEditModal(true);
   };
 
@@ -232,6 +246,7 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
         status?: string;
         slug?: string;
         fee_option?: "donor_pays" | "platform_absorbs";
+        ends_at?: string | null;
       } = {};
       if (editTitle.trim()) body.title = editTitle.trim();
       if (editGoal.trim()) body.goal = parseFloat(editGoal);
@@ -239,6 +254,9 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
       if (editSlug.trim()) body.slug = editSlug.trim();
       if (!campaign.fee_option_locked) {
         body.fee_option = editFeeOption;
+      }
+      if (!editEndsAtLocked) {
+        body.ends_at = editEndsAt ? new Date(editEndsAt).toISOString() : null;
       }
       const res = await api.patch<Campaign>(API_ENDPOINTS.campaigns.patch(campaign.id), body);
       onCampaignUpdated?.(res.data);
@@ -632,6 +650,11 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
               <option value="active">Active</option>
               <option value="completed">Completed</option>
             </select>
+            {editStatus === "completed" && campaign?.status !== "completed" && (
+              <small style={{ color: "#d97706", display: "block", marginTop: 4 }}>
+                If this campaign has an active raffle, it will be drawn immediately from entries received so far.
+              </small>
+            )}
           </label>
           <label style={{ display: "block", marginBottom: "1rem" }}>
             Slug:
@@ -661,6 +684,19 @@ const CampaignDetails: React.FC<CampaignDetailsProps> = ({ campaign, onCampaignU
                 ? "Payment model is locked after publish/completion."
                 : "Payment model can be changed while campaign is in draft."}
             </small>
+          </label>
+          <label style={{ display: "block", marginBottom: "1rem" }}>
+            Campaign end date:
+            <input
+              type="date"
+              value={editEndsAt}
+              onChange={(e) => setEditEndsAt(e.target.value)}
+              disabled={editEndsAtLocked}
+              style={{ display: "block", width: "100%", marginTop: "0.25rem", padding: "0.5rem" }}
+            />
+            {editEndsAtLocked && (
+              <small style={{ color: "#d97706" }}>End date is locked for campaigns with an active raffle.</small>
+            )}
           </label>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button type="submit" disabled={editLoading}>{editLoading ? "Saving…" : "Save"}</button>

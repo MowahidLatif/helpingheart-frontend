@@ -28,6 +28,7 @@ type DonationModalProps = {
   campaignTitle: string;
   presetAmounts?: number[];
   raffle?: RaffleInfo | null;
+  isOrgMember?: boolean;
 };
 
 function PaymentForm({
@@ -104,9 +105,12 @@ export function DonationModal({
   campaignTitle,
   presetAmounts = DEFAULT_PRESETS,
   raffle = null,
+  isOrgMember = false,
 }: DonationModalProps) {
   const [amount, setAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState("");
+  const [donorFirstName, setDonorFirstName] = useState("");
+  const [donorLastName, setDonorLastName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
   const [message, setMessage] = useState("");
   const [raffleDisplayConsent, setRaffleDisplayConsent] = useState(false);
@@ -127,6 +131,8 @@ export function DonationModal({
     if (!open) {
       setAmount(null);
       setCustomAmount("");
+      setDonorFirstName("");
+      setDonorLastName("");
       setDonorEmail("");
       setMessage("");
       setRaffleDisplayConsent(false);
@@ -156,6 +162,8 @@ export function DonationModal({
       const res = await api.post(API_ENDPOINTS.donations.checkout, {
         campaign_id: campaignId,
         amount: amt,
+        donor_first_name: donorFirstName.trim() || undefined,
+        donor_last_name: donorLastName.trim() || undefined,
         donor_email: donorEmail.trim() || undefined,
         message: message.trim() || undefined,
         raffle_display_consent: showRaffle ? raffleDisplayConsent : undefined,
@@ -277,6 +285,26 @@ export function DonationModal({
                   }}
                 />
               </div>
+              <div className="form-field" style={{ display: "flex", gap: 8 }}>
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="modal-donor-first-name">First name:</label>
+                  <Input
+                    id="modal-donor-first-name"
+                    placeholder="First"
+                    value={donorFirstName}
+                    onChange={(e) => setDonorFirstName(e.target.value)}
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label htmlFor="modal-donor-last-name">Last name:</label>
+                  <Input
+                    id="modal-donor-last-name"
+                    placeholder="Last"
+                    value={donorLastName}
+                    onChange={(e) => setDonorLastName(e.target.value)}
+                  />
+                </div>
+              </div>
               <div className="form-field">
                 <label htmlFor="modal-donor-email">Email (optional, for receipt):</label>
                 <Input
@@ -286,6 +314,11 @@ export function DonationModal({
                   value={donorEmail}
                   onChange={(e) => setDonorEmail(e.target.value)}
                 />
+                {showRaffle && (
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
+                    This email address will be used to contact you if you win the raffle.
+                  </p>
+                )}
               </div>
               <div className="form-field">
                 <label htmlFor="modal-message">Message (optional):</label>
@@ -299,19 +332,27 @@ export function DonationModal({
               </div>
               {showRaffle && (
                 <div className="form-field" style={{ background: "#f0f7ff", borderRadius: 8, padding: "10px 14px", border: "1px solid #bfdbfe" }}>
-                  <p style={{ margin: "0 0 8px", fontSize: 13, color: "#1d4ed8", fontWeight: 600 }}>
-                    🎟 Your donation automatically enters you into the raffle for{" "}
-                    <em>{raffle!.prize_name}</em>.
-                  </p>
-                  <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", fontSize: 13 }}>
-                    <input
-                      type="checkbox"
-                      checked={raffleDisplayConsent}
-                      onChange={(e) => setRaffleDisplayConsent(e.target.checked)}
-                      style={{ marginTop: 2 }}
-                    />
-                    If I win, display my first name and last initial on the campaign page.
-                  </label>
+                  {isOrgMember ? (
+                    <p style={{ margin: 0, fontSize: 13, color: "#666" }}>
+                      As a member of this organization's team, you are not eligible for the raffle. Your donation is still greatly appreciated.
+                    </p>
+                  ) : (
+                    <>
+                      <p style={{ margin: "0 0 8px", fontSize: 13, color: "#1d4ed8", fontWeight: 600 }}>
+                        🎟 Your donation automatically enters you into the raffle for{" "}
+                        <em>{raffle!.prize_name}</em>.
+                      </p>
+                      <label style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer", fontSize: 13 }}>
+                        <input
+                          type="checkbox"
+                          checked={raffleDisplayConsent}
+                          onChange={(e) => setRaffleDisplayConsent(e.target.checked)}
+                          style={{ marginTop: 2 }}
+                        />
+                        If I win, display my first name and last initial on the campaign page.
+                      </label>
+                    </>
+                  )}
                 </div>
               )}
               <Button

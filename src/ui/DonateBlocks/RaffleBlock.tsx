@@ -11,6 +11,7 @@ type RaffleStatus =
 
 type RaffleBlockProps = {
   node: AiNode;
+  campaignSlug?: string;
 };
 
 function Countdown({ endDate }: { endDate: string | null }) {
@@ -35,16 +36,20 @@ function Countdown({ endDate }: { endDate: string | null }) {
   return label ? <p style={{ fontSize: 13, color: "#888", margin: "4px 0 0" }}>{label}</p> : null;
 }
 
-export function RaffleBlock({ node }: RaffleBlockProps) {
+export function RaffleBlock({ node, campaignSlug }: RaffleBlockProps) {
   const p = node.props as {
     prize_name?: string | null;
     prize_description?: string | null;
     prize_image_url?: string | null;
+    prize_value_cents?: number | null;
     status?: RaffleStatus | null;
     campaign_end_date?: string | null;
     winner_display_name?: string | null;
     free_entry_url?: string | null;
+    rules_url?: string | null;
   };
+
+  const slug = campaignSlug || (p.free_entry_url?.split("/campaigns/")?.[1]?.split("/")?.[0]);
 
   const status = p.status || "active";
   const prizeName = p.prize_name || "Prize";
@@ -103,12 +108,24 @@ export function RaffleBlock({ node }: RaffleBlockProps) {
         {p.prize_description && (
           <p style={{ margin: "8px 0 4px", color: "#444", fontSize: 14 }}>{p.prize_description}</p>
         )}
+        {p.prize_value_cents != null && p.prize_value_cents > 0 && (
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>
+            Prize value: ~${(p.prize_value_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+          </p>
+        )}
         <Countdown endDate={p.campaign_end_date ?? null} />
         {p.free_entry_url && (
           <p style={{ margin: "12px 0 0", fontSize: 12, color: "#999" }}>
             No donation necessary —{" "}
             <a href={p.free_entry_url} style={{ color: "#1677ff" }}>
               free entry here
+            </a>
+          </p>
+        )}
+        {(p.rules_url || slug) && (
+          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#999" }}>
+            <a href={p.rules_url || `/campaigns/${slug}/raffle/rules`} style={{ color: "#888" }}>
+              Official rules
             </a>
           </p>
         )}
