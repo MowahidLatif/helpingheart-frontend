@@ -69,10 +69,9 @@ export default function ProgressEmbedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const fetchFeed = () => {
-    if (!campaignId) return;
+  const doFetchFeed = (id: string) => {
     api
-      .get<DonationFeedItem[]>(API_ENDPOINTS.campaigns.donationsRecent(campaignId))
+      .get<DonationFeedItem[]>(API_ENDPOINTS.campaigns.donationsRecent(id))
       .then((res) => setFeed(Array.isArray(res.data) ? res.data : []))
       .catch(() => { });
   };
@@ -91,7 +90,6 @@ export default function ProgressEmbedPage() {
         setProgress(progRes.data);
         const camp = campRes?.data ?? null;
         setCampaign(camp);
-        // Fetch raffle via slug or id
         const slugOrId = camp?.slug || campaignId;
         api.get(`/api/campaigns/${slugOrId}/raffle/public`)
           .then((r) => { if (r.data?.raffle?.status === "active") setRaffle(r.data.raffle); })
@@ -102,7 +100,7 @@ export default function ProgressEmbedPage() {
         notifyError(err, "Failed to load embed progress.");
       })
       .finally(() => setLoading(false));
-    fetchFeed();
+    doFetchFeed(campaignId);
   }, [campaignId]);
 
   useCampaignLiveTotals(campaignId, Boolean(campaignId), (patch) => {
@@ -120,7 +118,7 @@ export default function ProgressEmbedPage() {
           patch.donations_count !== undefined ? patch.donations_count : prev.donations_count,
       };
     });
-    fetchFeed();
+    if (campaignId) doFetchFeed(campaignId);
   });
 
   const containerStyle: React.CSSProperties = {
