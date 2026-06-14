@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Input } from "antd";
+import { Button, Input, Select } from "antd";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import api from "@/lib/api";
 import { decodeTokenClaims } from "@/lib/auth";
@@ -77,6 +77,8 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [orgName, setOrgName] = useState("");
   const [orgSubdomain, setOrgSubdomain] = useState("");
+  const defaultCurrency = navigator.language === "en-CA" ? "cad" : "usd";
+  const [currency, setCurrency] = useState<"usd" | "cad">(defaultCurrency);
   const [loading, setLoading] = useState(false);
 
   const trialEndLabel = trialChargeDateLabel();
@@ -99,6 +101,7 @@ export default function SignUp() {
         org_subdomain: orgSubdomain || undefined,
         org_tier: selectedTier,
         timezone: detectedTimezone,
+        currency,
       });
       const { access_token, refresh_token, id, email: userEmail, name, org_id } = response.data;
       localStorage.setItem("token", access_token);
@@ -298,6 +301,24 @@ export default function SignUp() {
               />
               <span className="form-help-text">
                 Your donation page will be at: {orgSubdomain || "yourorg"}.helpinghands.ca
+              </span>
+            </div>
+            <div className="form-group">
+              <label className="form-label" htmlFor="signup-currency">
+                Donation Currency
+              </label>
+              <Select
+                id="signup-currency"
+                value={currency}
+                onChange={(v) => setCurrency(v)}
+                style={{ width: "100%" }}
+                options={[
+                  { value: "usd", label: "USD — US Dollar ($)" },
+                  { value: "cad", label: "CAD — Canadian Dollar ($)" },
+                ]}
+              />
+              <span className="form-help-text">
+                All donations and payouts will be in this currency. You can change it in Settings until your first campaign is published.
               </span>
             </div>
             <div className="form-actions">

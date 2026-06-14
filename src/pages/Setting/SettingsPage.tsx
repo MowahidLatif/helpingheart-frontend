@@ -77,6 +77,8 @@ const SettingsPage = () => {
   const [orgName, setOrgName] = useState("");
   const [orgSubdomain, setOrgSubdomain] = useState("");
   const [orgTimezone, setOrgTimezone] = useState("UTC");
+  const [orgCurrency, setOrgCurrency] = useState<"usd" | "cad">("usd");
+  const [orgCurrencyLocked, setOrgCurrencyLocked] = useState(false);
   const [orgError, setOrgError] = useState("");
   const [orgLoading, setOrgLoading] = useState(false);
 
@@ -153,7 +155,7 @@ const SettingsPage = () => {
         const firstOrg = orgsRes.data?.[0];
         if (firstOrg) {
           const [orgDetail, emailRes] = await Promise.all([
-            api.get<{ id: string; name: string; subdomain?: string; tier?: number; timezone?: string }>(
+            api.get<{ id: string; name: string; subdomain?: string; tier?: number; timezone?: string; currency?: string }>(
               API_ENDPOINTS.orgs.get(firstOrg.id)
             ),
             api.get<EmailSettings>(API_ENDPOINTS.orgs.emailSettings(firstOrg.id)).catch(() => ({ data: null })),
@@ -169,6 +171,15 @@ const SettingsPage = () => {
             setOrgName(orgDetail.data.name ?? "");
             setOrgSubdomain(orgDetail.data.subdomain ?? "");
             setOrgTimezone(orgDetail.data.timezone ?? "UTC");
+            const cur = (orgDetail.data.currency || "usd").toLowerCase() as "usd" | "cad";
+            setOrgCurrency(cur);
+            // Lock currency after first published campaign — checked via presence of campaigns
+            api.get<Array<{ status: string }>>(`/api/campaigns/?org_id=${firstOrg.id}`)
+              .then((r) => {
+                const published = (r.data || []).some((c) => c.status !== "draft");
+                setOrgCurrencyLocked(published);
+              })
+              .catch(() => { /* non-fatal */ });
             if (firstOrg.role === "owner") {
               try {
                 const billingRes = await api.get<BillingStatus>(
@@ -297,6 +308,7 @@ const SettingsPage = () => {
       await api.patch(API_ENDPOINTS.orgs.update(org.id), {
         name: orgName.trim(),
         timezone: orgTimezone,
+        ...(!orgCurrencyLocked ? { currency: orgCurrency } : {}),
       });
       if (orgSubdomain.trim()) {
         await api.patch(API_ENDPOINTS.orgs.subdomain(org.id), {
@@ -649,6 +661,24 @@ const SettingsPage = () => {
                        "Australia/Melbourne","Pacific/Auckland","Pacific/Honolulu"]
                 ).map((tz: string) => ({ value: tz, label: tz }))}
               />
+            </label>
+            <label style={{ display: "block", marginBottom: "1rem" }}>
+              Donation Currency:
+              <Select
+                value={orgCurrency}
+                onChange={(v) => setOrgCurrency(v)}
+                disabled={orgCurrencyLocked}
+                style={{ display: "block", width: "100%", marginTop: "0.25rem" }}
+                options={[
+                  { value: "usd", label: "USD — US Dollar ($)" },
+                  { value: "cad", label: "CAD — Canadian Dollar ($)" },
+                ]}
+              />
+              {orgCurrencyLocked && (
+                <span style={{ fontSize: 12, color: "#888", marginTop: 4, display: "block" }}>
+                  Locked — currency cannot be changed after your first campaign is published.
+                </span>
+              )}
             </label>
             <Button type="primary" htmlType="submit" loading={orgLoading}>
               {orgLoading ? "Saving..." : "Update organization"}

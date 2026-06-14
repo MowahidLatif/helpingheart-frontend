@@ -39,6 +39,7 @@ export default function DonatePage() {
   const [error, setError] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [liveRaffleEntryCount, setLiveRaffleEntryCount] = useState<number | null>(null);
+  const [campaignPhase, setCampaignPhase] = useState<"active" | "closing" | "completed">("active");
 
   useEffect(() => {
     if (orgResolved && slugResolved) {
@@ -47,6 +48,10 @@ export default function DonatePage() {
         .then((res) => {
           setCampaign(res.data);
           setError("");
+          const s = (res.data?.status || "").toLowerCase();
+          if (s === "closing") setCampaignPhase("closing");
+          else if (s === "completed") setCampaignPhase("completed");
+          else setCampaignPhase("active");
         })
         .catch((err) => {
           setError(getErrorMessage(err));
@@ -59,6 +64,10 @@ export default function DonatePage() {
         .then((res) => {
           setCampaign(res.data);
           setError("");
+          const s = (res.data?.status || "").toLowerCase();
+          if (s === "closing") setCampaignPhase("closing");
+          else if (s === "completed") setCampaignPhase("completed");
+          else setCampaignPhase("active");
         })
         .catch((err) => {
           setError(getErrorMessage(err));
@@ -80,6 +89,8 @@ export default function DonatePage() {
       );
     },
     () => setLiveRaffleEntryCount((c) => (c ?? 0) + 1),
+    () => setCampaignPhase("closing"),
+    () => setCampaignPhase("completed"),
   );
 
   const presets = getPresetAmounts(campaign);
@@ -100,7 +111,7 @@ export default function DonatePage() {
   }, [campaign, renderModel]);
 
   const status = (campaign?.status ?? "").toLowerCase();
-  const isPubliclyVisible = status === "active" || status === "completed";
+  const isPubliclyVisible = status === "active" || status === "closing" || status === "completed";
 
   if (loading) {
     return (
@@ -140,6 +151,20 @@ export default function DonatePage() {
 
   return (
     <div className="donate-page donate-page-blocks">
+      {campaignPhase === "closing" && (
+        <div style={{
+          background: "#fff7e6",
+          border: "1px solid #ffd591",
+          borderRadius: 8,
+          padding: "0.75rem 1.25rem",
+          margin: "1rem 0",
+          textAlign: "center",
+          fontSize: 14,
+          color: "#874d00",
+        }}>
+          This campaign has ended — finalizing results (up to 15 minutes)&hellip;
+        </div>
+      )}
       {seo ? (
         <Helmet>
           <title>{seo.title}</title>
@@ -155,7 +180,7 @@ export default function DonatePage() {
         <AiSiteRenderer
           campaign={campaign}
           recipe={renderModel.recipe}
-          onDonateClick={() => setModalOpen(true)}
+          onDonateClick={campaignPhase === "closing" ? () => undefined : () => setModalOpen(true)}
           liveRaffleEntryCount={liveRaffleEntryCount}
         />
       ) : renderModel?.type === "iframeBundle" ? (

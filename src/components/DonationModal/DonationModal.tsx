@@ -112,6 +112,9 @@ export function DonationModal({
   const [donorFirstName, setDonorFirstName] = useState("");
   const [donorLastName, setDonorLastName] = useState("");
   const [donorEmail, setDonorEmail] = useState("");
+  const [donorConfirmEmail, setDonorConfirmEmail] = useState("");
+  const [donorPhone, setDonorPhone] = useState("");
+  const [emailMismatch, setEmailMismatch] = useState(false);
   const [message, setMessage] = useState("");
   const [raffleDisplayConsent, setRaffleDisplayConsent] = useState(false);
   const showRaffle = !!(raffle && raffle.status === "active");
@@ -134,6 +137,9 @@ export function DonationModal({
       setDonorFirstName("");
       setDonorLastName("");
       setDonorEmail("");
+      setDonorConfirmEmail("");
+      setDonorPhone("");
+      setEmailMismatch(false);
       setMessage("");
       setRaffleDisplayConsent(false);
       setCheckoutData(null);
@@ -157,6 +163,13 @@ export function DonationModal({
       return;
     }
     setError("");
+
+    if (showRaffle && donorEmail.trim()) {
+      const mismatch = donorEmail.trim().toLowerCase() !== donorConfirmEmail.trim().toLowerCase();
+      setEmailMismatch(mismatch);
+      if (mismatch) return;
+    }
+
     setCreatingCheckout(true);
     try {
       const res = await api.post(API_ENDPOINTS.donations.checkout, {
@@ -167,6 +180,7 @@ export function DonationModal({
         donor_email: donorEmail.trim() || undefined,
         message: message.trim() || undefined,
         raffle_display_consent: showRaffle ? raffleDisplayConsent : undefined,
+        ...(showRaffle && donorPhone.trim() ? { phone: donorPhone.trim() } : {}),
       });
       const data = res.data;
       if (data.error || !data.clientSecret) {
@@ -306,20 +320,55 @@ export function DonationModal({
                 </div>
               </div>
               <div className="form-field">
-                <label htmlFor="modal-donor-email">Email (optional, for receipt):</label>
+                <label htmlFor="modal-donor-email">
+                  {showRaffle ? "Email (required for raffle):" : "Email (optional, for receipt):"}
+                </label>
                 <Input
                   id="modal-donor-email"
                   type="email"
                   placeholder="you@example.com"
                   value={donorEmail}
-                  onChange={(e) => setDonorEmail(e.target.value)}
+                  onChange={(e) => { setDonorEmail(e.target.value); setEmailMismatch(false); }}
+                  required={showRaffle}
                 />
                 {showRaffle && (
-                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
-                    This email address will be used to contact you if you win the raffle.
+                  <p style={{ margin: "4px 0 0", fontSize: 12, color: "#1d4ed8", fontWeight: 500 }}>
+                    <strong>Double-check your email.</strong> If you win the raffle, this is the only way we&apos;ll contact you to claim your prize.
                   </p>
                 )}
               </div>
+              {showRaffle && (
+                <>
+                  <div className="form-field">
+                    <label htmlFor="modal-confirm-email">Confirm email:</label>
+                    <Input
+                      id="modal-confirm-email"
+                      type="email"
+                      placeholder="you@example.com"
+                      value={donorConfirmEmail}
+                      onChange={(e) => { setDonorConfirmEmail(e.target.value); setEmailMismatch(false); }}
+                    />
+                    {emailMismatch && (
+                      <p style={{ margin: "4px 0 0", fontSize: 12, color: "#dc2626" }}>
+                        Emails don&apos;t match — please check before continuing.
+                      </p>
+                    )}
+                  </div>
+                  <div className="form-field">
+                    <label htmlFor="modal-donor-phone">Phone number (optional):</label>
+                    <Input
+                      id="modal-donor-phone"
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      value={donorPhone}
+                      onChange={(e) => setDonorPhone(e.target.value)}
+                    />
+                    <p style={{ margin: "4px 0 0", fontSize: 12, color: "#888" }}>
+                      We will never call or message you — except to confirm you received our email if you win.
+                    </p>
+                  </div>
+                </>
+              )}
               <div className="form-field">
                 <label htmlFor="modal-message">Message (optional):</label>
                 <Input.TextArea

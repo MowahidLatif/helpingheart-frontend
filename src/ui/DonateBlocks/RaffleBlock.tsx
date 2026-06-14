@@ -66,6 +66,7 @@ export function RaffleBlock({ node, campaignSlug, liveEntryCount: liveEntryCount
     prize_description?: string | null;
     prize_image_url?: string | null;
     prize_value_cents?: number | null;
+    currency?: string | null;
     status?: RaffleStatus | null;
     campaign_end_date?: string | null;
     timezone?: string | null;
@@ -137,7 +138,7 @@ export function RaffleBlock({ node, campaignSlug, liveEntryCount: liveEntryCount
         )}
         {p.prize_value_cents != null && p.prize_value_cents > 0 && (
           <p style={{ margin: "4px 0 0", fontSize: 13, color: "#555" }}>
-            Prize value: ~${(p.prize_value_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+            Prize value: ~${(p.prize_value_cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} {(p.currency || "usd").toUpperCase()}
           </p>
         )}
         {(resolvedEntryCount != null && resolvedEntryCount > 0) && (

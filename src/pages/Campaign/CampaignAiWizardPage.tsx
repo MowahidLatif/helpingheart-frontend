@@ -729,7 +729,7 @@ export default function CampaignAiWizardPage({ mode, initialCampaignId }: Props)
                       style={{ marginTop: 2 }}
                     />
                     <Text style={{ fontSize: 13 }}>
-                      I confirm I am responsible for complying with raffle, lottery, and gaming laws in my jurisdiction.
+                      I confirm I am responsible for complying with raffle, lottery, and gaming laws in my jurisdiction. <strong>Raffles cannot be cancelled once your campaign is live.</strong>
                     </Text>
                   </label>
                 </div>

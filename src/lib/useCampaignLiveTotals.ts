@@ -16,19 +16,25 @@ export type LiveTotalsPatch = {
 };
 
 /**
- * Subscribes to Socket.IO `donation` and `raffle_entry` events for the campaign room;
- * falls back to polling GET /api/campaigns/:id/progress when the socket is disconnected.
+ * Subscribes to Socket.IO `donation`, `raffle_entry`, `campaign_closing`, and
+ * `campaign_completed` events for the campaign room; falls back to polling when disconnected.
  */
 export function useCampaignLiveTotals(
   campaignId: string | undefined,
   enabled: boolean,
   onTotals: (patch: LiveTotalsPatch) => void,
   onRaffleEntry?: () => void,
+  onCampaignClosing?: () => void,
+  onCampaignCompleted?: () => void,
 ): void {
   const onTotalsRef = useRef(onTotals);
   onTotalsRef.current = onTotals;
   const onRaffleEntryRef = useRef(onRaffleEntry);
   onRaffleEntryRef.current = onRaffleEntry;
+  const onCampaignClosingRef = useRef(onCampaignClosing);
+  onCampaignClosingRef.current = onCampaignClosing;
+  const onCampaignCompletedRef = useRef(onCampaignCompleted);
+  onCampaignCompletedRef.current = onCampaignCompleted;
 
   useEffect(() => {
     if (!campaignId || !enabled) return;
@@ -86,9 +92,17 @@ export function useCampaignLiveTotals(
     const onRaffleEntryEvent = () => {
       onRaffleEntryRef.current?.();
     };
+    const onCampaignClosingEvent = () => {
+      onCampaignClosingRef.current?.();
+    };
+    const onCampaignCompletedEvent = () => {
+      onCampaignCompletedRef.current?.();
+    };
 
     socket.on("donation", onDonation);
     socket.on("raffle_entry", onRaffleEntryEvent);
+    socket.on("campaign_closing", onCampaignClosingEvent);
+    socket.on("campaign_completed", onCampaignCompletedEvent);
 
     socket.on("disconnect", () => {
       startPolling();
@@ -107,6 +121,8 @@ export function useCampaignLiveTotals(
       stopPolling();
       socket.off("donation", onDonation);
       socket.off("raffle_entry", onRaffleEntryEvent);
+      socket.off("campaign_closing", onCampaignClosingEvent);
+      socket.off("campaign_completed", onCampaignCompletedEvent);
       socket.disconnect();
     };
   }, [campaignId, enabled]);
