@@ -119,6 +119,18 @@ const Pricing = () => {
         </Button>
       </div>
 
+      <p
+        style={{
+          textAlign: "center",
+          fontSize: "0.8rem",
+          color: "#888",
+          marginTop: "-0.75rem",
+          marginBottom: "1.5rem",
+        }}
+      >
+        {interval === "monthly" ? "Billed monthly." : "Billed annually."}
+      </p>
+
       <div className="pricing-tiers-grid mb-2xl">
         {tiers.map(({ key, popular }) => {
           const limits = TIER_LIMITS[key];
@@ -126,6 +138,16 @@ const Pricing = () => {
           const priceDisplay =
             interval === "annual" ? (
               <>
+                <span
+                  style={{
+                    textDecoration: "line-through",
+                    color: "#aaa",
+                    fontSize: "1.1rem",
+                    marginRight: "0.35rem",
+                  }}
+                >
+                  ${limits.monthly_price * 12}
+                </span>
                 <span className="pricing-tier__pct">${annualPriceForTier(key)}</span>
                 <span className="pricing-tier__fee-label">/year</span>
               </>
